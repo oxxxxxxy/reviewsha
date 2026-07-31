@@ -158,9 +158,129 @@ curl http://localhost:3000/api/health
 
 ### 2.2.2 Frontend Web
 
+Статус: ✅ COMPLETE
+
+Создан React 19 + Vite skeleton пользовательского приложения:
+
+```txt
+apps/web/
+├── public/
+├── src/
+│   ├── app/
+│   │   ├── app.tsx
+│   │   ├── main.tsx
+│   │   ├── providers.tsx
+│   │   └── router.tsx
+│   ├── api/
+│   │   ├── client.ts
+│   │   └── index.ts
+│   ├── assets/
+│   ├── components/
+│   │   ├── shared/
+│   │   └── ui/
+│   ├── features/
+│   ├── hooks/
+│   ├── layouts/
+│   │   ├── AppLayout.tsx
+│   │   └── AuthLayout.tsx
+│   ├── pages/
+│   │   ├── Chat/
+│   │   ├── Dashboard/
+│   │   ├── Login/
+│   │   ├── NotFound/
+│   │   ├── Projects/
+│   │   ├── Reports/
+│   │   └── Settings/
+│   ├── stores/
+│   │   └── ui.store.ts
+│   ├── styles/
+│   │   ├── global.css
+│   │   └── variables.css
+│   ├── types/
+│   └── utils/
+├── .env.example
+├── index.html
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts
+└── package.json
+```
+
+Подключено:
+
+- React 19;
+- Vite;
+- TypeScript;
+- React Router;
+- TanStack Query;
+- Zustand;
+- React Hook Form;
+- Zod;
+- Axios;
+- `@hookform/resolvers`.
+
+Реализовано:
+
+- app bootstrap через `src/app/main.tsx`;
+- `AppProviders` с `QueryClientProvider` и `BrowserRouter`;
+- `QueryClient` с `retry`, `staleTime`, `refetchOnWindowFocus`;
+- маршруты MVP;
+- `AppLayout`;
+- `AuthLayout`;
+- placeholder страницы;
+- login form example через React Hook Form + Zod;
+- axios client с `baseURL`, `timeout`, JSON headers и interceptor-заглушками;
+- Zustand `ui.store.ts`;
+- глобальные стили и CSS variables;
+- `.env.example` с `VITE_API_URL`.
+
+Маршруты MVP:
+
+```txt
+/
+/login
+/dashboard
+/projects
+/projects/:id
+/reports/:id
+/chat
+/settings
+*
+```
+
+Проверено:
+
+```bash
+yarn workspace @reviewsha/web dev
+yarn workspace @reviewsha/web build
+yarn workspace @reviewsha/web typecheck
+yarn workspace @reviewsha/web lint
+yarn build
+yarn typecheck
+yarn format:check --ignore-unknown
+```
+
+Dev routes возвращают `200`:
+
+```txt
+/
+/login
+/dashboard
+/projects
+/projects/123
+/reports/abc
+/chat
+/settings
+/unknown
+```
+
+---
+
+### 2.2.3 Admin
+
 Статус: ⏳ NEXT
 
 ```txt
-apps/web
-React 19 + Vite + React Router + TanStack Query + Zustand
+apps/admin
+React 19 + Vite admin application skeleton
 ```

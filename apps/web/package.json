@@ -2,11 +2,31 @@
   "name": "@reviewsha/web",
   "version": "0.0.0",
   "private": true,
+  "description": "Reviewsha user-facing React application.",
+  "type": "module",
   "scripts": {
-    "dev": "echo '[web] scaffold pending: Этап 2.2'",
-    "build": "echo '[web] scaffold pending: Этап 2.2'",
-    "lint": "echo '[web] scaffold pending: Этап 2.2'",
-    "typecheck": "echo '[web] scaffold pending: Этап 2.2'",
-    "test": "echo '[web] scaffold pending: Этап 2.2'"
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "build": "yarn typecheck && vite build",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "test": "echo '[web] tests pending'"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.5.7",
+    "@tanstack/react-query": "^5.101.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "axios": "^1.19.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-hook-form": "^7.83.0",
+    "react-router-dom": "^7.18.2",
+    "vite": "^8.2.0",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4"
   }
 }
