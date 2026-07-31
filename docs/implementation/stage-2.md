@@ -142,9 +142,27 @@ yarn workspace @reviewsha/api prisma:generate
 yarn workspace @reviewsha/api typecheck
 yarn workspace @reviewsha/api build
 yarn workspace @reviewsha/api lint
+yarn workspace @reviewsha/api test
 yarn workspace @reviewsha/api dev
 curl http://localhost:3000/api/health
 ```
+
+Тесты API:
+
+```txt
+6 test files
+11 tests
+```
+
+Покрыто:
+
+- env schema;
+- app config;
+- health service;
+- health controller;
+- exception filter;
+- AppModule bootstrap shape.
+
 
 Ответ:
 
@@ -255,10 +273,29 @@ yarn workspace @reviewsha/web dev
 yarn workspace @reviewsha/web build
 yarn workspace @reviewsha/web typecheck
 yarn workspace @reviewsha/web lint
+yarn workspace @reviewsha/web test
 yarn build
 yarn typecheck
 yarn format:check --ignore-unknown
 ```
+
+Тесты Web:
+
+```txt
+6 test files
+20 tests
+```
+
+Покрыто:
+
+- providers;
+- QueryClient defaults;
+- API client config;
+- Zustand UI store;
+- router/routes/root redirect/404;
+- login form render/validation/submit;
+- AppLayout nav/sidebar.
+
 
 Dev routes возвращают `200`:
 
@@ -448,9 +485,155 @@ Dev routes возвращают `200`:
 
 ### 2.2.4 Worker
 
+Статус: ✅ COMPLETE
+
+Создан отдельный Worker service на NestJS 11 + BullMQ:
+
+```txt
+apps/worker/
+├── src/
+│   ├── main.ts
+│   ├── main.test.ts
+│   ├── worker.module.ts
+│   ├── worker.module.test.ts
+│   ├── config/
+│   │   ├── config.module.ts
+│   │   ├── env.schema.ts
+│   │   ├── env.schema.test.ts
+│   │   ├── worker.config.ts
+│   │   └── worker.config.test.ts
+│   ├── common/
+│   │   ├── logger/
+│   │   │   ├── worker-logger.service.ts
+│   │   │   └── worker-logger.service.test.ts
+│   │   └── shutdown/
+│   │       ├── shutdown.service.ts
+│   │       └── shutdown.service.test.ts
+│   ├── queue/
+│   │   ├── queue.constants.ts
+│   │   ├── queue.constants.test.ts
+│   │   ├── queue.events.ts
+│   │   ├── queue.events.test.ts
+│   │   ├── queue.module.ts
+│   │   ├── queue.service.ts
+│   │   └── queue.service.test.ts
+│   ├── workers/
+│   │   ├── analyze.worker.ts
+│   │   ├── base.worker.ts
+│   │   ├── cleanup.worker.ts
+│   │   ├── extract.worker.ts
+│   │   ├── parse.worker.ts
+│   │   ├── report.worker.ts
+│   │   ├── upload.worker.ts
+│   │   └── workers.test.ts
+│   ├── processors/
+│   ├── services/
+│   └── utils/
+├── .env.example
+├── nest-cli.json
+├── package.json
+├── tsconfig.build.json
+└── tsconfig.json
+```
+
+Подключено:
+
+- NestJS 11 application context;
+- BullMQ;
+- ioredis;
+- TypeScript;
+- Zod;
+- `@nestjs/config`;
+- Vitest.
+
+Реализовано:
+
+- standalone bootstrap без HTTP API;
+- env validation через Zod;
+- `QueueModule`;
+- `QueueService`;
+- очереди `upload`, `extract`, `parse`, `analyze`, `report`, `cleanup`;
+- методы `enqueueUpload`, `enqueueExtract`, `enqueueParse`, `enqueueAnalyze`, `enqueueReport`, `enqueueCleanup`;
+- отдельный Worker-класс для каждой очереди;
+- базовый `BaseQueueWorker`;
+- centralized `WorkerLoggerService`;
+- graceful shutdown через `SIGINT` и `SIGTERM`;
+- Redis-required mode для production;
+- skeleton fallback mode для локального старта без Redis;
+- заготовки каталогов `processors`, `services`, `utils`.
+
+Startup logs при наличии Redis:
+
+```txt
+Redis connected
+Queues initialized
+UploadWorker started
+ExtractWorker started
+ParseWorker started
+AnalyzeWorker started
+ReportWorker started
+CleanupWorker started
+Worker started
+Registered queues: upload, extract, parse, analyze, report, cleanup
+Waiting for jobs...
+```
+
+Тесты:
+
+```txt
+10 test files
+33 tests
+```
+
+Покрыто тестами:
+
+- env schema;
+- worker config mapping;
+- queue constants;
+- queue event log formatters;
+- QueueService queue list;
+- QueueService skeleton mode;
+- QueueService required Redis failure mode;
+- enqueue methods;
+- worker registration and close;
+- WorkerLoggerService;
+- ShutdownService signal binding;
+- all six Worker classes;
+- WorkerModule;
+- bootstrap export.
+
+Проверено:
+
+```bash
+yarn workspace @reviewsha/worker dev
+yarn workspace @reviewsha/worker build
+yarn workspace @reviewsha/worker lint
+yarn workspace @reviewsha/worker typecheck
+yarn workspace @reviewsha/worker test
+yarn lint
+yarn build
+yarn typecheck
+yarn test
+yarn format:check --ignore-unknown
+```
+
+Acceptance Redis check выполнен с локальным Docker Redis container:
+
+```txt
+reviewsha-redis-worker-test
+redis:7-alpine
+localhost:6379
+```
+
+---
+
+### 2.3. Создание packages
+
 Статус: ⏳ NEXT
 
 ```txt
-apps/worker
-Node/Nest worker + BullMQ bootstrap
+packages/ui
+packages/sdk
+packages/types
+packages/config
 ```
