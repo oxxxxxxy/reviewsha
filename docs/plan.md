@@ -735,4 +735,255 @@ Autoscaling
 * какие таблицы добавятся;
 * какие риски есть.
 
-Так ты научишься не только писать код, но и мыслить как инженер, который сначала проектирует решение, а потом реализует его. Это очень хорошо совпадает с тем, что тебе описывал работодатель про владение фичей целиком и ответственность за архитектурные решения.
+Я бы выстроил разработку так, чтобы каждый этап оставлял проект в рабочем состоянии и постепенно использовал весь стек (NestJS, Prisma, BullMQ, Redis, MinIO, React, Playwright, Docker, Kubernetes и т.д.), а не "для галочки".
+
+# Этап 1. Проектирование системы ✅
+
+* 1.1 Документация
+* 1.2 Архитектура
+* 1.3 Диаграммы
+
+---
+
+# Этап 2. Инициализация проекта 🟡
+
+* 2.1 Yarn Workspaces ✅
+* 2.2 Создание приложений
+
+  * 2.2.1 Backend API ✅
+  * 2.2.2 Frontend Web
+  * 2.2.3 Admin
+  * 2.2.4 Worker
+* 2.3 Shared packages
+* 2.4 Docker Compose
+* 2.5 Базовая инфраструктура проекта
+* 2.6 CI (GitLab)
+
+---
+
+# Этап 3. База данных
+
+* 3.1 Prisma Schema
+* 3.2 Миграции
+* 3.3 Seed
+* 3.4 Prisma Client
+* 3.5 Repository Layer
+
+---
+
+# Этап 4. Авторизация
+
+* 4.1 Users Module
+* 4.2 Auth Module
+* 4.3 JWT
+* 4.4 Refresh Token
+* 4.5 Guards
+* 4.6 Roles
+* 4.7 Swagger Auth
+
+---
+
+# Этап 5. Управление проектами
+
+* 5.1 Projects Module
+* 5.2 CRUD проектов
+* 5.3 Архивация
+* 5.4 Теги
+* 5.5 История изменений
+
+---
+
+# Этап 6. Загрузка файлов
+
+* 6.1 MinIO
+* 6.2 Upload API
+* 6.3 ZIP Validation
+* 6.4 Хранение файлов
+* 6.5 Версионирование
+
+---
+
+# Этап 7. Очереди
+
+* 7.1 Redis
+* 7.2 BullMQ
+* 7.3 Queue Module
+* 7.4 Job Pipeline
+* 7.5 Retry Strategy
+* 7.6 Monitoring
+
+---
+
+# Этап 8. Worker
+
+* 8.1 Worker Bootstrap
+* 8.2 Download Job
+* 8.3 Extract Job
+* 8.4 Parse Job
+* 8.5 Merge Job
+* 8.6 Cleanup Job
+
+---
+
+# Этап 9. AI Pipeline
+
+* 9.1 Parser
+* 9.2 Chunk Builder
+* 9.3 Prompt Builder
+* 9.4 OmniRouter Integration
+* 9.5 DeepSeek
+* 9.6 AI Processor
+* 9.7 Report Generator
+
+---
+
+# Этап 10. Отчёты
+
+* 10.1 Reports Module
+* 10.2 Markdown
+* 10.3 PDF
+* 10.4 JSON Export
+* 10.5 История анализов
+* 10.6 Сравнение анализов
+
+---
+
+# Этап 11. AI Chat
+
+* 11.1 Chat Module
+* 11.2 Контекст проекта
+* 11.3 История сообщений
+* 11.4 Streaming
+* 11.5 AI Memory
+
+---
+
+# Этап 12. Frontend
+
+* 12.1 UI Kit
+* 12.2 Авторизация
+* 12.3 Dashboard
+* 12.4 Projects
+* 12.5 Upload
+* 12.6 Анализ
+* 12.7 Reports
+* 12.8 Chat
+* 12.9 Settings
+
+---
+
+# Этап 13. Admin Panel
+
+* 13.1 Авторизация
+* 13.2 Пользователи
+* 13.3 Проекты
+* 13.4 Очереди
+* 13.5 Логи
+* 13.6 AI Usage
+* 13.7 Статистика
+
+---
+
+# Этап 14. SDK
+
+* 14.1 OpenAPI
+* 14.2 Генерация SDK
+* 14.3 Общие типы
+* 14.4 Интеграция Frontend
+
+---
+
+# Этап 15. Логирование
+
+* 15.1 Logger
+* 15.2 Request Logging
+* 15.3 Worker Logging
+* 15.4 Error Tracking
+* 15.5 Audit Log
+
+---
+
+# Этап 16. Тестирование
+
+* 16.1 Unit Tests
+* 16.2 Integration Tests
+* 16.3 E2E Backend
+* 16.4 Playwright
+* 16.5 Test Fixtures
+
+---
+
+# Этап 17. Docker
+
+* 17.1 Backend
+* 17.2 Frontend
+* 17.3 Worker
+* 17.4 Admin
+* 17.5 Compose
+* 17.6 Production Images
+
+---
+
+# Этап 18. Kubernetes
+
+* 18.1 Namespace
+* 18.2 ConfigMap
+* 18.3 Secrets
+* 18.4 Deployments
+* 18.5 Services
+* 18.6 Ingress
+* 18.7 Autoscaling
+
+---
+
+# Этап 19. Helm
+
+* 19.1 Chart
+* 19.2 Values
+* 19.3 Templates
+* 19.4 Production Configuration
+
+---
+
+# Этап 20. GitLab CI/CD
+
+* 20.1 Install
+* 20.2 Lint
+* 20.3 Tests
+* 20.4 Build
+* 20.5 Docker Build
+* 20.6 Deploy
+
+---
+
+# Этап 21. Оптимизация
+
+* 21.1 Кэширование
+* 21.2 Производительность AI Pipeline
+* 21.3 Индексы PostgreSQL
+* 21.4 Оптимизация запросов
+* 21.5 Оптимизация Frontend
+
+---
+
+# Этап 22. Документация
+
+* 22.1 API
+* 22.2 Deployment
+* 22.3 Development Guide
+* 22.4 Contributing
+* 22.5 Architecture Update
+
+---
+
+# Этап 23. Релиз MVP
+
+* 23.1 Финальное тестирование
+* 23.2 Production Deploy
+* 23.3 Smoke Tests
+* 23.4 Исправление багов
+* 23.5 Release v1.0.0
+
+---
+
+Такой порядок хорош тем, что каждый следующий этап опирается на предыдущий: сначала инфраструктура и фундамент (монорепозиторий, БД, авторизация), затем основной функционал (проекты, загрузка, AI), потом интерфейсы (Frontend, Admin), и только после этого — эксплуатационные вещи (тесты, Docker, Kubernetes, Helm, CI/CD, оптимизация и релиз). Это максимально похоже на жизненный цикл реального production-проекта.
