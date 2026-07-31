@@ -637,3 +637,14 @@ packages/sdk
 packages/types
 packages/config
 ```
+
+
+---
+
+## Definition of Done этапа 2.2
+
+Файл:
+
+```txt
+docs/implementation/stage-2-2-definition-of-done.md
+```
