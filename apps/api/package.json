@@ -6,15 +6,17 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "node dist/main.js",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "yarn build:deps && tsc -p tsconfig.build.json",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --coverage=false",
+    "typecheck": "yarn build:deps && tsc -p tsconfig.json --noEmit",
+    "test": "yarn build:deps && vitest run --coverage=false",
     "prisma:generate": "prisma generate --schema prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma",
     "prisma:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema prisma/schema.prisma",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:deps": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build",
+    "predev": "yarn build:deps"
   },
   "dependencies": {
     "@nestjs/common": "^11",
@@ -24,8 +26,11 @@
     "@nestjs/swagger": "^11",
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@reviewsha/config": "0.0.0",
+    "@reviewsha/types": "0.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "express": "^5.2.1",
     "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",

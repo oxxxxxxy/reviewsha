@@ -6,16 +6,20 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "start": "node dist/main.js",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "yarn build:deps && tsc -p tsconfig.build.json",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --coverage=false",
-    "test:watch": "vitest"
+    "typecheck": "yarn build:deps && tsc -p tsconfig.json --noEmit",
+    "test": "yarn build:deps && vitest run --coverage=false",
+    "test:watch": "vitest",
+    "build:deps": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build",
+    "predev": "yarn build:deps"
   },
   "dependencies": {
     "@nestjs/common": "^11",
     "@nestjs/config": "^4",
     "@nestjs/core": "^11",
+    "@reviewsha/config": "0.0.0",
+    "@reviewsha/types": "0.0.0",
     "bullmq": "^6.0.3",
     "ioredis": "^6.0.0",
     "reflect-metadata": "^0.2.2",

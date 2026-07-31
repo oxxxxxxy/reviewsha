@@ -7,14 +7,20 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5173",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
-    "build": "yarn typecheck && vite build",
+    "build": "yarn build:deps && yarn typecheck && vite build",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
-    "test": "vitest run --coverage=false",
-    "test:watch": "vitest"
+    "typecheck": "yarn build:deps && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "test": "yarn build:deps && vitest run --coverage=false",
+    "test:watch": "vitest",
+    "build:deps": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build && yarn workspace @reviewsha/sdk build && yarn workspace @reviewsha/ui build",
+    "predev": "yarn build:deps"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.5.7",
+    "@reviewsha/config": "0.0.0",
+    "@reviewsha/sdk": "0.0.0",
+    "@reviewsha/types": "0.0.0",
+    "@reviewsha/ui": "0.0.0",
     "@tanstack/react-query": "^5.101.4",
     "@vitejs/plugin-react": "^6.0.5",
     "axios": "^1.19.0",

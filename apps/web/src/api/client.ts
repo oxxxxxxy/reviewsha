@@ -1,25 +1,16 @@
-import axios from 'axios';
+import { DEFAULT_API_TIMEOUT_MS, DEFAULT_URLS } from '@reviewsha/config';
+import { ApiClient, createReviewshaSDK } from '@reviewsha/sdk';
 
-const apiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
+export const apiBaseUrl = import.meta.env.VITE_API_URL ?? DEFAULT_URLS.api;
 
-export const apiClient = axios.create({
+export const sdkClient = new ApiClient({
   baseURL: apiBaseUrl,
-  timeout: 15_000,
-  headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  },
+  timeout: DEFAULT_API_TIMEOUT_MS,
 });
 
-apiClient.interceptors.request.use((config) => {
-  // Auth token will be attached here after Auth module implementation.
-  return config;
+export const reviewshaSdk = createReviewshaSDK({
+  baseURL: apiBaseUrl,
+  timeout: DEFAULT_API_TIMEOUT_MS,
 });
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error: unknown) => {
-    // API errors will be normalized here after SDK layer implementation.
-    return Promise.reject(error);
-  },
-);
+export const apiClient = sdkClient.http;

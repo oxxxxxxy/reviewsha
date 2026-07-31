@@ -1,25 +1,16 @@
-import axios from 'axios';
+import { DEFAULT_API_TIMEOUT_MS, DEFAULT_URLS } from '@reviewsha/config';
+import { ApiClient, createReviewshaSDK } from '@reviewsha/sdk';
 
-export const adminApiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
+export const adminApiBaseUrl = import.meta.env.VITE_API_URL ?? DEFAULT_URLS.api;
 
-export const adminApiClient = axios.create({
+export const adminSdkClient = new ApiClient({
   baseURL: adminApiBaseUrl,
-  timeout: 15_000,
-  headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  },
+  timeout: DEFAULT_API_TIMEOUT_MS,
 });
 
-adminApiClient.interceptors.request.use((config) => {
-  // Admin access token will be attached here after Auth module implementation.
-  return config;
+export const adminSdk = createReviewshaSDK({
+  baseURL: adminApiBaseUrl,
+  timeout: DEFAULT_API_TIMEOUT_MS,
 });
 
-adminApiClient.interceptors.response.use(
-  (response) => response,
-  (error: unknown) => {
-    // Admin API errors will be normalized here after SDK layer implementation.
-    return Promise.reject(error);
-  },
-);
+export const adminApiClient = adminSdkClient.http;

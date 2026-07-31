@@ -648,3 +648,160 @@ packages/config
 ```txt
 docs/implementation/stage-2-2-definition-of-done.md
 ```
+
+---
+
+## 2.3. Shared Packages
+
+Статус: ✅ COMPLETE
+
+Создан набор общих workspace-пакетов:
+
+```txt
+packages/
+├── config
+├── types
+├── sdk
+└── ui
+```
+
+### 2.3.1 packages/config
+
+Содержит общую конфигурацию проекта:
+
+- API prefix/version/timeout;
+- default URLs для API, Web, Admin, MinIO, Redis;
+- env keys;
+- queue names;
+- storage bucket names;
+- JWT constants;
+- pagination defaults;
+- upload limits;
+- shared Zod env validation.
+
+### 2.3.2 packages/types
+
+Содержит общие TypeScript-типы без бизнес-логики:
+
+- `User`;
+- `Project`;
+- `Scan`;
+- `Report`;
+- `File`;
+- `QueueJob`;
+- API response types;
+- enums для roles, project/scan/queue status, report formats, AI providers;
+- utility types.
+
+### 2.3.3 packages/sdk
+
+Содержит единый API SDK:
+
+- `ApiClient` на базе Axios;
+- Authorization header support;
+- JSON headers;
+- `baseURL` и `timeout`;
+- `AuthAPI`;
+- `ProjectsAPI`;
+- `UploadsAPI`;
+- `ReportsAPI`;
+- `ChatAPI`;
+- `AdminAPI`;
+- `createReviewshaSDK`.
+
+`apps/web` и `apps/admin` теперь подготавливают API layer через shared SDK.
+
+### 2.3.4 packages/ui
+
+Содержит каркас общего UI Kit:
+
+```txt
+Button
+Input
+Textarea
+Select
+Modal
+Dialog
+Card
+Badge
+Spinner
+Loader
+Avatar
+Tooltip
+Table
+Pagination
+EmptyState
+```
+
+Также добавлены:
+
+- `PageShell`;
+- `useModal`;
+- `usePagination`;
+- `useDebounce`;
+- theme tokens.
+
+### Workspace integration
+
+Приложения подключают shared packages через workspace-зависимости:
+
+```txt
+@reviewsha/config
+@reviewsha/types
+@reviewsha/sdk
+@reviewsha/ui
+```
+
+Для Yarn Classic используется локальная workspace-версия `0.0.0`, так как проект сейчас работает на Yarn `1.22.22`.
+
+### CI/CD
+
+Добавлен GitHub Actions pipeline:
+
+```txt
+.github/workflows/ci.yml
+```
+
+Pipeline выполняет:
+
+```bash
+yarn install --frozen-lockfile
+yarn format:check --ignore-unknown
+yarn lint
+yarn typecheck
+yarn test
+yarn build
+```
+
+### Тесты shared packages
+
+```txt
+packages/config: 1 test file, 5 tests
+packages/types:  1 test file, 3 tests
+packages/sdk:    1 test file, 3 tests
+packages/ui:     2 test files, 12 tests
+```
+
+Итого добавлено по этапу 2.3:
+
+```txt
+5 test files
+23 tests
+```
+
+Проверено:
+
+```bash
+yarn build:packages
+yarn lint
+yarn typecheck
+yarn test
+yarn build
+yarn format:check --ignore-unknown
+```
+
+Подробный DoD:
+
+```txt
+docs/implementation/stage-2-3-shared-packages.md
+```

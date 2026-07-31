@@ -2,13 +2,32 @@
   "name": "@reviewsha/sdk",
   "version": "0.0.0",
   "private": true,
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "description": "Shared Reviewsha API SDK.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "dev": "echo '[sdk] scaffold pending: Этап 2.3'",
-    "build": "echo '[sdk] scaffold pending: Этап 2.3'",
-    "lint": "echo '[sdk] scaffold pending: Этап 2.3'",
-    "typecheck": "echo '[sdk] scaffold pending: Этап 2.3'",
-    "test": "echo '[sdk] scaffold pending: Этап 2.3'"
+    "dev": "tsc -p tsconfig.json --watch",
+    "build": "yarn build:deps && tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "yarn build:deps && tsc -p tsconfig.json --noEmit",
+    "test": "yarn build:deps && vitest run --coverage=false",
+    "test:watch": "vitest",
+    "build:deps": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build"
+  },
+  "dependencies": {
+    "@reviewsha/config": "0.0.0",
+    "@reviewsha/types": "0.0.0",
+    "axios": "^1.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "vitest": "^4.1.10"
   }
 }

@@ -2,13 +2,38 @@
   "name": "@reviewsha/ui",
   "version": "0.0.0",
   "private": true,
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "description": "Shared Reviewsha React UI kit.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "dev": "echo '[ui] scaffold pending: Этап 2.3'",
-    "build": "echo '[ui] scaffold pending: Этап 2.3'",
-    "lint": "echo '[ui] scaffold pending: Этап 2.3'",
-    "typecheck": "echo '[ui] scaffold pending: Этап 2.3'",
-    "test": "echo '[ui] scaffold pending: Этап 2.3'"
+    "dev": "tsc -p tsconfig.json --watch",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --coverage=false --environment jsdom",
+    "test:watch": "vitest --environment jsdom"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "jsdom": "^30.0.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "vitest": "^4.1.10"
   }
 }

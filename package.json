@@ -11,18 +11,31 @@
   ],
   "scripts": {
     "dev": "yarn workspaces run dev",
-    "build": "yarn workspaces run build",
-    "lint": "yarn workspaces run lint",
-    "typecheck": "yarn workspaces run typecheck",
-    "test": "yarn workspaces run test",
+    "build": "yarn build:packages && yarn build:apps",
+    "lint": "yarn lint:packages && yarn lint:apps",
+    "typecheck": "yarn build:packages && yarn typecheck:packages && yarn typecheck:apps",
+    "test": "yarn build:packages && yarn test:packages && yarn test:apps",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "clean": "find apps packages -type d \\( -name node_modules -o -name dist -o -name build -o -name coverage \\) -prune -exec rm -rf {} +",
-    "workspace:list": "yarn workspaces info"
+    "workspace:list": "yarn workspaces info",
+    "build:packages": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build && yarn workspace @reviewsha/sdk build && yarn workspace @reviewsha/ui build",
+    "build:apps": "yarn workspace @reviewsha/api build && yarn workspace @reviewsha/web build && yarn workspace @reviewsha/admin build && yarn workspace @reviewsha/worker build",
+    "lint:packages": "yarn workspace @reviewsha/config lint && yarn workspace @reviewsha/types lint && yarn workspace @reviewsha/sdk lint && yarn workspace @reviewsha/ui lint",
+    "lint:apps": "yarn workspace @reviewsha/api lint && yarn workspace @reviewsha/web lint && yarn workspace @reviewsha/admin lint && yarn workspace @reviewsha/worker lint",
+    "typecheck:packages": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build && yarn workspace @reviewsha/config typecheck && yarn workspace @reviewsha/types typecheck && yarn workspace @reviewsha/sdk typecheck && yarn workspace @reviewsha/ui typecheck",
+    "typecheck:apps": "yarn workspace @reviewsha/api typecheck && yarn workspace @reviewsha/web typecheck && yarn workspace @reviewsha/admin typecheck && yarn workspace @reviewsha/worker typecheck",
+    "test:packages": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build && yarn workspace @reviewsha/config test && yarn workspace @reviewsha/types test && yarn workspace @reviewsha/sdk test && yarn workspace @reviewsha/ui test",
+    "test:apps": "yarn workspace @reviewsha/api test && yarn workspace @reviewsha/web test && yarn workspace @reviewsha/admin test && yarn workspace @reviewsha/worker test"
   },
   "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "eslint": "^10.8.0",
     "prettier": "^3.9.6",
-    "typescript": "^5.9.3"
+    "react": "^19",
+    "react-dom": "^19",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.65.0"
   }
 }

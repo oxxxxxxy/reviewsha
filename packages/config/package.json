@@ -2,13 +2,29 @@
   "name": "@reviewsha/config",
   "version": "0.0.0",
   "private": true,
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "description": "Shared Reviewsha configuration constants and validation helpers.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "dev": "echo '[config] scaffold pending: Этап 2.3'",
-    "build": "echo '[config] scaffold pending: Этап 2.3'",
-    "lint": "echo '[config] scaffold pending: Этап 2.3'",
-    "typecheck": "echo '[config] scaffold pending: Этап 2.3'",
-    "test": "echo '[config] scaffold pending: Этап 2.3'"
+    "dev": "tsc -p tsconfig.json --watch",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --coverage=false",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "vitest": "^4.1.10"
   }
 }

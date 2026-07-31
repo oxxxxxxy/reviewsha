@@ -1,3 +1,5 @@
+import { API_PREFIX, DEFAULT_URLS } from '@reviewsha/config';
+
 export type AppConfig = {
   nodeEnv: string;
   host: string;
@@ -11,8 +13,8 @@ export default (): { app: AppConfig; database: { url: string } } => ({
     nodeEnv: process.env.NODE_ENV ?? 'development',
     host: process.env.API_HOST ?? '0.0.0.0',
     port: Number(process.env.API_PORT ?? 3000),
-    apiPrefix: process.env.API_PREFIX ?? 'api',
-    corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+    apiPrefix: process.env.API_PREFIX ?? API_PREFIX,
+    corsOrigin: process.env.CORS_ORIGIN ?? DEFAULT_URLS.web,
   },
   database: {
     url:
