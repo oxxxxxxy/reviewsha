@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Run release pipeline without publishing artifacts
+        required: true
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  contents: read
+
+jobs:
+  release-placeholder:
+    name: Release placeholder
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Explain release status
+        run: |
+          echo "Release pipeline placeholder."
+          echo "Real packaging, changelog generation and deployment will be enabled after production deployment design is completed."
+          echo "dry_run=${{ inputs.dry_run }}"

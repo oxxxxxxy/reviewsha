@@ -916,3 +916,52 @@ docs/development/standards.md
 docs/implementation/stage-2-5-basic-infrastructure.md
 README.md
 ```
+
+---
+
+## 2.6. CI/CD — GitHub Actions
+
+Статус: ✅ COMPLETE
+
+Добавлены workflows:
+
+```txt
+.github/workflows/ci.yml
+.github/workflows/release.yml
+```
+
+CI запускается при:
+
+- push в `main`;
+- pull request;
+- ручном запуске `workflow_dispatch`.
+
+Проверки:
+
+```bash
+yarn install --immutable --non-interactive
+yarn lint
+yarn typecheck
+yarn format:check --ignore-unknown
+yarn build
+yarn test
+docker compose config
+```
+
+Также подготовлены:
+
+- Node.js matrix;
+- Corepack + Yarn Classic 1.22.22;
+- Yarn cache;
+- Docker build placeholder;
+- security checks placeholders;
+- build artifacts upload;
+- release workflow placeholder;
+- будущая структура для переноса в GitLab CI.
+
+Документация:
+
+```txt
+docs/implementation/stage-2-6-ci-cd.md
+README.md
+```

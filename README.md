@@ -2,45 +2,100 @@
 
 AI SaaS platform for automated code review.
 
-## Текущее состояние
+## Текущее состояние проекта
 
-- ✅ Этап 1: проектирование системы — завершён.
-- ✅ Этап 2.1: Yarn Workspaces — завершён.
-- ✅ Этап 2.2: создание приложений — завершён (`api`, `web`, `admin`, `worker`).
-- ✅ Этап 2.3: shared packages — завершён (`config`, `types`, `sdk`, `ui`).
+| Этап                               | Статус      | Результат                                                                                     |
+| ---------------------------------- | ----------- | --------------------------------------------------------------------------------------------- |
+| Этап 1. Проектирование системы     | ✅ COMPLETE | Архитектура, backend/frontend/worker/storage/queue/database проектирование, draw.io диаграммы |
+| 2.1 Yarn Workspaces                | ✅ COMPLETE | Инициализирован Yarn Classic monorepo                                                         |
+| 2.2 Создание приложений            | ✅ COMPLETE | Созданы `api`, `web`, `admin`, `worker`                                                       |
+| 2.3 Shared Packages                | ✅ COMPLETE | Созданы `config`, `types`, `sdk`, `ui`                                                        |
+| 2.4 Docker Compose                 | ✅ COMPLETE | Локальная инфраструктура PostgreSQL, Redis, MinIO                                             |
+| 2.5 Базовая инфраструктура проекта | ✅ COMPLETE | ENV, config, logging, errors, aliases, hooks, IDE, standards                                  |
+| 2.6 CI/CD — GitHub Actions         | ✅ COMPLETE | Автоматические проверки на push, pull request и ручной запуск                                 |
+
+Следующий этап:
+
+```txt
+Этап 3. База данных
+```
+
+---
 
 ## Структура монорепозитория
 
 ```txt
-apps/
-├── api      # NestJS Backend API
-├── web      # React пользовательское приложение
-├── admin    # React административная панель
-└── worker   # NestJS/BullMQ background worker
-
-packages/
-├── config   # общие константы, URL, env keys, очереди, validation helpers
-├── types    # общие TypeScript-типы, interfaces, enums, utility types
-├── sdk      # единый Axios SDK для Backend API
-└── ui       # общий React UI Kit, hooks и theme tokens
+Rew/
+├── apps/
+│   ├── api/      # NestJS Backend API
+│   ├── web/      # React пользовательское приложение
+│   ├── admin/    # React административная панель
+│   └── worker/   # NestJS/BullMQ background worker
+│
+├── packages/
+│   ├── config/   # общие константы, env, config contracts, utils, logging/errors
+│   ├── types/    # общие TypeScript-типы, interfaces, enums
+│   ├── sdk/      # единый Axios SDK для Backend API
+│   └── ui/       # общий React UI Kit, hooks и theme tokens
+│
+├── infrastructure/
+│   ├── docker/   # Docker Compose infrastructure config
+│   └── helm/     # future Helm charts
+│
+├── docs/
+│   ├── architecture/
+│   ├── development/
+│   └── implementation/
+│
+├── .github/workflows/
+├── docker-compose.yml
+├── package.json
+├── yarn.lock
+└── README.md
 ```
+
+---
 
 ## Требования
 
-- Node.js 24+
-- Yarn Classic 1.22.22
+- Node.js `24.x` LTS.
+- Yarn Classic `1.22.22`.
+- Docker + Docker Compose v2.
+- Git.
+
+Проверка локального окружения:
+
+```bash
+node --version
+yarn --version
+docker compose version
+```
+
+---
 
 ## Быстрый старт
 
 ```bash
-yarn install
-```
+yarn install --immutable --non-interactive
 
-Для приложений, которые используют shared packages, сначала собери пакеты:
+docker compose up -d
 
-```bash
 yarn build:packages
+
+yarn dev
 ```
+
+После запуска:
+
+```txt
+API:      http://localhost:3000/api
+Swagger:  http://localhost:3000/api/docs
+Web:      http://localhost:5173
+Admin:    http://localhost:5174
+MinIO UI: http://localhost:9001
+```
+
+---
 
 ## Основные команды
 
@@ -59,7 +114,7 @@ yarn format:check --ignore-unknown
 yarn clean
 ```
 
-## Команды по группам
+Групповые команды:
 
 ```bash
 yarn build:packages
@@ -75,7 +130,16 @@ yarn test:packages
 yarn test:apps
 ```
 
-## Запуск отдельных приложений
+Запуск отдельных приложений:
+
+```bash
+yarn dev:api
+yarn dev:web
+yarn dev:admin
+yarn dev:worker
+```
+
+или напрямую:
 
 ```bash
 yarn workspace @reviewsha/api dev
@@ -84,37 +148,168 @@ yarn workspace @reviewsha/admin dev
 yarn workspace @reviewsha/worker dev
 ```
 
-## Shared packages
+---
 
-Все приложения подключают общий код через workspace-зависимости вида `@reviewsha/*`.
+## Приложения
+
+### `apps/api`
+
+Backend API на NestJS 11.
+
+Сейчас содержит:
+
+- bootstrap приложения;
+- global prefix `/api`;
+- Swagger UI `/api/docs`;
+- OpenAPI JSON `/api/docs-json`;
+- Zod env validation;
+- Prisma bootstrap;
+- `DatabaseModule`;
+- `HealthModule`;
+- normalized `HttpExceptionFilter`;
+- shared API logger.
+
+Проверка:
 
 ```bash
-yarn workspace @reviewsha/config build
-yarn workspace @reviewsha/types build
-yarn workspace @reviewsha/sdk build
-yarn workspace @reviewsha/ui build
+yarn workspace @reviewsha/api dev
+curl http://localhost:3000/api/health
 ```
 
-Правило проекта: общий код не копируется между приложениями. Общие типы, UI, SDK и конфигурация добавляются только в `packages/*`.
+Ожидаемый ответ:
 
-## CI
+```json
+{
+  "status": "ok"
+}
+```
 
-GitHub Actions workflow находится в `.github/workflows/ci.yml` и выполняет:
+### `apps/web`
 
-1. `yarn install --frozen-lockfile`
-2. `yarn format:check --ignore-unknown`
-3. `yarn lint`
-4. `yarn typecheck`
-5. `yarn test`
-6. `yarn build`
+Пользовательское React 19 + Vite приложение.
 
-## Документация
+Сейчас содержит:
 
-- `docs/PRD.md` — продуктовые требования.
-- `docs/architecture/*` — архитектура системы.
-- `docs/implementation/stage-2.md` — статус реализации Этапа 2.
-- `docs/implementation/stage-2-2-definition-of-done.md` — DoD по созданию приложений.
-- `docs/implementation/stage-2-3-shared-packages.md` — DoD по shared packages.
+- React Router;
+- TanStack Query;
+- Zustand;
+- React Hook Form;
+- Zod;
+- Axios SDK layer через `@reviewsha/sdk`;
+- `AppLayout`;
+- `AuthLayout`;
+- placeholder pages;
+- env validation;
+- ErrorBoundary;
+- Vite alias `@`.
+
+### `apps/admin`
+
+Отдельное административное React 19 + Vite приложение.
+
+Сейчас содержит:
+
+- собственный router;
+- admin pages;
+- admin layouts;
+- SDK API layer;
+- env validation;
+- ErrorBoundary;
+- Vite alias `@`.
+
+### `apps/worker`
+
+Standalone NestJS Worker без HTTP API.
+
+Сейчас содержит:
+
+- Nest application context;
+- BullMQ queue layer;
+- Redis connection bootstrap;
+- queues: `upload`, `extract`, `parse`, `analyze`, `report`, `cleanup`;
+- worker classes для каждой очереди;
+- graceful shutdown;
+- shared worker logger;
+- skeleton mode без Redis для локального запуска.
+
+---
+
+## Shared packages
+
+Общий код хранится только в `packages/*` и подключается через workspace dependencies.
+
+### `@reviewsha/config`
+
+Содержит:
+
+- API constants;
+- env keys;
+- URLs;
+- queue names;
+- bucket names;
+- JWT constants;
+- pagination defaults;
+- upload/file limits;
+- roles;
+- permissions;
+- typed config contracts;
+- shared logger format;
+- normalized error contracts;
+- date/uuid/file/retry/validation utils.
+
+### `@reviewsha/types`
+
+Содержит общие типы без бизнес-логики:
+
+- `User`;
+- `Project`;
+- `Scan`;
+- `Report`;
+- `File`;
+- `QueueJob`;
+- API response types;
+- enums;
+- utility types.
+
+### `@reviewsha/sdk`
+
+Единый API SDK на Axios:
+
+- `ApiClient`;
+- Authorization header support;
+- `AuthAPI`;
+- `ProjectsAPI`;
+- `UploadsAPI`;
+- `ReportsAPI`;
+- `ChatAPI`;
+- `AdminAPI`;
+- `createReviewshaSDK`.
+
+Frontend не должен вручную собирать HTTP-запросы в обход SDK.
+
+### `@reviewsha/ui`
+
+Общий UI Kit:
+
+- Button;
+- Input;
+- Textarea;
+- Select;
+- Modal;
+- Dialog;
+- Card;
+- Badge;
+- Spinner;
+- Loader;
+- Avatar;
+- Tooltip;
+- Table;
+- Pagination;
+- EmptyState;
+- hooks;
+- theme tokens.
+
+---
 
 ## Docker Compose infrastructure
 
@@ -129,19 +324,12 @@ GitHub Actions workflow находится в `.github/workflows/ci.yml` и вы
 | MinIO      | `reviewsha-minio`                | `9000/9001` | S3-compatible object storage |
 | MinIO init | `reviewsha-minio-create-buckets` | —           | создание buckets для MVP     |
 
-### Запуск
-
-Из корня репозитория:
+### Команды
 
 ```bash
 docker compose up -d
 docker compose ps
-docker compose logs
-```
-
-Остановка:
-
-```bash
+docker compose logs --tail=100
 docker compose down
 ```
 
@@ -173,17 +361,17 @@ MinIO:      ready
 Buckets:    uploads, reports, artifacts
 ```
 
-### Переменные окружения Docker
+### ENV Docker
 
-Пример находится здесь:
+Пример:
 
 ```txt
 infrastructure/docker/.env.example
 ```
 
-Для переопределения значений при запуске из корня можно создать `.env` в корне проекта на основе этого файла.
+Для переопределения значений при запуске из корня можно создать `.env` в корне проекта.
 
-### Connection strings для локально запущенных приложений
+Connection strings для локальных приложений:
 
 ```env
 DATABASE_URL=postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public
@@ -193,13 +381,11 @@ MINIO_ACCESS_KEY=reviewsha
 MINIO_SECRET_KEY=reviewsha-password
 ```
 
-## Базовая инфраструктура разработки
+---
 
-Этап 2.5 фиксирует единые правила для всех приложений монорепозитория.
+## ENV и конфигурация
 
-### ENV
-
-Каждое приложение имеет собственный `.env.example`:
+Файлы примеров окружения:
 
 ```txt
 .env.example
@@ -207,28 +393,20 @@ apps/api/.env.example
 apps/worker/.env.example
 apps/web/.env.example
 apps/admin/.env.example
+infrastructure/docker/.env.example
 ```
 
-Backend и Worker валидируют env через Zod в config layer. Frontend-приложения валидируют `VITE_*` переменные в собственном config layer.
+Правила проекта:
 
-### TypeScript aliases
+- каждое приложение имеет собственный `.env.example`;
+- backend/worker env читается только config layer;
+- frontend env читается только frontend config layer;
+- env validation выполняется через Zod;
+- общие env keys и defaults находятся в `@reviewsha/config`.
 
-Shared packages подключаются как workspace-пакеты:
+---
 
-```ts
-import { Button } from '@reviewsha/ui';
-import type { Project } from '@reviewsha/types';
-import { QUEUE_NAMES } from '@reviewsha/config';
-```
-
-Для локального кода приложений настроен alias `@`:
-
-```ts
-import { apiClient } from '@/api/client';
-import { ErrorBoundary } from '@/common/errors/ErrorBoundary';
-```
-
-### Logging и errors
+## Logging и Error Handling
 
 Единый формат логов:
 
@@ -236,9 +414,58 @@ import { ErrorBoundary } from '@/common/errors/ErrorBoundary';
 [Timestamp] Service Level Context Message
 ```
 
-Общие типы error response, frontend error и worker error находятся в `@reviewsha/config`.
+Пример:
 
-### Git hooks
+```txt
+[2026-08-01T18:24:15.000Z] API INFO AuthService User created
+```
+
+Единые error contracts находятся в `@reviewsha/config`:
+
+- `ErrorResponseBody` для Backend;
+- `WorkerErrorBody` для Worker;
+- `FrontendErrorBody` для Frontend.
+
+Frontend-приложения используют ErrorBoundary.
+
+---
+
+## TypeScript aliases и imports
+
+Shared packages:
+
+```ts
+import { Button } from '@reviewsha/ui';
+import type { Project } from '@reviewsha/types';
+import { QUEUE_NAMES } from '@reviewsha/config';
+import { createReviewshaSDK } from '@reviewsha/sdk';
+```
+
+App aliases:
+
+```ts
+import { apiClient } from '@/api/client';
+import { ErrorBoundary } from '@/common/errors/ErrorBoundary';
+```
+
+Запрещено импортировать общий код через относительные пути между приложениями.
+
+Подробные правила:
+
+```txt
+docs/development/standards.md
+```
+
+---
+
+## Git hooks и качество кода
+
+Настроено:
+
+```txt
+.husky/pre-commit
+lint-staged
+```
 
 Перед commit выполняется:
 
@@ -254,20 +481,142 @@ yarn format:check --ignore-unknown
 yarn hooks:pre-commit
 ```
 
-### IDE
+---
 
-Рекомендации для VS Code находятся в:
+## IDE support
+
+VS Code:
 
 ```txt
 .vscode/extensions.json
 .vscode/settings.json
 ```
 
-Проект также подходит для JetBrains IDE: использовать TypeScript из `node_modules`, Prettier как default formatter и ESLint flat config.
+Рекомендовано:
 
-Подробные стандарты разработки:
+- ESLint;
+- Prettier;
+- Prisma extension;
+- Docker extension;
+- Vitest extension.
+
+JetBrains IDE:
+
+- использовать TypeScript из `node_modules`;
+- включить Prettier как formatter;
+- включить ESLint flat config;
+- использовать Node.js 24.x.
+
+---
+
+## CI/CD
+
+Проект использует GitHub Actions, потому что исходный код находится на GitHub.
+
+Workflows:
 
 ```txt
-docs/development/standards.md
-docs/implementation/stage-2-5-basic-infrastructure.md
+.github/workflows/ci.yml
+.github/workflows/release.yml
 ```
+
+CI запускается при:
+
+- push в `main`;
+- pull request;
+- ручном запуске через `workflow_dispatch`.
+
+Pull Request считается готовым к merge только после успешного прохождения:
+
+```bash
+yarn install --immutable --non-interactive
+yarn lint
+yarn typecheck
+yarn format:check --ignore-unknown
+yarn build
+yarn test
+docker compose config
+```
+
+CI использует:
+
+- Node.js LTS `24.x`;
+- Corepack;
+- Yarn Classic `1.22.22`;
+- cache по `yarn.lock`;
+- build artifacts для `dist` директорий.
+
+Подготовлены placeholder steps для будущих проверок:
+
+- Docker image build;
+- dependency audit;
+- license checks;
+- secret scanning.
+
+Логика CI совместима с будущим переносом в GitLab CI:
+
+```txt
+Install → Lint → Typecheck → Build → Test → Docker → Deploy
+```
+
+---
+
+## Тесты
+
+Текущее покрытие инфраструктурного skeleton:
+
+```txt
+packages/config: 2 files, 10 tests
+packages/types:  1 file, 3 tests
+packages/sdk:    1 file, 3 tests
+packages/ui:     2 files, 12 tests
+apps/api:        7 files, 13 tests
+apps/web:        8 files, 23 tests
+apps/admin:      11 files, 44 tests
+apps/worker:     10 files, 34 tests
+```
+
+Итого:
+
+```txt
+42 test files
+142 tests
+```
+
+Запуск:
+
+```bash
+yarn test
+```
+
+---
+
+## Документация
+
+Основные документы:
+
+```txt
+docs/PRD.md
+docs/architecture/*
+docs/development/standards.md
+docs/implementation/stage-2.md
+docs/implementation/stage-2-2-definition-of-done.md
+docs/implementation/stage-2-3-shared-packages.md
+docs/implementation/stage-2-4-docker-compose.md
+docs/implementation/stage-2-5-basic-infrastructure.md
+docs/implementation/stage-2-6-ci-cd.md
+```
+
+---
+
+## Правило разработки
+
+Любая новая фича должна обновлять не только код, но и всё, что она затрагивает:
+
+- тесты;
+- документацию;
+- README;
+- CI/CD;
+- env examples;
+- shared packages;
+- архитектурные документы при изменении архитектуры.

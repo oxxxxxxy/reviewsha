@@ -5,26 +5,51 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   verify:
-    name: Verify monorepo
+    name: Verify monorepo / Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 24.x
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Setup Node.js
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js LTS
         uses: actions/setup-node@v5
         with:
-          node-version: '24'
+          node-version: ${{ matrix.node-version }}
           cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Prepare Yarn Classic
+        run: corepack prepare yarn@1.22.22 --activate
+
+      - name: Show tool versions
+        run: |
+          node --version
+          yarn --version
+          docker compose version
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Format check
-        run: yarn format:check --ignore-unknown
+        run: yarn install --immutable --non-interactive
 
       - name: Lint
         run: yarn lint
@@ -32,8 +57,48 @@ jobs:
       - name: Typecheck
         run: yarn typecheck
 
-      - name: Test
-        run: yarn test
+      - name: Format check
+        run: yarn format:check --ignore-unknown
 
       - name: Build
         run: yarn build
+
+      - name: Test
+        run: yarn test
+
+      - name: Docker Compose config
+        run: docker compose config
+
+      - name: Docker image build placeholder
+        if: ${{ false }}
+        run: |
+          echo "Docker image build checks will be enabled when application Dockerfiles are added."
+
+      - name: Dependency audit placeholder
+        if: ${{ false }}
+        run: |
+          echo "Dependency audit will be enabled after audit policy is finalized."
+
+      - name: License check placeholder
+        if: ${{ false }}
+        run: |
+          echo "License checks will be enabled after allowed-license policy is finalized."
+
+      - name: Secret scan placeholder
+        if: ${{ false }}
+        run: |
+          echo "Secret scanning will be enabled after choosing a scanner."
+
+      - name: Upload build artifacts
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reviewsha-build-node-${{ matrix.node-version }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            apps/api/dist
+            apps/worker/dist
+            apps/web/dist
+            apps/admin/dist
+            packages/*/dist
