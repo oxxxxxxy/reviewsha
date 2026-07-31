@@ -1,0 +1,110 @@
+# Convenience compose file for running Reviewsha infrastructure from repository root.
+# Canonical infrastructure definition is duplicated in infrastructure/docker/docker-compose.yml
+# to keep `docker compose up -d` working from the root without extra flags.
+name: reviewsha
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: reviewsha-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-reviewsha}
+      POSTGRES_USER: ${POSTGRES_USER:-reviewsha}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-reviewsha}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      reviewsha_network:
+        aliases:
+          - postgres
+
+  redis:
+    image: redis:7-alpine
+    container_name: reviewsha-redis
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'no']
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      reviewsha_network:
+        aliases:
+          - redis
+
+  minio:
+    image: minio/minio:latest
+    container_name: reviewsha-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-reviewsha}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-reviewsha-password}
+    ports:
+      - '${MINIO_API_PORT:-9000}:9000'
+      - '${MINIO_CONSOLE_PORT:-9001}:9001'
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      reviewsha_network:
+        aliases:
+          - minio
+
+  minio-create-buckets:
+    image: minio/mc:latest
+    container_name: reviewsha-minio-create-buckets
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: 'no'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-reviewsha}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-reviewsha-password}
+      MINIO_BUCKET_UPLOADS: ${MINIO_BUCKET_UPLOADS:-uploads}
+      MINIO_BUCKET_REPORTS: ${MINIO_BUCKET_REPORTS:-reports}
+      MINIO_BUCKET_ARTIFACTS: ${MINIO_BUCKET_ARTIFACTS:-artifacts}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        mc alias set reviewsha http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"
+        mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_UPLOADS}"
+        mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_REPORTS}"
+        mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_ARTIFACTS}"
+        mc anonymous set none "reviewsha/$${MINIO_BUCKET_UPLOADS}"
+        mc anonymous set none "reviewsha/$${MINIO_BUCKET_REPORTS}"
+        mc anonymous set none "reviewsha/$${MINIO_BUCKET_ARTIFACTS}"
+        mc ls reviewsha
+    networks:
+      reviewsha_network:
+
+volumes:
+  postgres_data:
+    name: reviewsha_postgres_data
+  minio_data:
+    name: reviewsha_minio_data
+
+networks:
+  reviewsha_network:
+    name: reviewsha_network
+    driver: bridge

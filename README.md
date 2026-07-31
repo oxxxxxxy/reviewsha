@@ -115,3 +115,80 @@ GitHub Actions workflow находится в `.github/workflows/ci.yml` и вы
 - `docs/implementation/stage-2.md` — статус реализации Этапа 2.
 - `docs/implementation/stage-2-2-definition-of-done.md` — DoD по созданию приложений.
 - `docs/implementation/stage-2-3-shared-packages.md` — DoD по shared packages.
+
+## Docker Compose infrastructure
+
+Локальная инфраструктура запускается через Docker Compose. Приложения `api`, `web`, `admin` и `worker` на этом этапе не контейнеризируются и продолжают запускаться через Yarn.
+
+### Сервисы
+
+| Service    | Container                        | Port        | Назначение                   |
+| ---------- | -------------------------------- | ----------- | ---------------------------- |
+| PostgreSQL | `reviewsha-postgres`             | `5432`      | основная реляционная БД      |
+| Redis      | `reviewsha-redis`                | `6379`      | очереди BullMQ и cache       |
+| MinIO      | `reviewsha-minio`                | `9000/9001` | S3-compatible object storage |
+| MinIO init | `reviewsha-minio-create-buckets` | —           | создание buckets для MVP     |
+
+### Запуск
+
+Из корня репозитория:
+
+```bash
+docker compose up -d
+docker compose ps
+docker compose logs
+```
+
+Остановка:
+
+```bash
+docker compose down
+```
+
+Остановка с удалением volumes:
+
+```bash
+docker compose down -v
+```
+
+### Проверка инфраструктуры
+
+```bash
+docker compose exec -T postgres pg_isready -U reviewsha -d reviewsha
+docker compose exec -T postgres psql -U reviewsha -d reviewsha -c "SELECT 1;"
+
+docker compose exec -T redis redis-cli ping
+
+docker compose exec -T minio mc ready local
+docker compose exec -T minio mc alias set reviewsha-local http://localhost:9000 reviewsha reviewsha-password
+docker compose exec -T minio mc ls reviewsha-local
+```
+
+Ожидаемые результаты:
+
+```txt
+PostgreSQL: accepting connections
+Redis:      PONG
+MinIO:      ready
+Buckets:    uploads, reports, artifacts
+```
+
+### Переменные окружения Docker
+
+Пример находится здесь:
+
+```txt
+infrastructure/docker/.env.example
+```
+
+Для переопределения значений при запуске из корня можно создать `.env` в корне проекта на основе этого файла.
+
+### Connection strings для локально запущенных приложений
+
+```env
+DATABASE_URL=postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public
+REDIS_URL=redis://localhost:6379
+MINIO_ENDPOINT=http://localhost:9000
+MINIO_ACCESS_KEY=reviewsha
+MINIO_SECRET_KEY=reviewsha-password
+```

@@ -805,3 +805,80 @@ yarn format:check --ignore-unknown
 ```txt
 docs/implementation/stage-2-3-shared-packages.md
 ```
+
+---
+
+## 2.4. Docker Compose
+
+Статус: ✅ COMPLETE
+
+Создано локальное infrastructure окружение разработки:
+
+```txt
+docker-compose.yml
+infrastructure/docker/
+├── docker-compose.yml
+├── .env.example
+├── postgres/
+│   ├── init/001-init.sql
+│   └── data/.gitkeep
+├── redis/.gitkeep
+└── minio/data/.gitkeep
+```
+
+Запускаемые сервисы:
+
+```txt
+PostgreSQL
+Redis
+MinIO
+MinIO bucket init
+```
+
+Docker network:
+
+```txt
+reviewsha_network
+```
+
+Named volumes:
+
+```txt
+reviewsha_postgres_data
+reviewsha_minio_data
+```
+
+MinIO buckets:
+
+```txt
+uploads
+reports
+artifacts
+```
+
+Команды запуска:
+
+```bash
+docker compose up -d
+docker compose ps
+docker compose logs
+docker compose down
+```
+
+Инфраструктурные проверки:
+
+```bash
+docker compose config
+docker compose exec -T postgres pg_isready -U reviewsha -d reviewsha
+docker compose exec -T postgres psql -U reviewsha -d reviewsha -c "SELECT 1;"
+docker compose exec -T redis redis-cli ping
+docker compose exec -T minio mc ready local
+docker compose exec -T minio mc ls reviewsha-local
+```
+
+Документация:
+
+```txt
+docs/implementation/stage-2-4-docker-compose.md
+README.md
+```
