@@ -965,3 +965,37 @@ docker compose config
 docs/implementation/stage-2-6-ci-cd.md
 README.md
 ```
+
+
+---
+
+## Финальный аудит Этапа 2
+
+Статус: ✅ COMPLETE
+
+Добавлены финальные acceptance artifacts:
+
+```txt
+docs/implementation/stage-2-final-audit.md
+apps/api/README.md
+apps/web/README.md
+apps/admin/README.md
+apps/worker/README.md
+tests/stage2/stage2.smoke.test.ts
+tests/stage2/stage2.integration.test.ts
+playwright.config.ts
+tests/e2e/web.spec.ts
+tests/e2e/admin.spec.ts
+```
+
+Добавлены команды:
+
+```bash
+yarn test:stage2
+yarn test:e2e
+yarn test:e2e:install
+```
+
+CI расширен Stage 2 smoke/integration и Playwright E2E проверками.
+
+Этап 2 готов к закрытию и переходу к Этапу 3.

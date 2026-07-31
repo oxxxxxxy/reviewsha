@@ -42,6 +42,7 @@ async function bootstrap(): Promise<void> {
 
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup(`${appConfig.apiPrefix}/docs`, app, swaggerDocument, {
+    jsonDocumentUrl: `${appConfig.apiPrefix}/docs-json`,
     swaggerOptions: {
       persistAuthorization: true,
     },

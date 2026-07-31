@@ -28,3 +28,7 @@ yarn-error.log*
 !.vscode/extensions.json
 !.vscode/settings.json
 *.tsbuildinfo
+
+# test artifacts
+/test-results/
+/playwright-report/

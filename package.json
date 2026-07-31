@@ -32,9 +32,13 @@
     "dev:api": "yarn workspace @reviewsha/api dev",
     "dev:web": "yarn workspace @reviewsha/web dev",
     "dev:admin": "yarn workspace @reviewsha/admin dev",
-    "dev:worker": "yarn workspace @reviewsha/worker dev"
+    "dev:worker": "yarn workspace @reviewsha/worker dev",
+    "test:stage2": "yarn build:packages && vitest run tests/stage2 --coverage=false",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "concurrently": "^10.0.4",

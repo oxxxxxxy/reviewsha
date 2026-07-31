@@ -1,6 +1,8 @@
 export const STORAGE_BUCKETS = {
-  projects: 'projects',
+  uploads: 'uploads',
   reports: 'reports',
+  artifacts: 'artifacts',
+  projects: 'projects',
   temp: 'temp',
   exports: 'exports',
   avatars: 'avatars',

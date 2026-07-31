@@ -579,14 +579,16 @@ apps/worker:     10 files, 34 tests
 Итого:
 
 ```txt
-42 test files
-142 tests
+45 unit/infrastructure test files + 2 Playwright E2E tests
+157 unit/infrastructure tests + 2 E2E tests
 ```
 
 Запуск:
 
 ```bash
 yarn test
+yarn test:stage2
+yarn test:e2e
 ```
 
 ---
@@ -605,6 +607,7 @@ docs/implementation/stage-2-3-shared-packages.md
 docs/implementation/stage-2-4-docker-compose.md
 docs/implementation/stage-2-5-basic-infrastructure.md
 docs/implementation/stage-2-6-ci-cd.md
+docs/implementation/stage-2-final-audit.md
 ```
 
 ---
