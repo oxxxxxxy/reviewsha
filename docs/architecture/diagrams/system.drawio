@@ -1,0 +1,41 @@
+<mxfile host="app.diagrams.net" modified="2026-07-31T00:00:00.000Z" agent="Codex" version="24.7.17">
+  <diagram id="System Architecture" name="System Architecture">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="user" value="Пользователь" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1"><mxGeometry x="70" y="80" width="150" height="60" as="geometry"/></mxCell>
+        <mxCell id="web" value="Web App
+React + Vite" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="320" y="50" width="170" height="70" as="geometry"/></mxCell>
+        <mxCell id="admin" value="Admin App
+React + Vite" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="320" y="150" width="170" height="70" as="geometry"/></mxCell>
+        <mxCell id="api" value="NestJS API
+Auth / Projects / Files / Scans / Reports / Chat" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1"><mxGeometry x="620" y="90" width="260" height="90" as="geometry"/></mxCell>
+        <mxCell id="pg" value="PostgreSQL
+source of truth" style="shape=cylinder3d;boundedLbl=1;backgroundOutline=1;size=15;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="560" y="300" width="170" height="90" as="geometry"/></mxCell>
+        <mxCell id="redis" value="Redis
+BullMQ + cache" style="shape=cylinder3d;boundedLbl=1;backgroundOutline=1;size=15;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="800" y="300" width="170" height="90" as="geometry"/></mxCell>
+        <mxCell id="minio" value="MinIO
+object storage" style="shape=cylinder3d;boundedLbl=1;backgroundOutline=1;size=15;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="1040" y="300" width="170" height="90" as="geometry"/></mxCell>
+        <mxCell id="worker" value="Worker App
+processors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;" vertex="1" parent="1"><mxGeometry x="800" y="520" width="210" height="90" as="geometry"/></mxCell>
+        <mxCell id="ai" value="AI Service
+provider layer" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1"><mxGeometry x="800" y="700" width="210" height="80" as="geometry"/></mxCell>
+        <mxCell id="llm" value="OmniRoute / DeepSeek
+other LLM providers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;" vertex="1" parent="1"><mxGeometry x="800" y="860" width="220" height="70" as="geometry"/></mxCell>
+        <mxCell id="s1" value="HTTPS" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="user" target="web"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s2" value="HTTPS" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="user" target="admin"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s3" value="REST / Swagger" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="web" target="api"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s4" value="REST / Admin API" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="admin" target="api"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s5" value="Prisma" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="api" target="pg"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s6" value="cache / enqueue" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="api" target="redis"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s7" value="upload / presigned" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="api" target="minio"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s8" value="BullMQ jobs" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="redis" target="worker"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s9" value="read/write status" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="worker" target="pg"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s10" value="download/upload files" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="worker" target="minio"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s11" value="analyze chunks" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="worker" target="ai"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="s12" value="provider call" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="ai" target="llm"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

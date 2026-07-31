@@ -1,0 +1,12 @@
+{
+  "name": "@reviewsha/admin",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo '[admin] scaffold pending: Этап 2.2'",
+    "build": "echo '[admin] scaffold pending: Этап 2.2'",
+    "lint": "echo '[admin] scaffold pending: Этап 2.2'",
+    "typecheck": "echo '[admin] scaffold pending: Этап 2.2'",
+    "test": "echo '[admin] scaffold pending: Этап 2.2'"
+  }
+}

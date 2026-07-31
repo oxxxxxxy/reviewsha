@@ -1,0 +1,14 @@
+{
+  "name": "@reviewsha/ui",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "dev": "echo '[ui] scaffold pending: Этап 2.3'",
+    "build": "echo '[ui] scaffold pending: Этап 2.3'",
+    "lint": "echo '[ui] scaffold pending: Этап 2.3'",
+    "typecheck": "echo '[ui] scaffold pending: Этап 2.3'",
+    "test": "echo '[ui] scaffold pending: Этап 2.3'"
+  }
+}

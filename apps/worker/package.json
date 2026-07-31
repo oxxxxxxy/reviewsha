@@ -1,0 +1,12 @@
+{
+  "name": "@reviewsha/worker",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo '[worker] scaffold pending: Этап 2.2'",
+    "build": "echo '[worker] scaffold pending: Этап 2.2'",
+    "lint": "echo '[worker] scaffold pending: Этап 2.2'",
+    "typecheck": "echo '[worker] scaffold pending: Этап 2.2'",
+    "test": "echo '[worker] scaffold pending: Этап 2.2'"
+  }
+}

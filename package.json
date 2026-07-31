@@ -1,0 +1,28 @@
+{
+  "name": "reviewsha",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Ревьюша — AI SaaS platform for automated code review.",
+  "license": "UNLICENSED",
+  "packageManager": "yarn@1.22.22",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "yarn workspaces run dev",
+    "build": "yarn workspaces run build",
+    "lint": "yarn workspaces run lint",
+    "typecheck": "yarn workspaces run typecheck",
+    "test": "yarn workspaces run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "find apps packages -type d \\( -name node_modules -o -name dist -o -name build -o -name coverage \\) -prune -exec rm -rf {} +",
+    "workspace:list": "yarn workspaces info"
+  },
+  "devDependencies": {
+    "eslint": "^10.8.0",
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3"
+  }
+}

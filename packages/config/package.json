@@ -1,0 +1,14 @@
+{
+  "name": "@reviewsha/config",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "dev": "echo '[config] scaffold pending: Этап 2.3'",
+    "build": "echo '[config] scaffold pending: Этап 2.3'",
+    "lint": "echo '[config] scaffold pending: Этап 2.3'",
+    "typecheck": "echo '[config] scaffold pending: Этап 2.3'",
+    "test": "echo '[config] scaffold pending: Этап 2.3'"
+  }
+}

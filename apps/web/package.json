@@ -1,0 +1,12 @@
+{
+  "name": "@reviewsha/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo '[web] scaffold pending: Этап 2.2'",
+    "build": "echo '[web] scaffold pending: Этап 2.2'",
+    "lint": "echo '[web] scaffold pending: Этап 2.2'",
+    "typecheck": "echo '[web] scaffold pending: Этап 2.2'",
+    "test": "echo '[web] scaffold pending: Этап 2.2'"
+  }
+}

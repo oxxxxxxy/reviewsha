@@ -1,0 +1,46 @@
+<mxfile host="app.diagrams.net" modified="2026-07-31T00:00:00.000Z" agent="Codex" version="24.7.17">
+  <diagram id="Deployment Architecture" name="Deployment Architecture">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="gitlab" value="GitLab
+Repository + CI/CD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1"><mxGeometry x="80" y="60" width="190" height="70" as="geometry"/></mxCell>
+        <mxCell id="registry" value="Container Registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1"><mxGeometry x="360" y="60" width="190" height="70" as="geometry"/></mxCell>
+        <mxCell id="cluster" value="Kubernetes Cluster" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#666666;fontSize=16;dashed=1;" vertex="1" parent="1"><mxGeometry x="650" y="40" width="780" height="520" as="geometry"/></mxCell>
+        <mxCell id="ingress" value="Ingress / TLS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" vertex="1" parent="1"><mxGeometry x="700" y="100" width="180" height="60" as="geometry"/></mxCell>
+        <mxCell id="webd" value="web deployment
+Nginx static" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="700" y="210" width="180" height="70" as="geometry"/></mxCell>
+        <mxCell id="admind" value="admin deployment
+Nginx static" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="700" y="320" width="180" height="70" as="geometry"/></mxCell>
+        <mxCell id="apid" value="api deployment
+NestJS replicas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;" vertex="1" parent="1"><mxGeometry x="980" y="210" width="210" height="80" as="geometry"/></mxCell>
+        <mxCell id="workerd" value="worker deployment
+BullMQ processors" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;" vertex="1" parent="1"><mxGeometry x="980" y="340" width="210" height="80" as="geometry"/></mxCell>
+        <mxCell id="pgd" value="PostgreSQL
+PVC + backups" style="shape=cylinder3d;boundedLbl=1;backgroundOutline=1;size=15;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="1260" y="140" width="160" height="80" as="geometry"/></mxCell>
+        <mxCell id="redisd" value="Redis
+queue/cache" style="shape=cylinder3d;boundedLbl=1;backgroundOutline=1;size=15;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="1260" y="260" width="160" height="80" as="geometry"/></mxCell>
+        <mxCell id="miniod" value="MinIO
+PVC buckets" style="shape=cylinder3d;boundedLbl=1;backgroundOutline=1;size=15;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;" vertex="1" parent="1"><mxGeometry x="1260" y="380" width="160" height="80" as="geometry"/></mxCell>
+        <mxCell id="helm" value="Helm chart
+values + secrets" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1"><mxGeometry x="360" y="220" width="190" height="80" as="geometry"/></mxCell>
+        <mxCell id="obs" value="Future observability
+Prometheus Grafana Loki" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;" vertex="1" parent="1"><mxGeometry x="980" y="480" width="270" height="70" as="geometry"/></mxCell>
+        <mxCell id="dep1" value="build images" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="gitlab" target="registry"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep2" value="pipeline deploy" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="gitlab" target="helm"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep3" value="pull images" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="registry" target="cluster"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep4" value="helm upgrade" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="helm" target="cluster"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep5" value="/" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="ingress" target="webd"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep6" value="/admin" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="ingress" target="admind"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep7" value="/api" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="ingress" target="apid"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep8" value="Prisma" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="apid" target="pgd"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep9" value="cache / jobs" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="apid" target="redisd"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep10" value="files" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="apid" target="miniod"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep11" value="metadata" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="workerd" target="pgd"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep12" value="consume jobs" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="workerd" target="redisd"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="dep13" value="objects" style="endArrow=block;html=1;rounded=0;strokeWidth=2;" edge="1" parent="1" source="workerd" target="miniod"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
