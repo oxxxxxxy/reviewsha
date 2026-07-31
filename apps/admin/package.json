@@ -2,11 +2,38 @@
   "name": "@reviewsha/admin",
   "version": "0.0.0",
   "private": true,
+  "description": "Reviewsha administrative React application.",
+  "type": "module",
   "scripts": {
-    "dev": "echo '[admin] scaffold pending: Этап 2.2'",
-    "build": "echo '[admin] scaffold pending: Этап 2.2'",
-    "lint": "echo '[admin] scaffold pending: Этап 2.2'",
-    "typecheck": "echo '[admin] scaffold pending: Этап 2.2'",
-    "test": "echo '[admin] scaffold pending: Этап 2.2'"
+    "dev": "vite --host 0.0.0.0 --port 5174",
+    "preview": "vite preview --host 0.0.0.0 --port 4174",
+    "build": "yarn typecheck && vite build",
+    "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "test": "vitest run --coverage=false",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^5.5.7",
+    "@tanstack/react-query": "^5.101.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "axios": "^1.19.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-hook-form": "^7.83.0",
+    "react-router-dom": "^7.18.2",
+    "vite": "^8.2.0",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "jsdom": "^30.0.1",
+    "vitest": "^4.1.10"
   }
 }

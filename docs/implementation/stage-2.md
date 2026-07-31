@@ -278,9 +278,179 @@ Dev routes возвращают `200`:
 
 ### 2.2.3 Admin
 
+Статус: ✅ COMPLETE
+
+Создано отдельное административное React 19 + Vite приложение:
+
+```txt
+apps/admin/
+├── public/
+├── src/
+│   ├── app/
+│   │   ├── app.tsx
+│   │   ├── main.tsx
+│   │   ├── providers.tsx
+│   │   └── router.tsx
+│   ├── api/
+│   │   ├── client.ts
+│   │   ├── client.test.ts
+│   │   └── index.ts
+│   ├── assets/
+│   ├── components/
+│   │   ├── shared/
+│   │   └── ui/
+│   ├── features/
+│   │   ├── ai/
+│   │   ├── logs/
+│   │   ├── projects/
+│   │   ├── queues/
+│   │   ├── settings/
+│   │   └── users/
+│   ├── hooks/
+│   ├── layouts/
+│   │   ├── AdminLayout.tsx
+│   │   ├── AdminLayout.test.tsx
+│   │   ├── AuthLayout.tsx
+│   │   └── AuthLayout.test.tsx
+│   ├── pages/
+│   │   ├── AI/
+│   │   ├── Dashboard/
+│   │   ├── Login/
+│   │   ├── Logs/
+│   │   ├── NotFound/
+│   │   ├── Projects/
+│   │   ├── Queues/
+│   │   ├── Settings/
+│   │   └── Users/
+│   ├── stores/
+│   │   ├── ui.store.ts
+│   │   └── ui.store.test.ts
+│   ├── styles/
+│   │   ├── global.css
+│   │   └── variables.css
+│   ├── test/
+│   │   ├── render.tsx
+│   │   └── setup.ts
+│   ├── types/
+│   └── utils/
+├── .env.example
+├── index.html
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts
+└── package.json
+```
+
+Подключено:
+
+- React 19;
+- Vite;
+- TypeScript;
+- React Router;
+- TanStack Query;
+- Zustand;
+- React Hook Form;
+- Zod;
+- Axios;
+- Vitest;
+- Testing Library;
+- jsdom.
+
+Реализовано:
+
+- независимый app bootstrap через `src/app/main.tsx`;
+- `AppProviders` с `BrowserRouter` и `QueryClientProvider`;
+- `createAdminQueryClient` с `retry`, `staleTime`, `refetchOnWindowFocus`;
+- admin маршруты MVP;
+- `AdminLayout`;
+- `AuthLayout`;
+- placeholder страницы административных разделов;
+- admin login form через React Hook Form + Zod;
+- Axios admin API client с `baseURL`, `timeout`, JSON headers и interceptor-заглушками;
+- Zustand `ui.store.ts`;
+- глобальные стили и CSS variables;
+- `.env.example` с `VITE_API_URL`;
+- заготовки `features/users`, `features/projects`, `features/queues`, `features/logs`, `features/ai`, `features/settings`;
+- тестовая инфраструктура Vitest + Testing Library.
+
+Маршруты MVP:
+
+```txt
+/
+/login
+/dashboard
+/users
+/projects
+/queues
+/ai
+/logs
+/settings
+*
+```
+
+Тесты:
+
+```txt
+9 test files
+41 tests
+```
+
+Покрыто тестами:
+
+- providers;
+- QueryClient defaults;
+- router;
+- route rendering;
+- root redirect;
+- 404 route;
+- AdminLayout;
+- AuthLayout;
+- navigation links;
+- sidebar toggle;
+- Zustand UI store;
+- API client config;
+- login Zod schema;
+- login form validation;
+- login form submit;
+- placeholder pages.
+
+Проверено:
+
+```bash
+yarn workspace @reviewsha/admin dev
+yarn workspace @reviewsha/admin build
+yarn workspace @reviewsha/admin typecheck
+yarn workspace @reviewsha/admin lint
+yarn workspace @reviewsha/admin test
+yarn lint
+yarn build
+yarn typecheck
+yarn test
+yarn format:check --ignore-unknown
+```
+
+Dev routes возвращают `200`:
+
+```txt
+/
+/login
+/dashboard
+/users
+/projects
+/queues
+/ai
+/logs
+/settings
+/unknown
+```
+
+---
+
+### 2.2.4 Worker
+
 Статус: ⏳ NEXT
 
 ```txt
-apps/admin
-React 19 + Vite admin application skeleton
+apps/worker
+Node/Nest worker + BullMQ bootstrap
 ```
