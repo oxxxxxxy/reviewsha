@@ -2,19 +2,19 @@ import { Injectable, Logger } from '@nestjs/common';
 import { createLogEntry, formatLogEntry, type LogLevel } from '@reviewsha/config';
 
 @Injectable()
-export class WorkerLoggerService {
-  private readonly logger = new Logger('ReviewshaWorker');
-  private readonly serviceName = 'WORKER';
+export class ApiLoggerService {
+  private readonly logger = new Logger('ReviewshaApi');
+  private readonly serviceName = 'API';
 
-  log(message: string, context = 'Worker'): void {
+  log(message: string, context = 'Api'): void {
     this.logger.log(this.format('INFO', message, context));
   }
 
-  warn(message: string, context = 'Worker'): void {
+  warn(message: string, context = 'Api'): void {
     this.logger.warn(this.format('WARN', message, context));
   }
 
-  error(message: string, trace?: string, context = 'Worker'): void {
+  error(message: string, trace?: string, context = 'Api'): void {
     this.logger.error(this.format('ERROR', message, context), trace);
   }
 

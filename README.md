@@ -192,3 +192,82 @@ MINIO_ENDPOINT=http://localhost:9000
 MINIO_ACCESS_KEY=reviewsha
 MINIO_SECRET_KEY=reviewsha-password
 ```
+
+## Базовая инфраструктура разработки
+
+Этап 2.5 фиксирует единые правила для всех приложений монорепозитория.
+
+### ENV
+
+Каждое приложение имеет собственный `.env.example`:
+
+```txt
+.env.example
+apps/api/.env.example
+apps/worker/.env.example
+apps/web/.env.example
+apps/admin/.env.example
+```
+
+Backend и Worker валидируют env через Zod в config layer. Frontend-приложения валидируют `VITE_*` переменные в собственном config layer.
+
+### TypeScript aliases
+
+Shared packages подключаются как workspace-пакеты:
+
+```ts
+import { Button } from '@reviewsha/ui';
+import type { Project } from '@reviewsha/types';
+import { QUEUE_NAMES } from '@reviewsha/config';
+```
+
+Для локального кода приложений настроен alias `@`:
+
+```ts
+import { apiClient } from '@/api/client';
+import { ErrorBoundary } from '@/common/errors/ErrorBoundary';
+```
+
+### Logging и errors
+
+Единый формат логов:
+
+```txt
+[Timestamp] Service Level Context Message
+```
+
+Общие типы error response, frontend error и worker error находятся в `@reviewsha/config`.
+
+### Git hooks
+
+Перед commit выполняется:
+
+```bash
+yarn lint-staged
+yarn typecheck
+yarn format:check --ignore-unknown
+```
+
+Проверить hook вручную:
+
+```bash
+yarn hooks:pre-commit
+```
+
+### IDE
+
+Рекомендации для VS Code находятся в:
+
+```txt
+.vscode/extensions.json
+.vscode/settings.json
+```
+
+Проект также подходит для JetBrains IDE: использовать TypeScript из `node_modules`, Prettier как default formatter и ESLint flat config.
+
+Подробные стандарты разработки:
+
+```txt
+docs/development/standards.md
+docs/implementation/stage-2-5-basic-infrastructure.md
+```

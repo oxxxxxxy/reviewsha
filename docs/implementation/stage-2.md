@@ -882,3 +882,37 @@ docker compose exec -T minio mc ls reviewsha-local
 docs/implementation/stage-2-4-docker-compose.md
 README.md
 ```
+
+---
+
+## 2.5. Базовая инфраструктура проекта
+
+Статус: ✅ COMPLETE
+
+Подготовлено:
+
+- root `.env.example`;
+- env examples для всех приложений;
+- frontend env validation через Zod;
+- типизированные config sections в `@reviewsha/config`;
+- shared logger formatter;
+- API logger;
+- Worker logger на shared формате;
+- normalized error contracts;
+- frontend ErrorBoundary для `web` и `admin`;
+- roles/permissions/constants в `@reviewsha/config`;
+- shared utils;
+- app TypeScript aliases;
+- Vite aliases;
+- Husky pre-commit hook;
+- lint-staged;
+- VS Code settings/extensions;
+- development standards documentation.
+
+Документация:
+
+```txt
+docs/development/standards.md
+docs/implementation/stage-2-5-basic-infrastructure.md
+README.md
+```

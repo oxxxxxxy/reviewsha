@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "yarn workspaces run dev",
+    "dev": "concurrently -k -n api,web,admin,worker -c blue,green,magenta,cyan \"yarn workspace @reviewsha/api dev\" \"yarn workspace @reviewsha/web dev\" \"yarn workspace @reviewsha/admin dev\" \"yarn workspace @reviewsha/worker dev\"",
     "build": "yarn build:packages && yarn build:apps",
     "lint": "yarn lint:packages && yarn lint:apps",
     "typecheck": "yarn build:packages && yarn typecheck:packages && yarn typecheck:apps",
@@ -26,16 +26,33 @@
     "typecheck:packages": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build && yarn workspace @reviewsha/config typecheck && yarn workspace @reviewsha/types typecheck && yarn workspace @reviewsha/sdk typecheck && yarn workspace @reviewsha/ui typecheck",
     "typecheck:apps": "yarn workspace @reviewsha/api typecheck && yarn workspace @reviewsha/web typecheck && yarn workspace @reviewsha/admin typecheck && yarn workspace @reviewsha/worker typecheck",
     "test:packages": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build && yarn workspace @reviewsha/config test && yarn workspace @reviewsha/types test && yarn workspace @reviewsha/sdk test && yarn workspace @reviewsha/ui test",
-    "test:apps": "yarn workspace @reviewsha/api test && yarn workspace @reviewsha/web test && yarn workspace @reviewsha/admin test && yarn workspace @reviewsha/worker test"
+    "test:apps": "yarn workspace @reviewsha/api test && yarn workspace @reviewsha/web test && yarn workspace @reviewsha/admin test && yarn workspace @reviewsha/worker test",
+    "prepare": "husky",
+    "hooks:pre-commit": ".husky/pre-commit",
+    "dev:api": "yarn workspace @reviewsha/api dev",
+    "dev:web": "yarn workspace @reviewsha/web dev",
+    "dev:admin": "yarn workspace @reviewsha/admin dev",
+    "dev:worker": "yarn workspace @reviewsha/worker dev"
   },
   "devDependencies": {
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.4",
     "eslint": "^10.8.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "react": "^19",
     "react-dom": "^19",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.65.0"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx,json,md,yml,yaml,css}": [
+      "prettier --write"
+    ],
+    "*.{js,mjs,cjs,ts,tsx}": [
+      "eslint --fix"
+    ]
   }
 }

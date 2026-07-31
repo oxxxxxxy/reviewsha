@@ -15,7 +15,7 @@
     "prisma:deploy": "prisma migrate deploy --schema prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema prisma/schema.prisma",
     "test:watch": "vitest",
-    "build:deps": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build",
+    "build:deps": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build && yarn prisma:generate",
     "predev": "yarn build:deps"
   },
   "dependencies": {

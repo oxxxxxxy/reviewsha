@@ -11,6 +11,14 @@ describe('WorkerLoggerService', () => {
     expect(logger.error).toBeInstanceOf(Function);
   });
 
+  it('formats messages using the shared logging format', () => {
+    const logger = new WorkerLoggerService();
+
+    expect(logger.format('INFO', 'Worker started', 'Bootstrap')).toContain(
+      'WORKER INFO Bootstrap Worker started',
+    );
+  });
+
   it('does not throw when logging messages', () => {
     const logger = new WorkerLoggerService();
 

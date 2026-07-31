@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+
+yarn lint-staged
+yarn typecheck
+yarn format:check --ignore-unknown
