@@ -140,22 +140,21 @@ Foreign keys настроены явно:
 Создаёт:
 
 - администратора `admin@reviewsha.local`;
-- пользователя `user@reviewsha.local`;
+- пользователей `developer@reviewsha.local` и `demo@reviewsha.local`;
 - session и refresh token;
 - demo organization;
 - invitation;
-- demo project;
+- demo projects;
 - project membership;
 - uploaded file metadata;
 - completed scan;
 - completed scan step;
 - report;
-- finding;
-- AI request;
+- 24 findings;
+- AI requests;
 - chat session;
-- chat message;
-- notification;
-- queue job.
+- 4 chat messages;
+- queue jobs.
 
 ---
 

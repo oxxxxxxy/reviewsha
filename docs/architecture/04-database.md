@@ -1190,3 +1190,37 @@ docs/development/standards.md
 - `prisma db push` запрещён для production и shared environments.
 
 Prisma 7 выполняет seed как отдельный explicit step через `prisma db seed`, поэтому проектный `prisma:reset` объединяет schema reset и seed в одну безопасную dev/test-команду.
+
+---
+
+# 26. Seed Stage 3.3
+
+Статус реализации: ✅ COMPLETE.
+
+Seed реализован модульно:
+
+```txt
+apps/api/prisma/seed.ts
+apps/api/prisma/seeds/*
+```
+
+Принципы:
+
+- `seed.ts` является bootstrap-файлом без бизнес-логики;
+- каждая группа сущностей заполняется отдельным seed-модулем;
+- демонстрационные данные детерминированы;
+- пароли хранятся только как hash values;
+- повторный запуск безопасен и не создаёт дубликаты;
+- seed используется для локальной разработки, acceptance tests и будущих E2E-сценариев.
+
+Минимальный набор:
+
+- 3 пользователя;
+- 3 проекта;
+- 3 uploaded files;
+- 3 scans;
+- 1 report;
+- 24 findings;
+- 1 chat session;
+- 4 chat messages;
+- 4 queue jobs.

@@ -6,7 +6,7 @@ NestJS 11 Backend API приложения «Ревьюша».
 
 API отвечает за REST endpoints, Swagger/OpenAPI, конфигурацию, подключение Prisma и будущую бизнес-логику MVP.
 
-На Этапах 3.1–3.2 реализован слой схемы данных и инфраструктура миграций: Prisma schema, первая миграция, idempotent seed, migrate dev/deploy/reset workflow. Сервисы, контроллеры и бизнес-endpoints ещё не реализуются.
+На Этапах 3.1–3.3 реализован слой схемы данных, инфраструктура миграций и модульный deterministic seed: Prisma schema, первая миграция, idempotent seed, migrate dev/deploy/reset workflow. Сервисы, контроллеры и бизнес-endpoints ещё не реализуются.
 
 ## Запуск
 
@@ -79,6 +79,7 @@ GET /api/v1/docs-json
 prisma/schema.prisma
 prisma/migrations/
 prisma/seed.ts
+prisma/seeds/
 ```
 
 Схема использует Prisma 7, PostgreSQL datasource через `DATABASE_URL`, Prisma Client и Prisma Migrate.
@@ -110,3 +111,17 @@ yarn workspace @reviewsha/api prisma:reset
 ```
 
 Правила миграций описаны в `docs/implementation/stage-3-2-migrations.md` и `docs/development/standards.md`.
+
+## Seed
+
+`prisma/seed.ts` не содержит бизнес-логики и только запускает seed pipeline. Данные разделены по модулям `prisma/seeds/*`.
+
+Создаются:
+
+- `admin@reviewsha.local`;
+- `developer@reviewsha.local`;
+- `demo@reviewsha.local`;
+- проекты `NestJS API`, `React Dashboard`, `Linux Scripts`;
+- uploaded files, scans, scan steps, report, 24 findings, AI requests, chat messages и queue jobs.
+
+Повторный запуск `yarn workspace @reviewsha/api prisma:seed` не создаёт дубликаты.

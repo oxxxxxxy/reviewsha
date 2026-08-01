@@ -121,7 +121,7 @@ yarn test:stage3
 
 ## Автоматические тесты
 
-`tests/stage3/prisma.integration.test.ts` содержит 11 infrastructure/acceptance tests:
+`tests/stage3/prisma.integration.test.ts` содержит infrastructure/acceptance tests для миграций и seed. Блок миграций покрывает:
 
 1. `prisma format`.
 2. `prisma validate`.
@@ -134,6 +134,8 @@ yarn test:stage3
 9. Идемпотентный seed без дублирования critical records.
 10. Prisma Client connection.
 11. CRUD для `User` после применения миграций.
+
+Дополнительные проверки Stage 3.3 покрывают детерминированные seed users, projects, relations, findings, chats и queue jobs.
 
 ---
 

@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, QueueStatus, Role, ScanStatus } from '@prisma/client';
 
 const root = process.cwd();
 const postgresUser = 'reviewsha';
@@ -15,6 +15,7 @@ const testDatabases = [
   'reviewsha_stage32_deploy_test',
   'reviewsha_stage32_reset_test',
   'reviewsha_stage32_seed_test',
+  'reviewsha_stage33_seed_test',
 ];
 
 function databaseUrl(databaseName: string): string {
@@ -168,8 +169,8 @@ describe('Stage 3 Prisma schema and migration infrastructure', () => {
 
     const [admin, user, project] = await Promise.all([
       prisma.user.findUnique({ where: { email: 'admin@reviewsha.local' } }),
-      prisma.user.findUnique({ where: { email: 'user@reviewsha.local' } }),
-      prisma.project.findUnique({ where: { id: '00000000-0000-4000-8000-000000000001' } }),
+      prisma.user.findUnique({ where: { email: 'developer@reviewsha.local' } }),
+      prisma.project.findUnique({ where: { id: '00000000-0000-4000-8000-000000000101' } }),
     ]);
 
     await prisma.$disconnect();
@@ -178,7 +179,7 @@ describe('Stage 3 Prisma schema and migration infrastructure', () => {
     expect(output).toContain('Seed completed');
     expect(admin?.role).toBe(Role.ADMIN);
     expect(user?.role).toBe(Role.USER);
-    expect(project?.name).toBe('Demo Reviewsha Project');
+    expect(project?.name).toBe('NestJS API');
   }, 60_000);
 
   it('runs seed idempotently without duplicating critical records', async () => {
@@ -193,8 +194,8 @@ describe('Stage 3 Prisma schema and migration infrastructure', () => {
     const prisma = createPrismaClient('reviewsha_stage32_seed_test');
     const [adminCount, userCount, projectCount] = await Promise.all([
       prisma.user.count({ where: { email: 'admin@reviewsha.local' } }),
-      prisma.user.count({ where: { email: 'user@reviewsha.local' } }),
-      prisma.project.count({ where: { id: '00000000-0000-4000-8000-000000000001' } }),
+      prisma.user.count({ where: { email: 'developer@reviewsha.local' } }),
+      prisma.project.count({ where: { id: '00000000-0000-4000-8000-000000000101' } }),
     ]);
     await prisma.$disconnect();
 
@@ -208,6 +209,102 @@ describe('Stage 3 Prisma schema and migration infrastructure', () => {
     const prisma = createPrismaClient();
     await expect(prisma.$queryRaw`SELECT 1`).resolves.toEqual([{ '?column?': 1 }]);
     await prisma.$disconnect();
+  });
+
+  it('creates the deterministic seed users', async () => {
+    run('yarn', ['workspace', '@reviewsha/api', 'prisma:deploy'], 'reviewsha_stage33_seed_test');
+    run('yarn', ['workspace', '@reviewsha/api', 'prisma:seed'], 'reviewsha_stage33_seed_test');
+
+    const prisma = createPrismaClient('reviewsha_stage33_seed_test');
+    const [admin, developer, demo] = await Promise.all([
+      prisma.user.findUnique({ where: { email: 'admin@reviewsha.local' } }),
+      prisma.user.findUnique({ where: { email: 'developer@reviewsha.local' } }),
+      prisma.user.findUnique({ where: { email: 'demo@reviewsha.local' } }),
+    ]);
+    await prisma.$disconnect();
+
+    expect(admin?.role).toBe(Role.ADMIN);
+    expect(developer?.role).toBe(Role.USER);
+    expect(demo?.role).toBe(Role.USER);
+    expect(admin?.passwordHash).toMatch(/^sha256:/);
+  });
+
+  it('creates realistic demo projects', async () => {
+    const prisma = createPrismaClient('reviewsha_stage33_seed_test');
+    const projects = await prisma.project.findMany({ orderBy: { name: 'asc' } });
+    await prisma.$disconnect();
+
+    expect(projects.map((project) => project.name)).toEqual([
+      'Linux Scripts',
+      'NestJS API',
+      'React Dashboard',
+    ]);
+  });
+
+  it('keeps User to Project ownership relations valid', async () => {
+    const prisma = createPrismaClient('reviewsha_stage33_seed_test');
+    const developer = await prisma.user.findUnique({
+      where: { email: 'developer@reviewsha.local' },
+      include: { ownedProjects: true, projectMemberships: true },
+    });
+    await prisma.$disconnect();
+
+    expect(developer?.ownedProjects.length).toBeGreaterThanOrEqual(2);
+    expect(developer?.projectMemberships.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('keeps Project to Scan to Report relations valid', async () => {
+    const prisma = createPrismaClient('reviewsha_stage33_seed_test');
+    const project = await prisma.project.findUnique({
+      where: { id: '00000000-0000-4000-8000-000000000101' },
+      include: { scans: { include: { report: true } } },
+    });
+    await prisma.$disconnect();
+
+    expect(project?.scans).toHaveLength(1);
+    expect(project?.scans[0]?.status).toBe(ScanStatus.COMPLETED);
+    expect(project?.scans[0]?.report?.score).toBe(82);
+  });
+
+  it('creates uploaded files, findings, chats and queue jobs for UI development', async () => {
+    const prisma = createPrismaClient('reviewsha_stage33_seed_test');
+    const [uploadedFiles, findings, chatMessages, queueJobs] = await Promise.all([
+      prisma.uploadedFile.count(),
+      prisma.finding.count(),
+      prisma.chatMessage.count(),
+      prisma.queueJob.findMany({ select: { status: true } }),
+    ]);
+    await prisma.$disconnect();
+
+    expect(uploadedFiles).toBeGreaterThanOrEqual(3);
+    expect(findings).toBeGreaterThanOrEqual(24);
+    expect(chatMessages).toBeGreaterThanOrEqual(4);
+    expect(queueJobs.map((job) => job.status)).toEqual(
+      expect.arrayContaining([
+        QueueStatus.WAITING,
+        QueueStatus.ACTIVE,
+        QueueStatus.COMPLETED,
+        QueueStatus.FAILED,
+      ]),
+    );
+  });
+
+  it('keeps the minimum expected seed dataset size stable', async () => {
+    const prisma = createPrismaClient('reviewsha_stage33_seed_test');
+    const counts = await Promise.all([
+      prisma.user.count(),
+      prisma.project.count(),
+      prisma.uploadedFile.count(),
+      prisma.scan.count(),
+      prisma.report.count(),
+      prisma.finding.count(),
+      prisma.chatSession.count(),
+      prisma.chatMessage.count(),
+      prisma.queueJob.count(),
+    ]);
+    await prisma.$disconnect();
+
+    expect(counts).toEqual([3, 3, 3, 3, 1, 24, 1, 4, 4]);
   });
 
   it('performs CRUD for User model after migrations are applied', async () => {

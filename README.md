@@ -15,11 +15,12 @@ AI SaaS platform for automated code review.
 | 2.6 CI/CD — GitHub Actions         | ✅ COMPLETE | Автоматические проверки на push, pull request и ручной запуск                                 |
 | 3.1 Prisma Schema                  | ✅ COMPLETE | Полная Prisma-схема, первая миграция, seed, Prisma Client и Stage 3 acceptance tests          |
 | 3.2 Миграции                       | ✅ COMPLETE | Prisma Migrate workflow, reset/deploy/dev scripts, CI checks и документация                   |
+| 3.3 Seed                           | ✅ COMPLETE | Модульный deterministic seed для dev/test/demo данных                                         |
 
 Следующий этап:
 
 ```txt
-Этап 3.3 Database Access Layer + Domain Foundation
+Этап 3.4 Database Access Layer + Domain Foundation
 ```
 
 ---
@@ -401,7 +402,8 @@ Prisma находится в `apps/api/prisma` и является источн�
 apps/api/prisma/
 ├── schema.prisma
 ├── migrations/
-└── seed.ts
+├── seed.ts
+└── seeds/
 ```
 
 Основные команды:
@@ -421,9 +423,64 @@ yarn workspace @reviewsha/api prisma:seed
 yarn test:stage3
 ```
 
-`seed.ts` идемпотентен и создаёт минимальные dev-данные: администратора, пользователя, организацию, приглашение, проект, участника проекта, файл, scan, scan step, report, finding, AI request, chat, message, notification и queue job.
+`seed.ts` является тонким bootstrap-файлом. Данные разнесены по модулям `apps/api/prisma/seeds/*` и полностью детерминированы.
 
 Схема реализует архитектурные сущности из `docs/architecture/04-database.md` и добавляет технические таблицы `refresh_tokens` и `queue_jobs` для auth/session management и аудита BullMQ jobs.
+
+---
+
+## Заполнение базы данных
+
+Seed предназначен для локальной разработки, автоматических проверок, демо и будущих E2E-сценариев.
+
+Структура seed-модулей:
+
+```txt
+apps/api/prisma/
+├── seed.ts
+└── seeds/
+    ├── users.seed.ts
+    ├── projects.seed.ts
+    ├── uploads.seed.ts
+    ├── scans.seed.ts
+    ├── reports.seed.ts
+    ├── findings.seed.ts
+    ├── chats.seed.ts
+    ├── queue-jobs.seed.ts
+    ├── constants.ts
+    ├── types.ts
+    └── index.ts
+```
+
+Запуск:
+
+```bash
+yarn workspace @reviewsha/api prisma:seed
+```
+
+Полный reset локальной/test базы с повторным заполнением:
+
+```bash
+yarn workspace @reviewsha/api prisma:reset
+```
+
+Демонстрационные пользователи:
+
+| Email                       | Роль  | Назначение                    |
+| --------------------------- | ----- | ----------------------------- |
+| `admin@reviewsha.local`     | ADMIN | администрирование             |
+| `developer@reviewsha.local` | USER  | разработчик и владелец API    |
+| `demo@reviewsha.local`      | USER  | демонстрационный пользователь |
+
+Демонстрационные проекты:
+
+- `NestJS API`;
+- `React Dashboard`;
+- `Linux Scripts`.
+
+Seed создаёт связанные `UploadedFile`, `Scan`, `ScanStep`, `Report`, несколько десятков `Finding`, `AIRequest`, `ChatSession`, `ChatMessage` и `QueueJob` со статусами `WAITING`, `ACTIVE`, `COMPLETED`, `FAILED`.
+
+Повторный запуск безопасен: все критичные записи создаются через `upsert` и стабильные deterministic IDs / unique keys.
 
 ---
 
@@ -704,7 +761,7 @@ apps/worker:     11 files, 36 tests
 
 ```txt
 47 unit/infrastructure test files + 2 Playwright E2E tests
-170 unit/infrastructure/stage tests + 2 E2E tests
+176 unit/infrastructure/stage tests + 2 E2E tests
 ```
 
 Организация тестов:
@@ -713,7 +770,7 @@ apps/worker:     11 files, 36 tests
 apps/<app>/tests/unit/**       # unit/infrastructure tests приложений
 packages/<pkg>/tests/unit/**   # unit tests shared packages
 tests/stage2/**                # smoke + integration acceptance tests этапа 2
-tests/stage3/**                # Prisma schema/migration/seed acceptance tests этапов 3.1–3.2
+tests/stage3/**                # Prisma schema/migration/seed acceptance tests этапов 3.1–3.3
 tests/e2e/**                   # Playwright E2E
 ```
 
@@ -747,6 +804,7 @@ docs/implementation/stage-2-6-ci-cd.md
 docs/implementation/stage-2-final-audit.md
 docs/implementation/stage-3-1-prisma-schema.md
 docs/implementation/stage-3-2-migrations.md
+docs/implementation/stage-3-3-seed.md
 docs/generated/api/            # генерируется командой yarn docs:api и не коммитится
 ```
 
