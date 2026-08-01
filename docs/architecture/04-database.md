@@ -1224,3 +1224,48 @@ apps/api/prisma/seeds/*
 - 1 chat session;
 - 4 chat messages;
 - 4 queue jobs.
+
+---
+
+# 21. Реализация Prisma Client и Repository Layer
+
+## 21.1 PrismaService
+
+В Backend API используется единый `PrismaService`:
+
+```txt
+apps/api/src/database/prisma.service.ts
+```
+
+Он является runtime-точкой создания Prisma Client, управляет lifecycle соединения и предоставляет health check БД.
+
+## 21.2 Repository Layer
+
+Все будущие доменные модули работают с PostgreSQL через репозитории из:
+
+```txt
+apps/api/src/repositories
+```
+
+Repository Layer инкапсулирует Prisma-запросы по сущностям:
+
+- users;
+- projects;
+- uploaded_files;
+- scans;
+- reports;
+- findings;
+- refresh_tokens;
+- queue_jobs;
+- chat_sessions;
+- chat_messages.
+
+## 21.3 Транзакции
+
+Репозитории принимают `RepositoryOptions.tx`, что позволяет сервисам выполнять несколько операций в одной Prisma transaction без прямого обращения к ORM.
+
+## 21.4 Ограничения
+
+- `new PrismaClient()` запрещён в runtime-коде кроме `PrismaService`.
+- `prisma db push` не используется для production.
+- Любая новая таблица или связь должна появляться через новую Prisma migration и отражаться в ER-диаграмме.

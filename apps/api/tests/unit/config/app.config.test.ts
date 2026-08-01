@@ -13,12 +13,14 @@ describe('appConfig', () => {
     process.env.API_PORT = '4000';
     process.env.API_PREFIX = 'api/v1';
     process.env.DATABASE_URL = 'postgresql://custom';
+    process.env.PRISMA_LOG_QUERIES = 'true';
 
     const config = appConfig();
 
     expect(config.app.port).toBe(4000);
     expect(config.app.apiPrefix).toBe('api/v1');
     expect(config.database.url).toBe('postgresql://custom');
+    expect(config.database.logQueries).toBe(true);
   });
 
   it('uses defaults', () => {
@@ -29,5 +31,6 @@ describe('appConfig', () => {
 
     expect(config.app.port).toBe(3000);
     expect(config.app.apiPrefix).toBe('api/v1');
+    expect(config.database.logQueries).toBe(false);
   });
 });

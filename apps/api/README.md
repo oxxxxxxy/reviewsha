@@ -6,7 +6,7 @@ NestJS 11 Backend API приложения «Ревьюша».
 
 API отвечает за REST endpoints, Swagger/OpenAPI, конфигурацию, подключение Prisma и будущую бизнес-логику MVP.
 
-На Этапах 3.1–3.3 реализован слой схемы данных, инфраструктура миграций и модульный deterministic seed: Prisma schema, первая миграция, idempotent seed, migrate dev/deploy/reset workflow. Сервисы, контроллеры и бизнес-endpoints ещё не реализуются.
+На Этапах 3.1–3.5 реализован фундамент базы данных: Prisma schema, миграции, idempotent seed, единый `PrismaService`, `DatabaseModule`, PostgreSQL health check и Repository Layer. Бизнес-endpoints ещё не реализуются.
 
 ## Запуск
 
@@ -66,6 +66,7 @@ GET /api/v1/docs-json
 - NestJS 11
 - Prisma 7
 - PostgreSQL
+- Repository Layer
 - Zod
 - Swagger
 - `@reviewsha/config`
@@ -125,3 +126,17 @@ yarn workspace @reviewsha/api prisma:reset
 - uploaded files, scans, scan steps, report, 24 findings, AI requests, chat messages и queue jobs.
 
 Повторный запуск `yarn workspace @reviewsha/api prisma:seed` не создаёт дубликаты.
+
+## Prisma Client
+
+`src/database/prisma.service.ts` — единственное место в runtime-коде API, где создаётся Prisma Client. Сервис подключается к PostgreSQL при старте NestJS, закрывает соединение при shutdown, поддерживает `$transaction()` и используется health endpoint.
+
+`PRISMA_LOG_QUERIES=true` включает логирование SQL-запросов в dev/debug окружении.
+
+## Repository Layer
+
+Репозитории находятся в `src/repositories/**` и экспортируются через `RepositoriesModule`.
+
+Реализованы репозитории для `User`, `Project`, `UploadedFile`, `Scan`, `Report`, `Finding`, `RefreshToken`, `QueueJob`, `ChatSession`, `ChatMessage`.
+
+Правило: будущие сервисы получают данные только через репозитории и не обращаются к `PrismaService` напрямую, кроме инфраструктурных health checks. Для транзакций используется `RepositoryOptions.tx`.

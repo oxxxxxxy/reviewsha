@@ -76,6 +76,15 @@ yarn workspace @reviewsha/api prisma:generate
 yarn test:stage3
 ```
 
+
+## Database access
+
+- Application code uses `PrismaService` only through NestJS Dependency Injection.
+- `new PrismaClient()` is allowed only in `apps/api/src/database/prisma.service.ts` and CLI bootstrap files under `apps/api/prisma/**`.
+- Domain services do not call `prisma.<model>.*` directly; all data access goes through `apps/api/src/repositories/**`.
+- Repository classes contain only persistence/query logic and never throw HTTP/Nest exceptions for business cases.
+- Multi-entity writes must use `prisma.$transaction()` or repository methods with `RepositoryOptions.tx`.
+
 ## Logging
 
 Use the shared format:

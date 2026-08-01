@@ -1,9 +1,12 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient, QueueStatus, Role, ScanStatus } from '@prisma/client';
+import { PrismaService } from '../../apps/api/src/database/prisma.service';
+
+vi.setConfig({ hookTimeout: 60_000, testTimeout: 60_000 });
 
 const root = process.cwd();
 const postgresUser = 'reviewsha';
@@ -203,6 +206,25 @@ describe('Stage 3 Prisma schema and migration infrastructure', () => {
     expect(userCount).toBe(1);
     expect(projectCount).toBe(1);
   }, 60_000);
+
+  it('connects through PrismaService and supports health checks plus transactions', async () => {
+    run('yarn', ['workspace', '@reviewsha/api', 'prisma:deploy']);
+    const service = new PrismaService(
+      {
+        get: (_key: string, fallback?: unknown) => fallback,
+        getOrThrow: () => databaseUrl(testDatabases[0]),
+      } as never,
+      { log: () => undefined } as never,
+    );
+
+    await service.onModuleInit();
+    await expect(service.healthCheck()).resolves.toBeUndefined();
+
+    const [result] = await service.$transaction([service.$queryRaw`SELECT 1`]);
+    expect(result).toEqual([{ '?column?': 1 }]);
+
+    await service.onModuleDestroy();
+  });
 
   it('connects to PostgreSQL through Prisma Client', async () => {
     run('yarn', ['workspace', '@reviewsha/api', 'prisma:deploy']);

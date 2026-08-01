@@ -8,7 +8,7 @@ export type AppConfig = {
   corsOrigin: string;
 };
 
-export default (): { app: AppConfig; database: { url: string } } => ({
+export default (): { app: AppConfig; database: { url: string; logQueries: boolean } } => ({
   app: {
     nodeEnv: process.env.NODE_ENV ?? 'development',
     host: process.env.API_HOST ?? '0.0.0.0',
@@ -20,5 +20,6 @@ export default (): { app: AppConfig; database: { url: string } } => ({
     url:
       process.env.DATABASE_URL ??
       'postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public',
+    logQueries: process.env.PRISMA_LOG_QUERIES === 'true',
   },
 });

@@ -16,11 +16,13 @@ AI SaaS platform for automated code review.
 | 3.1 Prisma Schema                  | ✅ COMPLETE | Полная Prisma-схема, первая миграция, seed, Prisma Client и Stage 3 acceptance tests          |
 | 3.2 Миграции                       | ✅ COMPLETE | Prisma Migrate workflow, reset/deploy/dev scripts, CI checks и документация                   |
 | 3.3 Seed                           | ✅ COMPLETE | Модульный deterministic seed для dev/test/demo данных                                         |
+| 3.4 Prisma Client                  | ✅ COMPLETE | Единый PrismaService, DatabaseModule, health check PostgreSQL и транзакции                    |
+| 3.5 Repository Layer               | ✅ COMPLETE | Репозитории для MVP-сущностей, интерфейсы, DI и unit-тесты                                    |
 
 Следующий этап:
 
 ```txt
-Этап 3.4 Database Access Layer + Domain Foundation
+Этап 4. Backend Domain Modules
 ```
 
 ---
@@ -168,12 +170,14 @@ Backend API на NestJS 11.
 Сейчас содержит:
 
 - bootstrap приложения;
-- global prefix `/api`;
+- global prefix `/api/v1`;
 - Swagger UI `/api/v1/docs`;
 - OpenAPI JSON `/api/v1/docs-json`;
 - Zod env validation;
 - Prisma bootstrap;
-- `DatabaseModule`;
+- `DatabaseModule` + `PrismaService`;
+- `RepositoriesModule` и Repository Layer;
+- PostgreSQL health check;
 - `HealthModule`;
 - normalized `HttpExceptionFilter`;
 - shared API logger.
@@ -423,6 +427,8 @@ yarn workspace @reviewsha/api prisma:seed
 yarn test:stage3
 ```
 
+`yarn workspace @reviewsha/api test` сейчас покрывает API infrastructure, PrismaService и Repository Layer unit-тестами. `yarn test:stage3` проверяет schema/migrations/seed/PrismaService на реальной PostgreSQL test database.
+
 `seed.ts` является тонким bootstrap-файлом. Данные разнесены по модулям `apps/api/prisma/seeds/*` и полностью детерминированы.
 
 Схема реализует архитектурные сущности из `docs/architecture/04-database.md` и добавляет технические таблицы `refresh_tokens` и `queue_jobs` для auth/session management и аудита BullMQ jobs.
@@ -557,6 +563,32 @@ yarn workspace @reviewsha/api prisma:studio
 ```
 
 Studio используется только для визуальной проверки данных в dev-окружении.
+
+---
+
+## Prisma Client и Repository Layer
+
+Backend использует единый `PrismaService` из `apps/api/src/database/prisma.service.ts`. Он создаётся через NestJS DI, подключается в lifecycle `onModuleInit`, закрывает соединение в `onModuleDestroy` и предоставляет `healthCheck()` для `/api/v1/health`.
+
+Все обращения доменной логики к PostgreSQL должны идти через Repository Layer:
+
+```txt
+apps/api/src/repositories/
+├── base
+├── user
+├── project
+├── upload
+├── scan
+├── report
+├── finding
+├── auth
+├── queue
+└── chat
+```
+
+Правило проекта: **не создавать `new PrismaClient()` и не вызывать `prisma.<model>.*` в доменных сервисах**. Исключения: `PrismaService` и CLI seed bootstrap в `apps/api/prisma/**`.
+
+Репозитории имеют интерфейсы, принимают `RepositoryOptions.tx` для транзакций и не содержат HTTP/business exceptions.
 
 ---
 

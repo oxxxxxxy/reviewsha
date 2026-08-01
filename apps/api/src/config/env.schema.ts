@@ -10,6 +10,7 @@ export const envSchema = z.object({
   DATABASE_URL: z
     .string()
     .default('postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public'),
+  PRISMA_LOG_QUERIES: z.coerce.boolean().default(false),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

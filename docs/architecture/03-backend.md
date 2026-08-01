@@ -1606,3 +1606,84 @@ POST   /api/v1/admin/queues/:queueName/jobs/:jobId/retry
 
 GET    /api/v1/health
 ```
+
+---
+
+# 17. Реализация Stage 3: DatabaseModule, PrismaService и Repository Layer
+
+## 17.1 DatabaseModule
+
+Runtime-доступ Backend API к PostgreSQL реализован через глобальный `DatabaseModule`:
+
+```txt
+apps/api/src/database/
+├── database.module.ts
+└── prisma.service.ts
+```
+
+`PrismaService` является единственным runtime-wrapper над Prisma Client в `apps/api/src/**`:
+
+- наследует `PrismaClient`;
+- использует Prisma 7 и `@prisma/adapter-pg`;
+- получает `DATABASE_URL` из `ConfigModule`;
+- открывает соединение в `onModuleInit()`;
+- закрывает соединение в `onModuleDestroy()`;
+- предоставляет `healthCheck()` через `SELECT 1`;
+- поддерживает `$transaction()` для будущих доменных сервисов.
+
+## 17.2 Repository Layer
+
+Data Access Layer вынесен в `RepositoriesModule`:
+
+```txt
+apps/api/src/repositories/
+├── base
+├── user
+├── project
+├── upload
+├── scan
+├── report
+├── finding
+├── auth
+├── queue
+└── chat
+```
+
+Реализованы репозитории для ключевых MVP-сущностей:
+
+- `UserRepository`;
+- `ProjectRepository`;
+- `UploadedFileRepository`;
+- `ScanRepository`;
+- `ReportRepository`;
+- `FindingRepository`;
+- `RefreshTokenRepository`;
+- `QueueJobRepository`;
+- `ChatSessionRepository`;
+- `ChatMessageRepository`.
+
+Каждый репозиторий имеет интерфейс и получает `PrismaService` через NestJS DI.
+
+## 17.3 Правила доступа к данным
+
+```txt
+Controller
+  ↓
+Service
+  ↓
+Repository Interface
+  ↓
+Repository Implementation
+  ↓
+PrismaService
+  ↓
+PostgreSQL
+```
+
+Правила:
+
+- доменные сервисы не вызывают `prisma.<model>.*` напрямую;
+- Repository не содержит бизнес-логики и HTTP/Nest exceptions;
+- multi-entity write операции выполняются через транзакции;
+- общие CRUD-примитивы находятся в `BaseRepository`;
+- инфраструктурный `HealthService` может использовать `PrismaService.healthCheck()` для проверки доступности БД.

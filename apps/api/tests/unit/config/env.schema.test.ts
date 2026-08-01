@@ -11,6 +11,7 @@ describe('api env schema', () => {
     expect(config.API_PORT).toBe(3000);
     expect(config.API_PREFIX).toBe('api/v1');
     expect(config.CORS_ORIGIN).toBe('http://localhost:5173');
+    expect(config.PRISMA_LOG_QUERIES).toBe(false);
   });
 
   it('accepts production-like env', () => {
@@ -21,11 +22,13 @@ describe('api env schema', () => {
       API_PREFIX: 'api/v1',
       CORS_ORIGIN: 'https://reviewsha.example.com',
       DATABASE_URL: 'postgresql://user:pass@localhost:5432/reviewsha',
+      PRISMA_LOG_QUERIES: 'true',
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.API_PORT).toBe(8080);
+      expect(result.data.PRISMA_LOG_QUERIES).toBe(true);
     }
   });
 

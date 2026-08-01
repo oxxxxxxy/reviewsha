@@ -1,7 +1,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiServiceUnavailableResponse, ApiTags } from '@nestjs/swagger';
 
-import { HealthService } from './health.service';
+import { HealthResponse, HealthService } from './health.service';
 
 @ApiTags('Health')
 @Controller('health')
@@ -17,7 +17,10 @@ export class HealthController {
       },
     },
   })
-  getHealth(): { status: 'ok' } {
+  @ApiServiceUnavailableResponse({
+    description: 'Database connection is unavailable.',
+  })
+  getHealth(): Promise<HealthResponse> {
     return this.healthService.getHealth();
   }
 }
