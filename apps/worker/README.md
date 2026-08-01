@@ -41,12 +41,11 @@ AI_PROVIDER=deepseek
 ## Очереди
 
 ```txt
-upload
-extract
-parse
-analyze
-report
-cleanup
+scan.queue
+file.queue
+ai.queue
+report.queue
+notification.queue
 ```
 
 ## Зависимости

@@ -6,7 +6,7 @@ import { QUEUE_NAMES } from '../queue/queue.constants';
 import { QueueService } from '../queue/queue.service';
 import { BaseQueueWorker } from './base.worker';
 
-/** Worker skeleton for the `report` queue stage. */
+/** Worker skeleton for the architecture-level `report.queue`. */
 @Injectable()
 export class ReportWorker extends BaseQueueWorker implements OnModuleInit, OnModuleDestroy {
   constructor(

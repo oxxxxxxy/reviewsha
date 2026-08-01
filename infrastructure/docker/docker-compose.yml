@@ -77,20 +77,26 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-reviewsha}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-reviewsha-password}
-      MINIO_BUCKET_UPLOADS: ${MINIO_BUCKET_UPLOADS:-uploads}
+      MINIO_BUCKET_PROJECTS: ${MINIO_BUCKET_PROJECTS:-projects}
       MINIO_BUCKET_REPORTS: ${MINIO_BUCKET_REPORTS:-reports}
-      MINIO_BUCKET_ARTIFACTS: ${MINIO_BUCKET_ARTIFACTS:-artifacts}
+      MINIO_BUCKET_TEMP: ${MINIO_BUCKET_TEMP:-temp}
+      MINIO_BUCKET_EXPORTS: ${MINIO_BUCKET_EXPORTS:-exports}
+      MINIO_BUCKET_AVATARS: ${MINIO_BUCKET_AVATARS:-avatars}
     entrypoint:
       - /bin/sh
       - -c
       - |
         mc alias set reviewsha http://minio:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"
-        mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_UPLOADS}"
+        mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_PROJECTS}"
         mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_REPORTS}"
-        mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_ARTIFACTS}"
-        mc anonymous set none "reviewsha/$${MINIO_BUCKET_UPLOADS}"
+        mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_TEMP}"
+        mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_EXPORTS}"
+        mc mb --ignore-existing "reviewsha/$${MINIO_BUCKET_AVATARS}"
+        mc anonymous set none "reviewsha/$${MINIO_BUCKET_PROJECTS}"
         mc anonymous set none "reviewsha/$${MINIO_BUCKET_REPORTS}"
-        mc anonymous set none "reviewsha/$${MINIO_BUCKET_ARTIFACTS}"
+        mc anonymous set none "reviewsha/$${MINIO_BUCKET_TEMP}"
+        mc anonymous set none "reviewsha/$${MINIO_BUCKET_EXPORTS}"
+        mc anonymous set none "reviewsha/$${MINIO_BUCKET_AVATARS}"
         mc ls reviewsha
     networks:
       reviewsha_network:

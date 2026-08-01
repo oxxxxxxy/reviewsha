@@ -3,7 +3,7 @@ import { validateWebEnv } from '../../../src/config/env.schema';
 
 describe('web env schema', () => {
   it('uses shared API URL default', () => {
-    expect(validateWebEnv({})).toEqual({ VITE_API_URL: 'http://localhost:3000/api' });
+    expect(validateWebEnv({})).toEqual({ VITE_API_URL: 'http://localhost:3000/api/v1' });
   });
 
   it('validates VITE_API_URL', () => {

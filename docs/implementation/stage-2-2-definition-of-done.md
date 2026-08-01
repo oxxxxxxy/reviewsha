@@ -64,14 +64,14 @@ yarn workspace @reviewsha/worker build
 
 ### Health
 
-- ✅ Реализован `/api/health`.
+- ✅ Реализован `/api/v1/health`.
 - ✅ Endpoint возвращает корректный статус приложения.
 
 Проверка:
 
 ```bash
 yarn workspace @reviewsha/api dev
-curl http://localhost:3000/api/health
+curl http://localhost:3000/api/v1/health
 ```
 
 Ожидаемый ответ:
@@ -200,12 +200,11 @@ yarn workspace @reviewsha/admin test
 ### BullMQ
 
 - ✅ Зарегистрированы очереди:
-  - `upload`
-  - `extract`
-  - `parse`
-  - `analyze`
-  - `report`
-  - `cleanup`
+  - `scan.queue`
+  - `file.queue`
+  - `ai.queue`
+  - `report.queue`
+  - `notification.queue`
 
 ### Workers
 

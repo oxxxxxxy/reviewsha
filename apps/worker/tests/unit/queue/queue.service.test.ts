@@ -58,29 +58,25 @@ describe('QueueService', () => {
   it('enqueue methods return disabled result in skeleton mode', async () => {
     const service = new QueueService(createConfig(false) as never, createLogger());
 
-    await expect(service.enqueueUpload()).resolves.toEqual({
-      queue: QUEUE_NAMES.upload,
-      jobName: 'upload',
+    await expect(service.enqueueScan()).resolves.toEqual({
+      queue: QUEUE_NAMES.scan,
+      jobName: 'scan',
       disabled: true,
     });
-    await expect(service.enqueueExtract()).resolves.toMatchObject({
-      queue: QUEUE_NAMES.extract,
+    await expect(service.enqueueFile()).resolves.toMatchObject({
+      queue: QUEUE_NAMES.file,
       disabled: true,
     });
-    await expect(service.enqueueParse()).resolves.toMatchObject({
-      queue: QUEUE_NAMES.parse,
-      disabled: true,
-    });
-    await expect(service.enqueueAnalyze()).resolves.toMatchObject({
-      queue: QUEUE_NAMES.analyze,
+    await expect(service.enqueueAI()).resolves.toMatchObject({
+      queue: QUEUE_NAMES.ai,
       disabled: true,
     });
     await expect(service.enqueueReport()).resolves.toMatchObject({
       queue: QUEUE_NAMES.report,
       disabled: true,
     });
-    await expect(service.enqueueCleanup()).resolves.toMatchObject({
-      queue: QUEUE_NAMES.cleanup,
+    await expect(service.enqueueNotification()).resolves.toMatchObject({
+      queue: QUEUE_NAMES.notification,
       disabled: true,
     });
 

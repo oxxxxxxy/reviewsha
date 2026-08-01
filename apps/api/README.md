@@ -35,7 +35,7 @@ apps/api/.env.example
 
 ```env
 API_PORT=3000
-API_PREFIX=api
+API_PREFIX=api/v1
 DATABASE_URL=postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public
 REDIS_URL=redis://localhost:6379
 MINIO_ENDPOINT=http://localhost:9000
@@ -44,7 +44,7 @@ MINIO_ENDPOINT=http://localhost:9000
 ## Endpoints
 
 ```txt
-GET /api/health
+GET /api/v1/health
 GET /api/docs
 GET /api/docs-json
 ```

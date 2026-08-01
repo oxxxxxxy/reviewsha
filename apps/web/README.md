@@ -30,7 +30,7 @@ apps/web/.env.example
 ```
 
 ```env
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=http://localhost:3000/api/v1
 ```
 
 ## Роуты MVP skeleton

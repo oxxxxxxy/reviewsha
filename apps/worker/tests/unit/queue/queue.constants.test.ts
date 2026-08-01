@@ -3,17 +3,22 @@ import { describe, expect, it } from 'vitest';
 import { QUEUE_NAME_LIST, QUEUE_NAMES } from '../../../src/queue/queue.constants';
 
 describe('queue constants', () => {
-  it('defines all MVP queues in the required order', () => {
+  it('defines architecture queues in the required order', () => {
     expect(QUEUE_NAMES).toEqual({
-      upload: 'upload',
-      extract: 'extract',
-      parse: 'parse',
-      analyze: 'analyze',
-      report: 'report',
-      cleanup: 'cleanup',
+      scan: 'scan.queue',
+      file: 'file.queue',
+      ai: 'ai.queue',
+      report: 'report.queue',
+      notification: 'notification.queue',
     });
 
-    expect(QUEUE_NAME_LIST).toEqual(['upload', 'extract', 'parse', 'analyze', 'report', 'cleanup']);
+    expect(QUEUE_NAME_LIST).toEqual([
+      'scan.queue',
+      'file.queue',
+      'ai.queue',
+      'report.queue',
+      'notification.queue',
+    ]);
   });
 
   it('does not contain duplicate queue names', () => {

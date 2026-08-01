@@ -6,15 +6,15 @@ import { QUEUE_NAMES } from '../queue/queue.constants';
 import { QueueService } from '../queue/queue.service';
 import { BaseQueueWorker } from './base.worker';
 
-/** Worker skeleton for the `upload` queue stage. */
+/** Worker skeleton for the architecture-level `file.queue`. */
 @Injectable()
-export class UploadWorker extends BaseQueueWorker implements OnModuleInit, OnModuleDestroy {
+export class FileWorker extends BaseQueueWorker implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(ConfigService) configService: ConfigService,
     @Inject(WorkerLoggerService) logger: WorkerLoggerService,
     @Inject(QueueService) queueService: QueueService,
   ) {
-    super(QUEUE_NAMES.upload, logger, configService, queueService);
+    super(QUEUE_NAMES.file, logger, configService, queueService);
   }
 
   async onModuleInit(): Promise<void> {

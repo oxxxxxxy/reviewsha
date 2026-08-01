@@ -6,15 +6,15 @@ import { QUEUE_NAMES } from '../queue/queue.constants';
 import { QueueService } from '../queue/queue.service';
 import { BaseQueueWorker } from './base.worker';
 
-/** Worker skeleton for the `extract` queue stage. */
+/** Worker skeleton for the architecture-level `scan.queue`. */
 @Injectable()
-export class ExtractWorker extends BaseQueueWorker implements OnModuleInit, OnModuleDestroy {
+export class ScanWorker extends BaseQueueWorker implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(ConfigService) configService: ConfigService,
     @Inject(WorkerLoggerService) logger: WorkerLoggerService,
     @Inject(QueueService) queueService: QueueService,
   ) {
-    super(QUEUE_NAMES.extract, logger, configService, queueService);
+    super(QUEUE_NAMES.scan, logger, configService, queueService);
   }
 
   async onModuleInit(): Promise<void> {

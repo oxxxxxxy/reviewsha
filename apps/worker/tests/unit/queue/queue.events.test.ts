@@ -4,8 +4,8 @@ import { formatJobCompletedLog, formatJobReceivedLog } from '../../../src/queue/
 
 describe('queue event log formatters', () => {
   it('formats received job log line', () => {
-    expect(formatJobReceivedLog('analyze', { id: '15', name: 'analyze' })).toBe(
-      'Received analyze job #15 (analyze)',
+    expect(formatJobReceivedLog('ai.queue', { id: '15', name: 'ai' })).toBe(
+      'Received ai.queue job #15 (ai)',
     );
   });
 
@@ -16,8 +16,8 @@ describe('queue event log formatters', () => {
   });
 
   it('handles missing job id', () => {
-    expect(formatJobReceivedLog('cleanup', { id: undefined, name: 'cleanup' })).toBe(
-      'Received cleanup job #unknown (cleanup)',
-    );
+    expect(
+      formatJobReceivedLog('notification.queue', { id: undefined, name: 'notification' }),
+    ).toBe('Received notification.queue job #unknown (notification)');
   });
 });

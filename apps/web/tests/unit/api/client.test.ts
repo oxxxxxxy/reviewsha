@@ -4,7 +4,7 @@ import { apiClient } from '../../../src/api/client';
 
 describe('apiClient', () => {
   it('uses API base URL fallback', () => {
-    expect(apiClient.defaults.baseURL).toBe('http://localhost:3000/api');
+    expect(apiClient.defaults.baseURL).toBe('http://localhost:3000/api/v1');
   });
 
   it('sets timeout and JSON headers', () => {

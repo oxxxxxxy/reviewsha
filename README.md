@@ -88,8 +88,8 @@ yarn dev
 После запуска:
 
 ```txt
-API:      http://localhost:3000/api
-Swagger:  http://localhost:3000/api/docs
+API:      http://localhost:3000/api/v1
+Swagger:  http://localhost:3000/api/v1/docs
 Web:      http://localhost:5173
 Admin:    http://localhost:5174
 MinIO UI: http://localhost:9001
@@ -175,7 +175,7 @@ Backend API на NestJS 11.
 
 ```bash
 yarn workspace @reviewsha/api dev
-curl http://localhost:3000/api/health
+curl http://localhost:3000/api/v1/health
 ```
 
 Ожидаемый ответ:
@@ -228,7 +228,7 @@ Standalone NestJS Worker без HTTP API.
 - Nest application context;
 - BullMQ queue layer;
 - Redis connection bootstrap;
-- queues: `upload`, `extract`, `parse`, `analyze`, `report`, `cleanup`;
+- queues: `scan.queue`, `file.queue`, `ai.queue`, `report.queue`, `notification.queue`;
 - worker classes для каждой очереди;
 - graceful shutdown;
 - shared worker logger;
@@ -360,7 +360,7 @@ docker compose exec -T minio mc ls reviewsha-local
 PostgreSQL: accepting connections
 Redis:      PONG
 MinIO:      ready
-Buckets:    uploads, reports, artifacts
+Buckets:    projects, reports, temp, exports, avatars
 ```
 
 ### ENV Docker

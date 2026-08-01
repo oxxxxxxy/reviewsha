@@ -1,10 +1,9 @@
 export const QUEUE_NAMES = {
-  upload: 'upload',
-  extract: 'extract',
-  parse: 'parse',
-  analyze: 'analyze',
-  report: 'report',
-  cleanup: 'cleanup',
+  scan: 'scan.queue',
+  file: 'file.queue',
+  ai: 'ai.queue',
+  report: 'report.queue',
+  notification: 'notification.queue',
 } as const;
 
 export type QueueKey = keyof typeof QUEUE_NAMES;

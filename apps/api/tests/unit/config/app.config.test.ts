@@ -11,13 +11,13 @@ describe('appConfig', () => {
 
   it('maps environment variables', () => {
     process.env.API_PORT = '4000';
-    process.env.API_PREFIX = 'v1';
+    process.env.API_PREFIX = 'api/v1';
     process.env.DATABASE_URL = 'postgresql://custom';
 
     const config = appConfig();
 
     expect(config.app.port).toBe(4000);
-    expect(config.app.apiPrefix).toBe('v1');
+    expect(config.app.apiPrefix).toBe('api/v1');
     expect(config.database.url).toBe('postgresql://custom');
   });
 
@@ -28,6 +28,6 @@ describe('appConfig', () => {
     const config = appConfig();
 
     expect(config.app.port).toBe(3000);
-    expect(config.app.apiPrefix).toBe('api');
+    expect(config.app.apiPrefix).toBe('api/v1');
   });
 });

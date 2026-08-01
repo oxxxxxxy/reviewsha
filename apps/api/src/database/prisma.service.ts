@@ -14,7 +14,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit(): Promise<void> {
     // Prepared for real DB connection. We do not force connect in skeleton mode,
-    // so /api/health works before docker-compose infrastructure exists.
+    // so /api/v1/health works before docker-compose infrastructure exists.
   }
 
   async onModuleDestroy(): Promise<void> {

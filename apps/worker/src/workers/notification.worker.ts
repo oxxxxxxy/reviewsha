@@ -6,15 +6,15 @@ import { QUEUE_NAMES } from '../queue/queue.constants';
 import { QueueService } from '../queue/queue.service';
 import { BaseQueueWorker } from './base.worker';
 
-/** Worker skeleton for the `cleanup` queue stage. */
+/** Worker skeleton for the architecture-level `notification.queue`. */
 @Injectable()
-export class CleanupWorker extends BaseQueueWorker implements OnModuleInit, OnModuleDestroy {
+export class NotificationWorker extends BaseQueueWorker implements OnModuleInit, OnModuleDestroy {
   constructor(
     @Inject(ConfigService) configService: ConfigService,
     @Inject(WorkerLoggerService) logger: WorkerLoggerService,
     @Inject(QueueService) queueService: QueueService,
   ) {
-    super(QUEUE_NAMES.cleanup, logger, configService, queueService);
+    super(QUEUE_NAMES.notification, logger, configService, queueService);
   }
 
   async onModuleInit(): Promise<void> {

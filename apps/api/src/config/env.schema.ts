@@ -4,7 +4,7 @@ export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   API_HOST: z.string().default('0.0.0.0'),
   API_PORT: z.coerce.number().int().positive().default(3000),
-  API_PREFIX: z.string().default('api'),
+  API_PREFIX: z.string().default('api/v1'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),
   DATABASE_URL: z
     .string()

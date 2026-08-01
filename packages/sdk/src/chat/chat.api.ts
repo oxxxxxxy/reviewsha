@@ -1,8 +1,17 @@
 import type { ApiClient } from '../client/api-client.js';
 
+export interface CreateReportChatResponse {
+  readonly chatId: string;
+}
+
+export interface ChatMessage {
+  readonly id: string;
+  readonly role: 'user' | 'assistant';
+  readonly message: string;
+  readonly createdAt: string;
+}
+
 export interface ChatMessageRequest {
-  readonly projectId?: string;
-  readonly reportId?: string;
   readonly message: string;
 }
 
@@ -15,7 +24,18 @@ export interface ChatMessageResponse {
 export class ChatAPI {
   constructor(private readonly client: ApiClient) {}
 
-  sendMessage(payload: ChatMessageRequest): Promise<ChatMessageResponse> {
-    return this.client.post<ChatMessageResponse, ChatMessageRequest>('/chat/messages', payload);
+  createForReport(reportId: string): Promise<CreateReportChatResponse> {
+    return this.client.post<CreateReportChatResponse>(`/reports/${reportId}/chats`);
+  }
+
+  getMessages(chatId: string): Promise<readonly ChatMessage[]> {
+    return this.client.get<readonly ChatMessage[]>(`/chats/${chatId}/messages`);
+  }
+
+  sendMessage(chatId: string, payload: ChatMessageRequest): Promise<ChatMessageResponse> {
+    return this.client.post<ChatMessageResponse, ChatMessageRequest>(
+      `/chats/${chatId}/messages`,
+      payload,
+    );
   }
 }

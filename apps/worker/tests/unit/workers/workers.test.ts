@@ -1,20 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { AnalyzeWorker } from '../../../src/workers/analyze.worker';
-import { CleanupWorker } from '../../../src/workers/cleanup.worker';
-import { ExtractWorker } from '../../../src/workers/extract.worker';
-import { ParseWorker } from '../../../src/workers/parse.worker';
+import { AIWorker } from '../../../src/workers/ai.worker';
+import { FileWorker } from '../../../src/workers/file.worker';
+import { NotificationWorker } from '../../../src/workers/notification.worker';
 import { ReportWorker } from '../../../src/workers/report.worker';
-import { UploadWorker } from '../../../src/workers/upload.worker';
+import { ScanWorker } from '../../../src/workers/scan.worker';
 import { QUEUE_NAMES } from '../../../src/queue/queue.constants';
 
 const workerCases = [
-  { WorkerClass: UploadWorker, queueName: QUEUE_NAMES.upload },
-  { WorkerClass: ExtractWorker, queueName: QUEUE_NAMES.extract },
-  { WorkerClass: ParseWorker, queueName: QUEUE_NAMES.parse },
-  { WorkerClass: AnalyzeWorker, queueName: QUEUE_NAMES.analyze },
+  { WorkerClass: ScanWorker, queueName: QUEUE_NAMES.scan },
+  { WorkerClass: FileWorker, queueName: QUEUE_NAMES.file },
+  { WorkerClass: AIWorker, queueName: QUEUE_NAMES.ai },
   { WorkerClass: ReportWorker, queueName: QUEUE_NAMES.report },
-  { WorkerClass: CleanupWorker, queueName: QUEUE_NAMES.cleanup },
+  { WorkerClass: NotificationWorker, queueName: QUEUE_NAMES.notification },
 ] as const;
 
 function createConfig() {
@@ -84,4 +82,14 @@ describe('queue workers', () => {
       await expect(worker.close()).resolves.toBeUndefined();
     },
   );
+
+  it('binds workers to architecture queue names', () => {
+    expect(workerCases.map((item) => item.queueName)).toEqual([
+      'scan.queue',
+      'file.queue',
+      'ai.queue',
+      'report.queue',
+      'notification.queue',
+    ]);
+  });
 });

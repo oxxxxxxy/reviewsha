@@ -4,7 +4,7 @@ import { adminApiBaseUrl, adminApiClient } from '../../../src/api/client';
 
 describe('adminApiClient', () => {
   it('uses configured admin API base URL fallback', () => {
-    expect(adminApiBaseUrl).toBe('http://localhost:3000/api');
+    expect(adminApiBaseUrl).toBe('http://localhost:3000/api/v1');
     expect(adminApiClient.defaults.baseURL).toBe(adminApiBaseUrl);
   });
 

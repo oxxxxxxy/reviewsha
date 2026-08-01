@@ -74,9 +74,11 @@ minio-create-buckets
 Он создаёт buckets:
 
 ```txt
-uploads
+projects
 reports
-artifacts
+temp
+exports
+avatars
 ```
 
 ## Network
@@ -143,6 +145,6 @@ yarn format:check --ignore-unknown
 - ✅ созданы named volumes `reviewsha_postgres_data`, `reviewsha_minio_data`;
 - ✅ все сервисы находятся в общей Docker network `reviewsha_network`;
 - ✅ приложения могут подключаться через localhost при локальном запуске и через service names внутри Docker network;
-- ✅ подготовлены buckets `uploads`, `reports`, `artifacts`;
+- ✅ подготовлены buckets `projects`, `reports`, `temp`, `exports`, `avatars`;
 - ✅ README обновлён;
 - ✅ локальная инфраструктура готова к следующему этапу разработки.

@@ -133,7 +133,7 @@ apps/api/
 - CORS;
 - ValidationPipe;
 - общий exception filter;
-- health endpoint `/api/health`.
+- health endpoint `/api/v1/health`.
 
 Проверено:
 
@@ -144,7 +144,7 @@ yarn workspace @reviewsha/api build
 yarn workspace @reviewsha/api lint
 yarn workspace @reviewsha/api test
 yarn workspace @reviewsha/api dev
-curl http://localhost:3000/api/health
+curl http://localhost:3000/api/v1/health
 ```
 
 Тесты API:
@@ -518,13 +518,12 @@ apps/worker/
 │   │   ├── queue.service.ts
 │   │   └── queue.service.test.ts
 │   ├── workers/
-│   │   ├── analyze.worker.ts
+│   │   ├── ai.worker.ts
 │   │   ├── base.worker.ts
-│   │   ├── cleanup.worker.ts
-│   │   ├── extract.worker.ts
-│   │   ├── parse.worker.ts
+│   │   ├── file.worker.ts
+│   │   ├── notification.worker.ts
 │   │   ├── report.worker.ts
-│   │   ├── upload.worker.ts
+│   │   ├── scan.worker.ts
 │   │   └── workers.test.ts
 │   ├── processors/
 │   ├── services/
@@ -552,8 +551,8 @@ apps/worker/
 - env validation через Zod;
 - `QueueModule`;
 - `QueueService`;
-- очереди `upload`, `extract`, `parse`, `analyze`, `report`, `cleanup`;
-- методы `enqueueUpload`, `enqueueExtract`, `enqueueParse`, `enqueueAnalyze`, `enqueueReport`, `enqueueCleanup`;
+- очереди `scan.queue`, `file.queue`, `ai.queue`, `report.queue`, `notification.queue`;
+- методы `enqueueScan`, `enqueueFile`, `enqueueAI`, `enqueueReport`, `enqueueNotification`;
 - отдельный Worker-класс для каждой очереди;
 - базовый `BaseQueueWorker`;
 - centralized `WorkerLoggerService`;
@@ -567,14 +566,13 @@ Startup logs при наличии Redis:
 ```txt
 Redis connected
 Queues initialized
-UploadWorker started
-ExtractWorker started
-ParseWorker started
-AnalyzeWorker started
+ScanWorker started
+FileWorker started
+AIWorker started
 ReportWorker started
-CleanupWorker started
+NotificationWorker started
 Worker started
-Registered queues: upload, extract, parse, analyze, report, cleanup
+Registered queues: scan.queue, file.queue, ai.queue, report.queue, notification.queue
 Waiting for jobs...
 ```
 
@@ -676,7 +674,7 @@ packages/
 - storage bucket names;
 - JWT constants;
 - pagination defaults;
-- upload limits;
+- upload/file limits;
 - shared Zod env validation.
 
 ### 2.3.2 packages/types
@@ -851,9 +849,11 @@ reviewsha_minio_data
 MinIO buckets:
 
 ```txt
-uploads
+projects
 reports
-artifacts
+temp
+exports
+avatars
 ```
 
 Команды запуска:

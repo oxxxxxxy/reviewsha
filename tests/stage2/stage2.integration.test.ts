@@ -26,7 +26,7 @@ describe('Stage 2 integration checks', () => {
 
     expect(queueService).toContain("getOrThrow<string>('worker.redisUrl')");
     expect(envExample).toContain('REDIS_URL=redis://localhost:6379');
-    expect(QUEUE_NAMES.analyze).toBe('analyze');
+    expect(QUEUE_NAMES.ai).toBe('ai.queue');
   });
 
   it('allows backend code to consume shared types package', () => {
@@ -53,14 +53,14 @@ describe('Stage 2 integration checks', () => {
   it('allows admin code to use UI package components and queue types', () => {
     const queueJob: QueueJob = {
       id: 'job-id',
-      queue: 'analyze',
-      name: 'analyze',
+      queue: 'ai.queue',
+      name: 'ai',
       status: QueueStatus.Waiting,
       payload: {},
       createdAt: '2026-08-01T00:00:00.000Z',
     };
 
     expect(Button).toBeInstanceOf(Function);
-    expect(queueJob.queue).toBe('analyze');
+    expect(queueJob.queue).toBe('ai.queue');
   });
 });

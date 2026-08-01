@@ -67,7 +67,13 @@ describe('Stage 2 smoke checks', () => {
   });
 
   it('registers all MVP queue names', () => {
-    expect(QUEUE_NAME_LIST).toEqual(['upload', 'extract', 'parse', 'analyze', 'report', 'cleanup']);
+    expect(QUEUE_NAME_LIST).toEqual([
+      'scan.queue',
+      'file.queue',
+      'ai.queue',
+      'report.queue',
+      'notification.queue',
+    ]);
   });
 
   it('defines Docker Compose services with healthchecks', () => {
@@ -82,9 +88,10 @@ describe('Stage 2 smoke checks', () => {
 
   it('prepares required MinIO buckets', () => {
     expect(Object.values(STORAGE_BUCKETS)).toEqual(
-      expect.arrayContaining(['uploads', 'reports', 'artifacts']),
+      expect.arrayContaining(['projects', 'reports', 'temp', 'exports', 'avatars']),
     );
-    expect(read('docker-compose.yml')).toContain('MINIO_BUCKET_UPLOADS');
+    expect(read('docker-compose.yml')).toContain('MINIO_BUCKET_PROJECTS');
+    expect(read('docker-compose.yml')).toContain('MINIO_BUCKET_AVATARS');
   });
 
   it('has GitHub Actions CI workflow', () => {

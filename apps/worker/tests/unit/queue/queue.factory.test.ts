@@ -28,9 +28,9 @@ describe('queue factory helpers', () => {
 
   it('creates queues with default names and exposes retry policy', async () => {
     const connection = createRedisConnection('redis://localhost:6379', true);
-    const queue = createQueue(QUEUE_NAMES.upload, connection);
+    const queue = createQueue(QUEUE_NAMES.scan, connection);
 
-    expect(queue.name).toBe(QUEUE_NAMES.upload);
+    expect(queue.name).toBe(QUEUE_NAMES.scan);
     expect(DEFAULT_JOB_OPTIONS).toMatchObject({
       attempts: 3,
       removeOnComplete: 100,

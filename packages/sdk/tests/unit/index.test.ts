@@ -17,14 +17,14 @@ describe('@reviewsha/sdk public API', () => {
   });
 
   it('creates all domain API services', () => {
-    const sdk = createReviewshaSDK({ baseURL: 'http://localhost:3000/api' });
+    const sdk = createReviewshaSDK({ baseURL: 'http://localhost:3000/api/v1' });
 
     expect(sdk.client).toBeInstanceOf(ApiClient);
     expect(sdk.auth.login).toBeTypeOf('function');
     expect(sdk.projects.list).toBeTypeOf('function');
-    expect(sdk.uploads.create).toBeTypeOf('function');
+    expect(sdk.uploads.createArchive).toBeTypeOf('function');
     expect(sdk.reports.export).toBeTypeOf('function');
-    expect(sdk.chat.sendMessage).toBeTypeOf('function');
+    expect(sdk.chat.createForReport).toBeTypeOf('function');
     expect(sdk.admin.users).toBeTypeOf('function');
   });
 });

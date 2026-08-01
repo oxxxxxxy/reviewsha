@@ -3,7 +3,9 @@ import type { ApiClient } from '../client/api-client.js';
 
 export interface CreateProjectRequest {
   readonly name: string;
-  readonly repositoryUrl?: string;
+  readonly description?: string;
+  readonly language?: string;
+  readonly tags?: string[];
 }
 
 export class ProjectsAPI {

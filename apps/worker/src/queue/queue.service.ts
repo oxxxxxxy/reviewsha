@@ -58,28 +58,24 @@ export class QueueService implements OnModuleDestroy {
     return this.redisAvailable;
   }
 
-  async enqueueUpload(payload: QueuePayload = {}): Promise<EnqueuedJob> {
-    return this.enqueue(QUEUE_NAMES.upload, 'upload', payload);
+  async enqueueScan(payload: QueuePayload = {}): Promise<EnqueuedJob> {
+    return this.enqueue(QUEUE_NAMES.scan, 'scan', payload);
   }
 
-  async enqueueExtract(payload: QueuePayload = {}): Promise<EnqueuedJob> {
-    return this.enqueue(QUEUE_NAMES.extract, 'extract', payload);
+  async enqueueFile(payload: QueuePayload = {}): Promise<EnqueuedJob> {
+    return this.enqueue(QUEUE_NAMES.file, 'file', payload);
   }
 
-  async enqueueParse(payload: QueuePayload = {}): Promise<EnqueuedJob> {
-    return this.enqueue(QUEUE_NAMES.parse, 'parse', payload);
-  }
-
-  async enqueueAnalyze(payload: QueuePayload = {}): Promise<EnqueuedJob> {
-    return this.enqueue(QUEUE_NAMES.analyze, 'analyze', payload);
+  async enqueueAI(payload: QueuePayload = {}): Promise<EnqueuedJob> {
+    return this.enqueue(QUEUE_NAMES.ai, 'ai', payload);
   }
 
   async enqueueReport(payload: QueuePayload = {}): Promise<EnqueuedJob> {
     return this.enqueue(QUEUE_NAMES.report, 'report', payload);
   }
 
-  async enqueueCleanup(payload: QueuePayload = {}): Promise<EnqueuedJob> {
-    return this.enqueue(QUEUE_NAMES.cleanup, 'cleanup', payload);
+  async enqueueNotification(payload: QueuePayload = {}): Promise<EnqueuedJob> {
+    return this.enqueue(QUEUE_NAMES.notification, 'notification', payload);
   }
 
   async onModuleDestroy(): Promise<void> {

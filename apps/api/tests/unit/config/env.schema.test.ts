@@ -9,7 +9,7 @@ describe('api env schema', () => {
     expect(config.NODE_ENV).toBe('development');
     expect(config.API_HOST).toBe('0.0.0.0');
     expect(config.API_PORT).toBe(3000);
-    expect(config.API_PREFIX).toBe('api');
+    expect(config.API_PREFIX).toBe('api/v1');
     expect(config.CORS_ORIGIN).toBe('http://localhost:5173');
   });
 
@@ -18,7 +18,7 @@ describe('api env schema', () => {
       NODE_ENV: 'production',
       API_HOST: '127.0.0.1',
       API_PORT: '8080',
-      API_PREFIX: 'api',
+      API_PREFIX: 'api/v1',
       CORS_ORIGIN: 'https://reviewsha.example.com',
       DATABASE_URL: 'postgresql://user:pass@localhost:5432/reviewsha',
     });
