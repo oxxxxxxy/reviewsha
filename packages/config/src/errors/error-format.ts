@@ -1,9 +1,10 @@
 export interface ErrorResponseBody {
-  readonly statusCode: number;
-  readonly error: string;
-  readonly message: string | readonly string[];
-  readonly path: string;
-  readonly timestamp: string;
+  readonly code: string;
+  readonly message: string;
+}
+
+export interface ErrorResponseEnvelope {
+  readonly error: ErrorResponseBody;
 }
 
 export interface WorkerErrorBody {
@@ -22,4 +23,11 @@ export interface FrontendErrorBody {
 
 export function createErrorTimestamp(): string {
   return new Date().toISOString();
+}
+
+export function createApiErrorCode(errorName: string): string {
+  return errorName
+    .replace(/Exception$/, '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .toUpperCase();
 }

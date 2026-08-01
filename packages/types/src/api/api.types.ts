@@ -1,13 +1,15 @@
 export interface ApiError {
-  statusCode: number;
+  code: string;
   message: string;
-  code?: string;
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: ApiError;
+export interface ApiResponse<TData = unknown, TMeta = Record<string, unknown>> {
+  data: TData;
+  meta?: TMeta;
+}
+
+export interface ApiErrorResponse {
+  error: ApiError;
 }
 
 export interface PaginationMeta {
@@ -18,6 +20,6 @@ export interface PaginationMeta {
 }
 
 export interface PaginatedResponse<T> {
-  items: T[];
+  data: T[];
   meta: PaginationMeta;
 }

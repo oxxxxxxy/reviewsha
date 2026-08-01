@@ -84,7 +84,7 @@ packages/config/src/errors/error-format.ts
 Backend:
 
 - `HttpExceptionFilter` возвращает нормализованный `ErrorResponseBody`;
-- response содержит statusCode, error, message, path, timestamp.
+- response соответствует `docs/architecture/11-api-contracts.md`: `{ error: { code, message } }`.
 
 Worker:
 

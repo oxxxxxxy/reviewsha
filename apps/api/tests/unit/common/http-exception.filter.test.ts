@@ -11,7 +11,6 @@ function createHost() {
     status,
     host: {
       switchToHttp: () => ({
-        getRequest: () => ({ url: '/api/test' }),
         getResponse: () => ({ status }),
       }),
     },
@@ -27,13 +26,10 @@ describe('HttpExceptionFilter', () => {
 
     expect(status).toHaveBeenCalledWith(400);
     expect(json).toHaveBeenCalledWith({
-      success: false,
-      error: expect.objectContaining({
-        statusCode: 400,
-        error: 'BadRequestException',
+      error: {
+        code: 'BAD_REQUEST',
         message: 'Invalid payload',
-        path: '/api/test',
-      }),
+      },
     });
   });
 
@@ -45,13 +41,10 @@ describe('HttpExceptionFilter', () => {
 
     expect(status).toHaveBeenCalledWith(500);
     expect(json).toHaveBeenCalledWith({
-      success: false,
-      error: expect.objectContaining({
-        statusCode: 500,
-        error: 'InternalServerError',
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
         message: 'Boom',
-        path: '/api/test',
-      }),
+      },
     });
   });
 });

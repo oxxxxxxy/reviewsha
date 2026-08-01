@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   addSeconds,
   calculateExponentialBackoff,
+  createApiErrorCode,
   createLogEntry,
   formatLogEntry,
   isAllowedUploadFileName,
@@ -24,6 +25,11 @@ describe('shared infrastructure helpers', () => {
     expect(formatLogEntry(entry)).toBe(
       '[2026-08-01T18:24:15.000Z] API INFO AuthService User created',
     );
+  });
+
+  it('normalizes API error codes', () => {
+    expect(createApiErrorCode('BadRequestException')).toBe('BAD_REQUEST');
+    expect(createApiErrorCode('InternalServerError')).toBe('INTERNAL_SERVER_ERROR');
   });
 
   it('validates UUID values', () => {
