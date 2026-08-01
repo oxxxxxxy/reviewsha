@@ -14,11 +14,12 @@ AI SaaS platform for automated code review.
 | 2.5 Базовая инфраструктура проекта | ✅ COMPLETE | ENV, config, logging, errors, aliases, hooks, IDE, standards                                  |
 | 2.6 CI/CD — GitHub Actions         | ✅ COMPLETE | Автоматические проверки на push, pull request и ручной запуск                                 |
 | 3.1 Prisma Schema                  | ✅ COMPLETE | Полная Prisma-схема, первая миграция, seed, Prisma Client и Stage 3 acceptance tests          |
+| 3.2 Миграции                       | ✅ COMPLETE | Prisma Migrate workflow, reset/deploy/dev scripts, CI checks и документация                   |
 
 Следующий этап:
 
 ```txt
-Этап 3.2 Database Layer + Domain Foundation
+Этап 3.3 Database Access Layer + Domain Foundation
 ```
 
 ---
@@ -413,6 +414,8 @@ yarn workspace @reviewsha/api prisma:validate
 yarn workspace @reviewsha/api prisma:generate
 yarn workspace @reviewsha/api prisma:migrate
 yarn workspace @reviewsha/api prisma:deploy
+yarn workspace @reviewsha/api prisma:reset
+yarn workspace @reviewsha/api prisma:studio
 yarn workspace @reviewsha/api prisma:seed
 
 yarn test:stage3
@@ -421,6 +424,82 @@ yarn test:stage3
 `seed.ts` идемпотентен и создаёт минимальные dev-данные: администратора, пользователя, организацию, приглашение, проект, участника проекта, файл, scan, scan step, report, finding, AI request, chat, message, notification и queue job.
 
 Схема реализует архитектурные сущности из `docs/architecture/04-database.md` и добавляет технические таблицы `refresh_tokens` и `queue_jobs` для auth/session management и аудита BullMQ jobs.
+
+---
+
+## Работа с миграциями
+
+Все изменения структуры PostgreSQL выполняются только через Prisma Migrate. Ручные schema changes через SQL-клиент и `prisma db push` запрещены для production и не используются в рабочем процессе проекта.
+
+### Naming convention
+
+Названия миграций должны быть осмысленными:
+
+```txt
+initial_schema
+add_refresh_tokens
+add_ai_chat
+add_report_score
+rename_scan_status
+add_indexes
+```
+
+Не использовать:
+
+```txt
+migration1
+fix
+update
+test
+```
+
+### Development workflow
+
+```txt
+Изменить apps/api/prisma/schema.prisma
+↓
+yarn workspace @reviewsha/api prisma:format
+↓
+yarn workspace @reviewsha/api prisma:validate
+↓
+yarn workspace @reviewsha/api prisma:migrate
+↓
+yarn workspace @reviewsha/api prisma:generate
+↓
+обновить apps/api/prisma/seed.ts при необходимости
+↓
+обновить docs/architecture/04-database.md и database.drawio при изменении структуры
+↓
+yarn test:stage3
+↓
+commit
+```
+
+Уже применённые миграции не редактируются. Если нужно изменить схему после merge, создаётся новая миграция.
+
+### Production workflow
+
+В production используется только:
+
+```bash
+yarn workspace @reviewsha/api prisma:deploy
+```
+
+### Reset локальной базы
+
+```bash
+yarn workspace @reviewsha/api prisma:reset
+```
+
+Команда выполняет `prisma migrate reset --force`, затем `prisma db seed`, поэтому после сброса база восстанавливает структуру и минимальные dev-данные. Использовать только для локальных/test баз.
+
+### Prisma Studio
+
+```bash
+yarn workspace @reviewsha/api prisma:studio
+```
+
+Studio используется только для визуальной проверки данных в dev-окружении.
 
 ---
 
@@ -625,7 +704,7 @@ apps/worker:     11 files, 36 tests
 
 ```txt
 47 unit/infrastructure test files + 2 Playwright E2E tests
-167 unit/infrastructure/stage tests + 2 E2E tests
+170 unit/infrastructure/stage tests + 2 E2E tests
 ```
 
 Организация тестов:
@@ -634,7 +713,7 @@ apps/worker:     11 files, 36 tests
 apps/<app>/tests/unit/**       # unit/infrastructure tests приложений
 packages/<pkg>/tests/unit/**   # unit tests shared packages
 tests/stage2/**                # smoke + integration acceptance tests этапа 2
-tests/stage3/**                # Prisma schema/migration/seed acceptance tests этапа 3.1
+tests/stage3/**                # Prisma schema/migration/seed acceptance tests этапов 3.1–3.2
 tests/e2e/**                   # Playwright E2E
 ```
 
@@ -667,6 +746,7 @@ docs/implementation/stage-2-5-basic-infrastructure.md
 docs/implementation/stage-2-6-ci-cd.md
 docs/implementation/stage-2-final-audit.md
 docs/implementation/stage-3-1-prisma-schema.md
+docs/implementation/stage-3-2-migrations.md
 docs/generated/api/            # генерируется командой yarn docs:api и не коммитится
 ```
 

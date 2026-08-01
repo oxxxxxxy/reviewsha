@@ -6,7 +6,7 @@ NestJS 11 Backend API приложения «Ревьюша».
 
 API отвечает за REST endpoints, Swagger/OpenAPI, конфигурацию, подключение Prisma и будущую бизнес-логику MVP.
 
-На Этапе 3.1 реализован слой схемы данных: Prisma schema, первая миграция и idempotent seed. Сервисы, контроллеры и бизнес-endpoints ещё не реализуются.
+На Этапах 3.1–3.2 реализован слой схемы данных и инфраструктура миграций: Prisma schema, первая миграция, idempotent seed, migrate dev/deploy/reset workflow. Сервисы, контроллеры и бизнес-endpoints ещё не реализуются.
 
 ## Запуск
 
@@ -26,6 +26,9 @@ yarn workspace @reviewsha/api prisma:format
 yarn workspace @reviewsha/api prisma:validate
 yarn workspace @reviewsha/api prisma:generate
 yarn workspace @reviewsha/api prisma:migrate
+yarn workspace @reviewsha/api prisma:deploy
+yarn workspace @reviewsha/api prisma:reset
+yarn workspace @reviewsha/api prisma:studio
 yarn workspace @reviewsha/api prisma:seed
 
 yarn workspace @reviewsha/api test:prisma
@@ -81,3 +84,29 @@ prisma/seed.ts
 Схема использует Prisma 7, PostgreSQL datasource через `DATABASE_URL`, Prisma Client и Prisma Migrate.
 
 `seed.ts` можно запускать многократно: критичные записи создаются через `upsert` и не дублируются.
+
+## Миграции
+
+Development workflow:
+
+```bash
+yarn workspace @reviewsha/api prisma:format
+yarn workspace @reviewsha/api prisma:validate
+yarn workspace @reviewsha/api prisma:migrate
+yarn workspace @reviewsha/api prisma:generate
+yarn test:stage3
+```
+
+Production workflow:
+
+```bash
+yarn workspace @reviewsha/api prisma:deploy
+```
+
+Локальный reset с seed:
+
+```bash
+yarn workspace @reviewsha/api prisma:reset
+```
+
+Правила миграций описаны в `docs/implementation/stage-3-2-migrations.md` и `docs/development/standards.md`.

@@ -1168,3 +1168,25 @@ yarn test:stage3
 - idempotent seed;
 - Prisma Client connection;
 - CRUD для `User`.
+
+## 25.4. Prisma Migrate workflow Stage 3.2
+
+Статус реализации: ✅ COMPLETE.
+
+Рабочий процесс миграций описан в:
+
+```txt
+docs/implementation/stage-3-2-migrations.md
+docs/development/standards.md
+```
+
+Правила:
+
+- структура БД меняется только через Prisma Migrate;
+- применённые и смерженные миграции не редактируются;
+- каждая новая миграция получает осмысленное имя;
+- production применяет только `prisma migrate deploy`;
+- локальный/test reset выполняется через `yarn workspace @reviewsha/api prisma:reset`, после чего явно запускается seed;
+- `prisma db push` запрещён для production и shared environments.
+
+Prisma 7 выполняет seed как отдельный explicit step через `prisma db seed`, поэтому проектный `prisma:reset` объединяет schema reset и seed в одну безопасную dev/test-команду.

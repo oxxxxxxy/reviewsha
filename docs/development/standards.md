@@ -56,6 +56,26 @@ import { Project } from '../../../packages/types/src/project/project.types';
 - `process.env` is allowed only inside backend/worker config files.
 - Browser env is read only from frontend config files.
 
+## Database migrations
+
+- Schema changes are made only through Prisma Migrate.
+- Do not edit migrations that were already applied or merged.
+- Do not use `prisma db push` for production or shared environments.
+- Migration names must explain intent: `initial_schema`, `add_refresh_tokens`, `add_ai_chat`, `add_indexes`.
+- Avoid meaningless names: `migration1`, `fix`, `update`, `test`.
+- Any schema change must update `apps/api/prisma/schema.prisma`, create a new migration, and update architecture docs/ER diagrams when relationships or fields change.
+- Local reset is performed through `yarn workspace @reviewsha/api prisma:reset`; production deploy is performed through `yarn workspace @reviewsha/api prisma:deploy`.
+
+Development workflow:
+
+```bash
+yarn workspace @reviewsha/api prisma:format
+yarn workspace @reviewsha/api prisma:validate
+yarn workspace @reviewsha/api prisma:migrate
+yarn workspace @reviewsha/api prisma:generate
+yarn test:stage3
+```
+
 ## Logging
 
 Use the shared format:
@@ -80,7 +100,8 @@ Example:
 
 - Production source code lives in `src/**`.
 - Unit and infrastructure tests live in `tests/unit/**` inside each workspace.
-- Cross-workspace acceptance tests live in root `tests/stage2/**`.
+- Cross-workspace Stage 2 acceptance tests live in root `tests/stage2/**`.
+- Cross-workspace Stage 3 database/migration acceptance tests live in root `tests/stage3/**`.
 - Browser E2E tests live in root `tests/e2e/**`.
 - New exported behavior must be covered by tests in the same workspace, but outside `src`.
 - Test helpers that are runtime-specific may stay under `src/test/**` only when they are imported by test code and excluded from production builds.
