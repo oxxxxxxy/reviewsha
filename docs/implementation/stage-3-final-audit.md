@@ -20,6 +20,7 @@
 - PostgreSQL connectivity;
 - PrismaService lifecycle and transactions;
 - repository unit tests with mocked PrismaService;
+- CI-safe PostgreSQL readiness checks before destructive migration test setup;
 - relation checks User → Project → Scan → Report → Finding;
 - cascade policy checks through Stage 3 integration database.
 

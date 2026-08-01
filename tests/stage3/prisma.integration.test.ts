@@ -6,7 +6,7 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient, QueueStatus, Role, ScanStatus } from '@prisma/client';
 import { PrismaService } from '../../apps/api/src/database/prisma.service';
 
-vi.setConfig({ hookTimeout: 60_000, testTimeout: 60_000 });
+vi.setConfig({ hookTimeout: 120_000, testTimeout: 60_000 });
 
 const root = process.cwd();
 const postgresUser = 'reviewsha';
@@ -45,54 +45,109 @@ function run(command: string, args: string[], databaseName = testDatabases[0], c
   });
 }
 
-function dockerExec(args: string[]): void {
-  execFileSync('docker', ['exec', 'reviewsha-postgres', ...args], {
+function sleep(ms: number): void {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function dockerExec(args: string[]): string {
+  return execFileSync('docker', ['exec', 'reviewsha-postgres', ...args], {
     cwd: root,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 }
 
-function waitForPostgres(): void {
+function dockerInspect(args: string[]): string {
+  return execFileSync('docker', ['inspect', ...args], {
+    cwd: root,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim();
+}
+
+function retryPostgresAdmin(command: () => void): void {
   const deadline = Date.now() + 60_000;
   let lastError: unknown;
 
   while (Date.now() < deadline) {
     try {
-      dockerExec(['pg_isready', '-U', postgresUser, '-d', postgresUser]);
+      waitForPostgres();
+      command();
       return;
     } catch (error) {
       lastError = error;
-      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1_000);
+      sleep(1_000);
     }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('PostgreSQL admin command failed');
+}
+
+function waitForPostgres(): void {
+  const deadline = Date.now() + 90_000;
+  let lastError: unknown;
+  let stableChecks = 0;
+
+  while (Date.now() < deadline) {
+    try {
+      const health = dockerInspect([
+        '-f',
+        '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}',
+        'reviewsha-postgres',
+      ]);
+      dockerExec(['pg_isready', '-U', postgresUser, '-d', postgresUser]);
+      dockerExec([
+        'psql',
+        '-U',
+        postgresUser,
+        '-d',
+        'postgres',
+        '-v',
+        'ON_ERROR_STOP=1',
+        '-c',
+        'SELECT 1;',
+      ]);
+
+      if (health === 'healthy' || health === 'none') {
+        stableChecks += 1;
+      } else {
+        stableChecks = 0;
+      }
+
+      if (stableChecks >= 3) {
+        return;
+      }
+    } catch (error) {
+      lastError = error;
+      stableChecks = 0;
+    }
+
+    sleep(1_000);
   }
 
   throw lastError instanceof Error ? lastError : new Error('PostgreSQL did not become ready');
 }
 
 function terminateDatabaseConnections(databaseName: string): void {
-  dockerExec([
-    'psql',
-    '-U',
-    postgresUser,
-    '-d',
-    'postgres',
-    '-v',
-    'ON_ERROR_STOP=1',
-    '-c',
-    `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${databaseName}';`,
-  ]);
+  retryPostgresAdmin(() =>
+    dockerExec([
+      'psql',
+      '-U',
+      postgresUser,
+      '-d',
+      'postgres',
+      '-v',
+      'ON_ERROR_STOP=1',
+      '-c',
+      `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${databaseName}';`,
+    ]),
+  );
 }
 
 function recreateDatabase(databaseName: string): void {
   terminateDatabaseConnections(databaseName);
-  dockerExec(['dropdb', '-U', postgresUser, '--if-exists', databaseName]);
-  dockerExec(['createdb', '-U', postgresUser, databaseName]);
-}
-
-function dropDatabase(databaseName: string): void {
-  terminateDatabaseConnections(databaseName);
-  dockerExec(['dropdb', '-U', postgresUser, '--if-exists', databaseName]);
+  retryPostgresAdmin(() => dockerExec(['dropdb', '-U', postgresUser, '--if-exists', databaseName]));
+  retryPostgresAdmin(() => dockerExec(['createdb', '-U', postgresUser, databaseName]));
 }
 
 describe('Stage 3 Prisma schema and migration infrastructure', () => {
@@ -107,9 +162,13 @@ describe('Stage 3 Prisma schema and migration infrastructure', () => {
 
   afterAll(() => {
     for (const databaseName of testDatabases) {
-      dropDatabase(databaseName);
+      try {
+        dockerExec(['dropdb', '-U', postgresUser, '--if-exists', databaseName]);
+      } catch {
+        // Cleanup is best-effort: the next run recreates all dedicated test databases.
+      }
     }
-  }, 30_000);
+  }, 10_000);
 
   it('formats Prisma schema', () => {
     expect(run('yarn', ['workspace', '@reviewsha/api', 'prisma:format'])).toContain('Formatted');
