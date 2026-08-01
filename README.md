@@ -13,11 +13,12 @@ AI SaaS platform for automated code review.
 | 2.4 Docker Compose                 | ✅ COMPLETE | Локальная инфраструктура PostgreSQL, Redis, MinIO                                             |
 | 2.5 Базовая инфраструктура проекта | ✅ COMPLETE | ENV, config, logging, errors, aliases, hooks, IDE, standards                                  |
 | 2.6 CI/CD — GitHub Actions         | ✅ COMPLETE | Автоматические проверки на push, pull request и ручной запуск                                 |
+| 3.1 Prisma Schema                  | ✅ COMPLETE | Полная Prisma-схема, первая миграция, seed, Prisma Client и Stage 3 acceptance tests          |
 
 Следующий этап:
 
 ```txt
-Этап 3. База данных
+Этап 3.2 Database Layer + Domain Foundation
 ```
 
 ---
@@ -114,6 +115,10 @@ yarn format:check --ignore-unknown
 yarn clean
 
 yarn docs:api
+
+yarn test:stage2
+yarn test:stage3
+yarn test:e2e
 ```
 
 Групповые команды:
@@ -162,8 +167,8 @@ Backend API на NestJS 11.
 
 - bootstrap приложения;
 - global prefix `/api`;
-- Swagger UI `/api/docs`;
-- OpenAPI JSON `/api/docs-json`;
+- Swagger UI `/api/v1/docs`;
+- OpenAPI JSON `/api/v1/docs-json`;
 - Zod env validation;
 - Prisma bootstrap;
 - `DatabaseModule`;
@@ -385,6 +390,40 @@ MINIO_SECRET_KEY=reviewsha-password
 
 ---
 
+## Prisma и база данных
+
+Prisma находится в `apps/api/prisma` и является источником схемы PostgreSQL для доменных данных MVP.
+
+Структура:
+
+```txt
+apps/api/prisma/
+├── schema.prisma
+├── migrations/
+└── seed.ts
+```
+
+Основные команды:
+
+```bash
+docker compose up -d postgres
+
+yarn workspace @reviewsha/api prisma:format
+yarn workspace @reviewsha/api prisma:validate
+yarn workspace @reviewsha/api prisma:generate
+yarn workspace @reviewsha/api prisma:migrate
+yarn workspace @reviewsha/api prisma:deploy
+yarn workspace @reviewsha/api prisma:seed
+
+yarn test:stage3
+```
+
+`seed.ts` идемпотентен и создаёт минимальные dev-данные: администратора, пользователя, организацию, приглашение, проект, участника проекта, файл, scan, scan step, report, finding, AI request, chat, message, notification и queue job.
+
+Схема реализует архитектурные сущности из `docs/architecture/04-database.md` и добавляет технические таблицы `refresh_tokens` и `queue_jobs` для auth/session management и аудита BullMQ jobs.
+
+---
+
 ## ENV и конфигурация
 
 Файлы примеров окружения:
@@ -538,6 +577,9 @@ yarn format:check --ignore-unknown
 yarn build
 yarn docs:api
 yarn test
+yarn test:stage2
+yarn test:stage3
+yarn test:e2e
 docker compose config
 ```
 
@@ -569,21 +611,21 @@ Install → Lint → Typecheck → Build → Test → Docker → Deploy
 Текущее покрытие инфраструктурного skeleton:
 
 ```txt
-packages/config: 2 files, 10 tests
-packages/types:  1 file, 3 tests
+packages/config: 2 files, 11 tests
+packages/types:  1 file, 4 tests
 packages/sdk:    1 file, 3 tests
 packages/ui:     2 files, 12 tests
-apps/api:        7 files, 13 tests
+apps/api:        8 files, 19 tests
 apps/web:        8 files, 23 tests
 apps/admin:      11 files, 44 tests
-apps/worker:     11 files, 37 tests
+apps/worker:     11 files, 36 tests
 ```
 
 Итого:
 
 ```txt
-46 unit/infrastructure test files + 2 Playwright E2E tests
-160 unit/infrastructure tests + 2 E2E tests
+47 unit/infrastructure test files + 2 Playwright E2E tests
+167 unit/infrastructure/stage tests + 2 E2E tests
 ```
 
 Организация тестов:
@@ -592,6 +634,7 @@ apps/worker:     11 files, 37 tests
 apps/<app>/tests/unit/**       # unit/infrastructure tests приложений
 packages/<pkg>/tests/unit/**   # unit tests shared packages
 tests/stage2/**                # smoke + integration acceptance tests этапа 2
+tests/stage3/**                # Prisma schema/migration/seed acceptance tests этапа 3.1
 tests/e2e/**                   # Playwright E2E
 ```
 
@@ -602,6 +645,7 @@ Unit-тесты не хранятся внутри `src`, чтобы production-
 ```bash
 yarn test
 yarn test:stage2
+yarn test:stage3
 yarn test:e2e
 ```
 
@@ -622,6 +666,7 @@ docs/implementation/stage-2-4-docker-compose.md
 docs/implementation/stage-2-5-basic-infrastructure.md
 docs/implementation/stage-2-6-ci-cd.md
 docs/implementation/stage-2-final-audit.md
+docs/implementation/stage-3-1-prisma-schema.md
 docs/generated/api/            # генерируется командой yarn docs:api и не коммитится
 ```
 

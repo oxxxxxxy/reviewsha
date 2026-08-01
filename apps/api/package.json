@@ -16,7 +16,12 @@
     "prisma:studio": "prisma studio --schema prisma/schema.prisma",
     "test:watch": "vitest",
     "build:deps": "yarn workspace @reviewsha/config build && yarn workspace @reviewsha/types build && yarn prisma:generate",
-    "predev": "yarn build:deps"
+    "predev": "yarn build:deps",
+    "prisma:format": "prisma format --schema prisma/schema.prisma",
+    "prisma:validate": "prisma validate --schema prisma/schema.prisma",
+    "prisma:seed": "prisma db seed --schema prisma/schema.prisma",
+    "prisma:migrate:reset": "prisma migrate reset --schema prisma/schema.prisma --force",
+    "test:prisma": "vitest run tests/unit/prisma --coverage=false"
   },
   "dependencies": {
     "@nestjs/common": "^11",

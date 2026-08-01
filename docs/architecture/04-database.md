@@ -1095,3 +1095,76 @@ erDiagram
 
   CHAT ||--o{ MESSAGE : contains
 ```
+
+---
+
+# 25. Реализация Prisma Schema Stage 3.1
+
+Статус реализации: ✅ COMPLETE.
+
+Фактическая Prisma-схема находится в:
+
+```txt
+apps/api/prisma/schema.prisma
+```
+
+Первая миграция:
+
+```txt
+apps/api/prisma/migrations/20260801115902_init_schema/migration.sql
+```
+
+Seed:
+
+```txt
+apps/api/prisma/seed.ts
+```
+
+## 25.1. Соответствие ER-сущностям
+
+| Архитектурная сущность | Prisma model       | Таблица PostgreSQL  |
+| ---------------------- | ------------------ | ------------------- |
+| User                   | `User`             | `users`             |
+| Session                | `Session`          | `sessions`          |
+| Organization           | `Organization`     | `organizations`     |
+| Project                | `Project`          | `projects`          |
+| ProjectMember          | `ProjectMember`    | `project_members`   |
+| File                   | `UploadedFile`     | `uploaded_files`    |
+| Scan                   | `Scan`             | `scans`             |
+| ScanStep               | `ScanStep`         | `scan_steps`        |
+| Report                 | `Report`           | `reports`           |
+| Issue                  | `Finding`          | `findings`          |
+| AIRequest              | `AIRequest`        | `ai_requests`       |
+| Chat                   | `ChatSession`      | `chat_sessions`     |
+| Message                | `ChatMessage`      | `chat_messages`     |
+| Notification           | `Notification`     | `notifications`     |
+| Invitation             | `Invitation`       | `invitations`       |
+| BullMQ Job Journal     | `QueueJob`         | `queue_jobs`        |
+| Refresh Token Store    | `RefreshToken`     | `refresh_tokens`    |
+
+`UploadedFile`, `Finding`, `ChatSession` и `ChatMessage` используют более точные имена в коде, чтобы не конфликтовать с глобальными browser/Node naming conventions и явно отражать назначение модели.
+
+## 25.2. Дополнительные технические таблицы
+
+`QueueJob` хранит журнал выполнения задач BullMQ и связывает job с `Project` и `Scan`, когда это применимо.
+
+`RefreshToken` дополняет `Session`: `Session` хранит контекст активного входа, а `RefreshToken` используется как отдельное хранилище token hashes для будущей auth-логики и поддержки нескольких устройств.
+
+## 25.3. Проверки Stage 3.1
+
+Автоматическая приёмка выполняется командой:
+
+```bash
+yarn test:stage3
+```
+
+Проверяются:
+
+- `prisma validate`;
+- `prisma format`;
+- `prisma generate`;
+- наличие первой migration;
+- применение migration к пустой PostgreSQL DB;
+- idempotent seed;
+- Prisma Client connection;
+- CRUD для `User`.

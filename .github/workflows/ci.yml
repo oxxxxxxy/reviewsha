@@ -72,6 +72,9 @@ jobs:
       - name: Stage 2 smoke and integration tests
         run: yarn test:stage2
 
+      - name: Stage 3 Prisma infrastructure tests
+        run: yarn test:stage3
+
       - name: Install Playwright browsers
         run: yarn test:e2e:install
 
