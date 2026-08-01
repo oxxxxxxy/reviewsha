@@ -10,10 +10,10 @@
     "sourceMap": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "rootDir": "src",
+    "rootDir": ".",
     "baseUrl": ".",
     "paths": {}
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx"],
   "exclude": ["dist", "node_modules"]
 }

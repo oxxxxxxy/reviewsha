@@ -1,3 +1,9 @@
+/**
+ * Public entry point for the Reviewsha SDK package.
+ *
+ * Frontend applications should import API services from this module instead of
+ * constructing HTTP requests directly.
+ */
 export * from './admin/admin.api.js';
 export * from './auth/auth.api.js';
 export * from './chat/chat.api.js';

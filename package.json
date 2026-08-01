@@ -35,7 +35,8 @@
     "dev:worker": "yarn workspace @reviewsha/worker dev",
     "test:stage2": "yarn build:packages && vitest run tests/stage2 --coverage=false",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install chromium"
+    "test:e2e:install": "playwright install chromium",
+    "docs:api": "typedoc --options typedoc.json"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -48,6 +49,7 @@
     "prettier": "^3.9.6",
     "react": "^19",
     "react-dom": "^19",
+    "typedoc": "^0.28.20",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.65.0"
   },

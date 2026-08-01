@@ -1,0 +1,22 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "packages/config/src/index.ts",
+    "packages/types/src/index.ts",
+    "packages/sdk/src/index.ts",
+    "packages/ui/src/index.ts"
+  ],
+  "out": "docs/generated/api",
+  "readme": "none",
+  "name": "Reviewsha Shared API",
+  "entryPointStrategy": "expand",
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/test/**", "**/tests/**"],
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "includeVersion": true,
+  "categorizeByGroup": true,
+  "navigationLinks": {
+    "Repository": "https://github.com/oxxxxxxy/reviewsha"
+  },
+  "tsconfig": "tsconfig.typedoc.json"
+}

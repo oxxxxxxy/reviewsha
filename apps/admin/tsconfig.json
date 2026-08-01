@@ -28,5 +28,5 @@
       "@/common/*": ["src/common/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }

@@ -112,6 +112,8 @@ yarn build
 yarn format
 yarn format:check --ignore-unknown
 yarn clean
+
+yarn docs:api
 ```
 
 Групповые команды:
@@ -534,6 +536,7 @@ yarn lint
 yarn typecheck
 yarn format:check --ignore-unknown
 yarn build
+yarn docs:api
 yarn test
 docker compose config
 ```
@@ -544,7 +547,7 @@ CI использует:
 - Corepack;
 - Yarn Classic `1.22.22`;
 - cache по `yarn.lock`;
-- build artifacts для `dist` директорий.
+- build artifacts для `dist` директорий через `actions/upload-artifact@v5`.
 
 Подготовлены placeholder steps для будущих проверок:
 
@@ -573,15 +576,26 @@ packages/ui:     2 files, 12 tests
 apps/api:        7 files, 13 tests
 apps/web:        8 files, 23 tests
 apps/admin:      11 files, 44 tests
-apps/worker:     10 files, 34 tests
+apps/worker:     11 files, 37 tests
 ```
 
 Итого:
 
 ```txt
-45 unit/infrastructure test files + 2 Playwright E2E tests
-157 unit/infrastructure tests + 2 E2E tests
+46 unit/infrastructure test files + 2 Playwright E2E tests
+160 unit/infrastructure tests + 2 E2E tests
 ```
+
+Организация тестов:
+
+```txt
+apps/<app>/tests/unit/**       # unit/infrastructure tests приложений
+packages/<pkg>/tests/unit/**   # unit tests shared packages
+tests/stage2/**                # smoke + integration acceptance tests этапа 2
+tests/e2e/**                   # Playwright E2E
+```
+
+Unit-тесты не хранятся внутри `src`, чтобы production-код и проверочная инфраструктура не смешивались.
 
 Запуск:
 
@@ -608,6 +622,13 @@ docs/implementation/stage-2-4-docker-compose.md
 docs/implementation/stage-2-5-basic-infrastructure.md
 docs/implementation/stage-2-6-ci-cd.md
 docs/implementation/stage-2-final-audit.md
+docs/generated/api/            # генерируется командой yarn docs:api и не коммитится
+```
+
+API-документация shared packages генерируется из TSDoc/docstrings через TypeDoc:
+
+```bash
+yarn docs:api
 ```
 
 ---
@@ -619,6 +640,7 @@ docs/implementation/stage-2-final-audit.md
 - тесты;
 - документацию;
 - README;
+- TSDoc/docstrings для публичных API, если меняется exported surface;
 - CI/CD;
 - env examples;
 - shared packages;

@@ -1,8 +1,10 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { DEFAULT_API_TIMEOUT_MS, DEFAULT_URLS } from '@reviewsha/config';
 
+/** Supplies an access token for SDK requests at call time. */
 export type AccessTokenProvider = () => string | null | undefined;
 
+/** Runtime options used to configure the shared Axios-backed API client. */
 export interface ApiClientOptions {
   readonly baseURL?: string;
   readonly timeout?: number;
@@ -11,6 +13,12 @@ export interface ApiClientOptions {
   readonly headers?: Record<string, string>;
 }
 
+/**
+ * Thin Axios wrapper used by shared domain API services.
+ *
+ * It centralizes base URL, timeouts, JSON headers and Authorization header
+ * handling so applications do not duplicate request wiring.
+ */
 export class ApiClient {
   readonly http: AxiosInstance;
   private accessToken?: string;
@@ -41,10 +49,12 @@ export class ApiClient {
     });
   }
 
+  /** Stores a bearer token for subsequent SDK requests. */
   setAccessToken(token: string): void {
     this.accessToken = token;
   }
 
+  /** Removes the stored bearer token from subsequent SDK requests. */
   clearAccessToken(): void {
     this.accessToken = undefined;
   }

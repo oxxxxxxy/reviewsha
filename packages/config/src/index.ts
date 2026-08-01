@@ -1,3 +1,7 @@
+/**
+ * Public entry point for project-wide constants, configuration helpers and
+ * validation utilities shared by all Reviewsha workspaces.
+ */
 export * from './constants/api.js';
 export * from './constants/auth.js';
 export * from './constants/pagination.js';

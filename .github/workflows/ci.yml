@@ -63,6 +63,9 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: API documentation generation
+        run: yarn docs:api
+
       - name: Test
         run: yarn test
 
@@ -100,7 +103,7 @@ jobs:
 
       - name: Upload build artifacts
         if: ${{ success() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: reviewsha-build-node-${{ matrix.node-version }}
           if-no-files-found: ignore

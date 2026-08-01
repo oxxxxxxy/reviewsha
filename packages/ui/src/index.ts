@@ -1,3 +1,9 @@
+/**
+ * Public entry point for the shared Reviewsha UI kit.
+ *
+ * Web and Admin applications consume visual primitives from this package to
+ * keep design tokens, accessibility defaults and component APIs consistent.
+ */
 export * from './components/Avatar.js';
 export * from './components/Badge.js';
 export * from './components/Button.js';

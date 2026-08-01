@@ -1,10 +1,11 @@
 import { Inject, Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Queue, Worker } from 'bullmq';
-import IORedis from 'ioredis';
+import { type Queue, type Worker } from 'bullmq';
+import type IORedis from 'ioredis';
 
 import { WorkerLoggerService } from '../common/logger/worker-logger.service';
 import { QUEUE_NAME_LIST, QUEUE_NAMES, type QueueName } from './queue.constants';
+import { createQueue, createRedisConnection, DEFAULT_JOB_OPTIONS } from './queue.factory';
 
 export type EnqueuedJob = {
   queue: QueueName;
@@ -110,12 +111,7 @@ export class QueueService implements OnModuleDestroy {
   private async initializeInternal(): Promise<void> {
     const redisUrl = this.configService.getOrThrow<string>('worker.redisUrl');
     const redisRequired = this.configService.getOrThrow<boolean>('worker.redisRequired');
-    const connection = new IORedis(redisUrl, {
-      maxRetriesPerRequest: null,
-      enableReadyCheck: false,
-      lazyConnect: true,
-      connectTimeout: 500,
-    });
+    const connection = createRedisConnection(redisUrl, true);
 
     connection.on('error', () => {
       // Errors are handled by initialize()/BullMQ handlers; this avoids unhandled ioredis events.
@@ -148,7 +144,7 @@ export class QueueService implements OnModuleDestroy {
 
     if (this.redisAvailable && this.connection) {
       for (const queueName of QUEUE_NAME_LIST) {
-        this.queues.set(queueName, new Queue(queueName, { connection: this.connection }));
+        this.queues.set(queueName, createQueue(queueName, this.connection));
       }
     }
 
@@ -175,15 +171,7 @@ export class QueueService implements OnModuleDestroy {
       return { queue: queueName, jobName, disabled: true };
     }
 
-    const job = await queue.add(jobName, payload, {
-      attempts: 3,
-      backoff: {
-        type: 'exponential',
-        delay: 1_000,
-      },
-      removeOnComplete: 100,
-      removeOnFail: 500,
-    });
+    const job = await queue.add(jobName, payload, DEFAULT_JOB_OPTIONS);
 
     return { queue: queueName, jobName, jobId: String(job.id), disabled: false };
   }
