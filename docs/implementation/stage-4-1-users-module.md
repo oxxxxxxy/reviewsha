@@ -74,7 +74,7 @@ PostgreSQL
 
 `UserResponseDto` и `UserMapper` никогда не возвращают `passwordHash` наружу.
 
-Пароль при создании сохраняется только как hash placeholder формата `sha256:*`; полноценная password policy будет расширена в `AuthModule`.
+Пароль при создании сохраняется с использованием Argon2 — того же алгоритма, который применяется Auth Module при регистрации и входе.
 
 ## Тесты
 

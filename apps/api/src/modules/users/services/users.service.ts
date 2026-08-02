@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { createHash } from 'node:crypto';
+import * as argon2 from 'argon2';
 import type { User } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
 import { UserRepository } from '../repositories/user.repository';
@@ -57,7 +57,7 @@ export class UsersService {
 
     const user = await this.userRepository.create({
       email,
-      passwordHash: this.hashPassword(dto.password),
+      passwordHash: await this.hashPassword(dto.password),
       displayName: dto.displayName.trim(),
     });
 
@@ -107,7 +107,7 @@ export class UsersService {
     return email.trim().toLowerCase();
   }
 
-  private hashPassword(password: string): string {
-    return `sha256:${createHash('sha256').update(password).digest('hex')}`;
+  private hashPassword(password: string): Promise<string> {
+    return argon2.hash(password);
   }
 }

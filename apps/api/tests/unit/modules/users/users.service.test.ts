@@ -1,4 +1,5 @@
 import { ConflictException, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import * as argon2 from 'argon2';
 import { Role, type User } from '@prisma/client';
 import { describe, expect, it, vi, type Mock } from 'vitest';
 import { ApiLoggerService } from '../../../../src/common/logger/api-logger.service';
@@ -14,7 +15,7 @@ function createUser(overrides: Partial<User> = {}): User {
   return {
     id: '00000000-0000-4000-8000-000000000001',
     email: 'developer@reviewsha.local',
-    passwordHash: 'sha256:secret',
+    passwordHash: '$argon2id$v=19$m=65536,t=3,p=4$placeholder$placeholder',
     displayName: 'Developer',
     avatarUrl: null,
     role: Role.USER,
@@ -88,8 +89,9 @@ describe('UsersService', () => {
     await service.create({ email: 'a@b.dev', password: 'strong-password', displayName: 'Dev' });
 
     const createPayload = repository.create.mock.calls[0]?.[0] as { passwordHash: string };
-    expect(createPayload.passwordHash).toMatch(/^sha256:/);
+    expect(createPayload.passwordHash).toMatch(/^\$argon2/);
     expect(createPayload.passwordHash).not.toBe('strong-password');
+    await expect(argon2.verify(createPayload.passwordHash, 'strong-password')).resolves.toBe(true);
   });
 
   it('logs user creation without password', async () => {

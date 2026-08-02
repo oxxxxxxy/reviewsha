@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../../database/prisma.service';
 import { RefreshTokenRepository } from '../../../repositories/auth/refresh-token.repository';
 
 /**
@@ -8,4 +9,8 @@ import { RefreshTokenRepository } from '../../../repositories/auth/refresh-token
  * Sessions module contract explicit.
  */
 @Injectable()
-export class SessionRepository extends RefreshTokenRepository {}
+export class SessionRepository extends RefreshTokenRepository {
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
+}

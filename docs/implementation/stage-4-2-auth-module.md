@@ -15,12 +15,13 @@ POST /api/v1/auth/logout
 POST /api/v1/auth/logout-all
 POST /api/v1/auth/refresh
 GET  /api/v1/auth/me
+PATCH /api/v1/auth/me
 ```
 
 ## Security
 
 - Пароли хешируются Argon2.
-- Refresh Token сохраняется только как SHA-256 hash.
+- Refresh Token сохраняется только как Argon2 hash.
 - Access Token не сохраняется в БД.
 - Refresh Token rotation отзывает старый token.
 - Logout отзывает один refresh token.
