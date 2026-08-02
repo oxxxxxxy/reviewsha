@@ -21,11 +21,12 @@ AI SaaS platform for automated code review.
 | 4.1 Users Module                   | ✅ COMPLETE | CRUD пользователей, DTO validation, Swagger, поиск, пагинация и сортировка                    |
 | 4.2 Auth Module                    | ✅ COMPLETE | JWT auth, Argon2 passwords, refresh rotation, guards, roles and sessions                      |
 | 4.3 JWT Infrastructure             | ✅ COMPLETE | Централизованный TokenService, JwtConfig, verify/decode/hash и TokenService-backed guards     |
+| 4.4 Refresh Token & Sessions       | ✅ COMPLETE | SessionModule, SessionService, rotation, reuse detection, session list/revoke and cleanup     |
 
 Следующий этап:
 
 ```txt
-Этап 4.4 Projects Module
+Этап 4.5 Projects Module
 ```
 
 ---
@@ -612,6 +613,44 @@ JWT_AUDIENCE=reviewsha-clients
 ```
 
 В логах запрещены пароли, JWT и Refresh Token.
+
+---
+
+## Сессии и Refresh Token
+
+`apps/api/src/modules/sessions` реализует управление пользовательскими сессиями поверх таблицы `refresh_tokens`.
+
+Endpoints под `/api/v1`:
+
+```txt
+GET    /api/v1/sessions
+DELETE /api/v1/sessions/:id
+```
+
+Реализовано:
+
+- `SessionModule`;
+- `SessionService` как единственная точка управления Refresh Token lifecycle;
+- создание сессии после register/login;
+- Argon2 hash Refresh Token перед сохранением;
+- проверка сессии по JWT `jti`;
+- refresh rotation;
+- reuse detection с отзывом всех активных сессий пользователя;
+- logout одной сессии;
+- logout-all всех сессий;
+- список активных сессий;
+- отзыв выбранной сессии;
+- cleanup expired sessions для будущего Worker;
+- сохранение IP/User-Agent/browser/OS и activity update;
+- лимит активных сессий через `MAX_SESSIONS_PER_USER`.
+
+ENV:
+
+```env
+MAX_SESSIONS_PER_USER=10
+```
+
+AuthModule не обращается к `RefreshTokenRepository` напрямую — только через `SessionService`.
 
 ---
 

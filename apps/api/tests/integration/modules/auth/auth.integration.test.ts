@@ -6,7 +6,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { Test } from '@nestjs/testing';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { Role, type RefreshToken, type User } from '@prisma/client';
+import { RefreshTokenRevokedReason, Role, type RefreshToken, type User } from '@prisma/client';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HttpExceptionFilter } from '../../../../src/common/http-exception.filter';
@@ -16,6 +16,8 @@ import { UserRepository } from '../../../../src/repositories/user/user.repositor
 import { AuthController } from '../../../../src/modules/auth/controllers/auth.controller';
 import { AuthService } from '../../../../src/modules/auth/services/auth.service';
 import { TokenService } from '../../../../src/modules/auth/services/token.service';
+import { SessionService } from '../../../../src/modules/sessions/services/session.service';
+import { SessionsController } from '../../../../src/modules/sessions/controllers/sessions.controller';
 import { JwtStrategy } from '../../../../src/modules/auth/strategies/jwt.strategy';
 import { RefreshStrategy } from '../../../../src/modules/auth/strategies/refresh.strategy';
 
@@ -67,38 +69,89 @@ function createState() {
 
   const refreshTokenRepository = {
     create: vi.fn(
-      async (data: { user: { connect: { id: string } }; tokenHash: string; expiresAt: Date }) => {
+      async (data: {
+        user: { connect: { id: string } };
+        tokenHash: string;
+        jti: string;
+        expiresAt: Date;
+        userAgent?: string;
+        ip?: string;
+        browser?: string;
+        os?: string;
+      }) => {
         const token: RefreshToken = {
           id: `00000000-0000-4000-8001-${String(tokenSeq++).padStart(12, '0')}`,
           userId: data.user.connect.id,
           tokenHash: data.tokenHash,
+          jti: data.jti,
+          userAgent: data.userAgent ?? null,
+          ip: data.ip ?? null,
+          browser: data.browser ?? null,
+          os: data.os ?? null,
+          lastUsedAt: null,
+          lastIp: null,
+          lastUserAgent: null,
           expiresAt: data.expiresAt,
           createdAt: new Date(),
           revokedAt: null,
+          revokedReason: null,
         };
-        refreshTokens.set(token.tokenHash, token);
+        refreshTokens.set(token.jti, token);
         return token;
       },
     ),
-    findByHash: vi.fn(async (tokenHash: string) => refreshTokens.get(tokenHash) ?? null),
-    revoke: vi.fn(async (tokenHash: string) => {
-      const token = refreshTokens.get(tokenHash);
+    findById: vi.fn(
+      async (id: string) => [...refreshTokens.values()].find((token) => token.id === id) ?? null,
+    ),
+    findByHash: vi.fn(
+      async (tokenHash: string) =>
+        [...refreshTokens.values()].find((token) => token.tokenHash === tokenHash) ?? null,
+    ),
+    findByJti: vi.fn(async (jti: string) => refreshTokens.get(jti) ?? null),
+    findActiveByUserId: vi.fn(async (userId: string) =>
+      [...refreshTokens.values()].filter(
+        (token) => token.userId === userId && !token.revokedAt && token.expiresAt > new Date(),
+      ),
+    ),
+    revoke: vi.fn(async (tokenHash: string, reason?: RefreshTokenRevokedReason) => {
+      const token = [...refreshTokens.values()].find((item) => item.tokenHash === tokenHash);
       if (!token) {
         throw new Error('missing token');
       }
       token.revokedAt = new Date();
+      token.revokedReason = reason ?? null;
       return token;
     }),
-    revokeAll: vi.fn(async (userId: string) => {
+    revokeById: vi.fn(async (id: string, reason?: RefreshTokenRevokedReason) => {
+      const token = [...refreshTokens.values()].find((item) => item.id === id);
+      if (!token) {
+        throw new Error('missing token');
+      }
+      token.revokedAt = new Date();
+      token.revokedReason = reason ?? null;
+      return token;
+    }),
+    revokeAll: vi.fn(async (userId: string, reason?: RefreshTokenRevokedReason) => {
       let count = 0;
       for (const token of refreshTokens.values()) {
         if (token.userId === userId && !token.revokedAt) {
           token.revokedAt = new Date();
+          token.revokedReason = reason ?? null;
           count += 1;
         }
       }
       return { count };
     }),
+    updateActivity: vi.fn(async (id: string, data: Partial<RefreshToken>) => {
+      const token = [...refreshTokens.values()].find((item) => item.id === id);
+      if (!token) {
+        throw new Error('missing token');
+      }
+      Object.assign(token, data);
+      return token;
+    }),
+    enforceSessionLimit: vi.fn(async () => 0),
+    deleteExpired: vi.fn(async () => ({ count: 0 })),
   };
 
   return { users, refreshTokens, userRepository, refreshTokenRepository };
@@ -115,16 +168,23 @@ describe('AuthModule HTTP integration', () => {
 
     const moduleRef = await Test.createTestingModule({
       imports: [PassportModule, JwtModule.register({})],
-      controllers: [AuthController],
+      controllers: [AuthController, SessionsController],
       providers: [
         AuthService,
         TokenService,
+        SessionService,
         JwtStrategy,
         RefreshStrategy,
         { provide: UserRepository, useValue: state.userRepository },
         { provide: RefreshTokenRepository, useValue: state.refreshTokenRepository },
         { provide: ApiLoggerService, useValue: logger },
-        { provide: ConfigService, useValue: { getOrThrow: vi.fn(() => jwtConfig) } },
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: vi.fn(() => jwtConfig),
+            get: vi.fn((key: string) => (key === 'sessions.maxSessionsPerUser' ? 10 : undefined)),
+          },
+        },
       ],
     }).compile();
 
@@ -342,6 +402,32 @@ describe('AuthModule HTTP integration', () => {
       ),
     ).toBe(true);
     expect([...state.refreshTokens.values()].some((token) => token.revokedAt)).toBe(true);
+  });
+
+  it('lists active sessions for current user', async () => {
+    const registered = await register();
+
+    await request(app.getHttpServer())
+      .get('/api/v1/sessions')
+      .set('Authorization', `Bearer ${registered.accessToken}`)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body).toHaveLength(1);
+        expect(body[0]).toEqual(expect.objectContaining({ userId: registered.user.id }));
+      });
+  });
+
+  it('revokes one selected session', async () => {
+    const registered = await register();
+    const session = [...state.refreshTokens.values()][0];
+    expect(session).toBeDefined();
+
+    await request(app.getHttpServer())
+      .delete(`/api/v1/sessions/${session!.id}`)
+      .set('Authorization', `Bearer ${registered.accessToken}`)
+      .expect(204);
+
+    expect(session!.revokedAt).toBeInstanceOf(Date);
   });
 
   it('logs auth operations without passwords or tokens', async () => {

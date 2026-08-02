@@ -200,3 +200,23 @@ Rules:
 - JWT configuration lives in `src/config/jwt.config.ts` and is populated from ENV.
 - Refresh Token is stored only as hash in PostgreSQL.
 - JWT and Refresh Token values are never logged.
+
+## Session Module
+
+`src/modules/sessions` owns Refresh Token and session lifecycle.
+
+Endpoints:
+
+```txt
+GET    /api/v1/sessions
+DELETE /api/v1/sessions/:id
+```
+
+Rules:
+
+- AuthService uses SessionService for Refresh Token lifecycle.
+- Refresh Token is stored only as Argon2 hash.
+- Refresh JWT `jti` is stored and used to locate the session record.
+- Rotation revokes the old session.
+- Reuse detection revokes all active sessions.
+- `MAX_SESSIONS_PER_USER` limits active sessions per user.

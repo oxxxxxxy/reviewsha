@@ -13,6 +13,7 @@ export default (): {
   app: AppConfig;
   database: { url: string; logQueries: boolean };
   jwt: JwtConfig;
+  sessions: { maxSessionsPerUser: number };
 } => ({
   app: {
     nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -28,4 +29,7 @@ export default (): {
     logQueries: process.env.PRISMA_LOG_QUERIES === 'true',
   },
   jwt: createJwtConfig(process.env),
+  sessions: {
+    maxSessionsPerUser: Number(process.env.MAX_SESSIONS_PER_USER ?? 10),
+  },
 });

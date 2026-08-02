@@ -7,13 +7,14 @@ import {
 import * as argon2 from 'argon2';
 import type { User } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
-import { RefreshTokenRepository } from '../../../repositories/auth/refresh-token.repository';
 import { UserRepository } from '../../../repositories/user/user.repository';
+import { SessionService } from '../../sessions/services/session.service';
+import type { SessionContext } from '../../sessions/interfaces/session-context.interface';
 import { UserMapper } from '../../users/mappers/user.mapper';
 import type { UserResponseDto } from '../../users/dto/user-response.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
-import type { AuthResponseDto, TokenPairDto } from '../dto/auth-response.dto';
+import type { AuthResponseDto } from '../dto/auth-response.dto';
 import type { AuthenticatedRefreshUser, AuthenticatedUser } from '../types/auth.types';
 import { TokenService } from './token.service';
 
@@ -21,12 +22,12 @@ import { TokenService } from './token.service';
 export class AuthService {
   constructor(
     private readonly users: UserRepository,
-    private readonly refreshTokens: RefreshTokenRepository,
+    private readonly sessions: SessionService,
     private readonly tokenService: TokenService,
     private readonly logger: ApiLoggerService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<AuthResponseDto> {
+  async register(dto: RegisterDto, context: SessionContext = {}): Promise<AuthResponseDto> {
     const email = this.normalizeEmail(dto.email);
     const existing = await this.users.findByEmail(email);
 
@@ -39,13 +40,13 @@ export class AuthService {
       passwordHash: await this.hashPassword(dto.password),
       displayName: dto.displayName.trim(),
     });
-    const tokens = await this.issueTokenPair(user);
+    const tokens = await this.sessions.createSession(user, context);
 
     this.logger.log(`User registered: ${user.id}`, 'AuthService');
     return { ...tokens, user: UserMapper.toResponse(user) };
   }
 
-  async login(dto: LoginDto): Promise<AuthResponseDto> {
+  async login(dto: LoginDto, context: SessionContext = {}): Promise<AuthResponseDto> {
     const email = this.normalizeEmail(dto.email);
     const user = await this.users.findByEmail(email);
 
@@ -65,23 +66,29 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.issueTokenPair(user);
+    const tokens = await this.sessions.createSession(user, context);
     this.logger.log(`User logged in: ${user.id}`, 'AuthService');
     return { ...tokens, user: UserMapper.toResponse(user) };
   }
 
-  async logout(user: AuthenticatedUser, refreshToken: string): Promise<void> {
-    await this.assertRefreshTokenActive(user.id, refreshToken);
-    await this.refreshTokens.revoke(this.tokenService.hashRefreshToken(refreshToken));
+  async logout(user: AuthenticatedUser, refreshToken: string, jti?: string): Promise<void> {
+    if (!jti) {
+      const payload = await this.tokenService.verifyRefreshToken(refreshToken);
+      jti = payload.jti;
+    }
+    await this.sessions.revokeSessionByToken(user.id, refreshToken, jti);
     this.logger.log(`User logged out: ${user.id}`, 'AuthService');
   }
 
   async logoutAll(user: AuthenticatedUser): Promise<void> {
-    await this.refreshTokens.revokeAll(user.id);
+    await this.sessions.revokeAllSessions(user.id);
     this.logger.log(`User logged out from all devices: ${user.id}`, 'AuthService');
   }
 
-  async refresh(user: AuthenticatedRefreshUser): Promise<AuthResponseDto> {
+  async refresh(
+    user: AuthenticatedRefreshUser,
+    context: SessionContext = {},
+  ): Promise<AuthResponseDto> {
     const dbUser = await this.users.findById(user.id);
     if (!dbUser) {
       throw new NotFoundException('User not found');
@@ -90,10 +97,11 @@ export class AuthService {
       throw new UnauthorizedException('User is not active');
     }
 
-    await this.assertRefreshTokenActive(user.id, user.refreshToken);
-    const tokens = await this.issueTokenPair(dbUser);
-    await this.refreshTokens.revoke(this.tokenService.hashRefreshToken(user.refreshToken));
+    if (!user.jti) {
+      throw new UnauthorizedException('Refresh token jti is required');
+    }
 
+    const tokens = await this.sessions.rotateSession(dbUser, user.refreshToken, user.jti, context);
     this.logger.log(`Tokens refreshed for user: ${dbUser.id}`, 'AuthService');
     return { ...tokens, user: UserMapper.toResponse(dbUser) };
   }
@@ -122,7 +130,7 @@ export class AuthService {
     }
   }
 
-  hashToken(token: string): string {
+  hashToken(token: string): Promise<string> {
     return this.tokenService.hashRefreshToken(token);
   }
 
@@ -132,31 +140,6 @@ export class AuthService {
 
   generateRefreshToken(user: User): Promise<string> {
     return this.tokenService.generateRefreshToken(user);
-  }
-
-  private async issueTokenPair(user: User): Promise<TokenPairDto> {
-    const tokens = await this.tokenService.generateTokenPair(user);
-
-    await this.refreshTokens.create({
-      user: { connect: { id: user.id } },
-      tokenHash: this.tokenService.hashRefreshToken(tokens.refreshToken),
-      expiresAt: this.tokenService.getRefreshTokenExpiresAt(),
-    });
-
-    return tokens;
-  }
-
-  private async assertRefreshTokenActive(userId: string, refreshToken: string): Promise<void> {
-    const tokenHash = this.tokenService.hashRefreshToken(refreshToken);
-    const stored = await this.refreshTokens.findByHash(tokenHash);
-
-    if (!stored || stored.userId !== userId || stored.revokedAt) {
-      throw new UnauthorizedException('Refresh token has been revoked');
-    }
-
-    if (stored.expiresAt.getTime() <= Date.now()) {
-      throw new UnauthorizedException('Refresh token has expired');
-    }
   }
 
   private normalizeEmail(email: string): string {

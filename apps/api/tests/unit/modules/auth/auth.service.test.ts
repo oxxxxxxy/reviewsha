@@ -2,10 +2,9 @@ import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
-import { Role, type RefreshToken, type User } from '@prisma/client';
+import { Role, type User } from '@prisma/client';
 import { describe, expect, it, vi, type Mock } from 'vitest';
 import { ApiLoggerService } from '../../../../src/common/logger/api-logger.service';
-import { RefreshTokenRepository } from '../../../../src/repositories/auth/refresh-token.repository';
 import { UserRepository } from '../../../../src/repositories/user/user.repository';
 import { IS_PUBLIC_KEY, ROLES_KEY } from '../../../../src/modules/auth/constants/auth.constants';
 import { Public } from '../../../../src/modules/auth/decorators/public.decorator';
@@ -13,6 +12,7 @@ import { Roles } from '../../../../src/modules/auth/decorators/roles.decorator';
 import { RolesGuard } from '../../../../src/modules/auth/guards/roles.guard';
 import { AuthService } from '../../../../src/modules/auth/services/auth.service';
 import { TokenService } from '../../../../src/modules/auth/services/token.service';
+import { SessionService } from '../../../../src/modules/sessions/services/session.service';
 import { JwtStrategy } from '../../../../src/modules/auth/strategies/jwt.strategy';
 import { RefreshStrategy } from '../../../../src/modules/auth/strategies/refresh.strategy';
 
@@ -24,11 +24,11 @@ interface UserRepositoryMock {
   create: Mock;
 }
 
-interface RefreshTokenRepositoryMock {
-  create: Mock;
-  findByHash: Mock;
-  revoke: Mock;
-  revokeAll: Mock;
+interface SessionServiceMock {
+  createSession: Mock;
+  rotateSession: Mock;
+  revokeSessionByToken: Mock;
+  revokeAllSessions: Mock;
 }
 
 function createUser(overrides: Partial<User> = {}): User {
@@ -43,18 +43,6 @@ function createUser(overrides: Partial<User> = {}): User {
     createdAt: now,
     updatedAt: now,
     deletedAt: null,
-    ...overrides,
-  };
-}
-
-function createRefreshToken(overrides: Partial<RefreshToken> = {}): RefreshToken {
-  return {
-    id: '00000000-0000-4000-8000-000000000101',
-    userId: '00000000-0000-4000-8000-000000000001',
-    tokenHash: 'hash',
-    expiresAt: new Date(Date.now() + 60_000),
-    createdAt: now,
-    revokedAt: null,
     ...overrides,
   };
 }
@@ -86,12 +74,6 @@ function createMocks() {
     findById: vi.fn(),
     create: vi.fn(),
   };
-  const refreshTokens: RefreshTokenRepositoryMock = {
-    create: vi.fn(),
-    findByHash: vi.fn(),
-    revoke: vi.fn(),
-    revokeAll: vi.fn(),
-  };
   const logger = { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as unknown as ApiLoggerService & {
     log: Mock;
     warn: Mock;
@@ -99,19 +81,25 @@ function createMocks() {
   const jwtService = new JwtService();
   const config = createConfig();
   const tokenService = new TokenService(jwtService, config, logger);
+  const sessions: SessionServiceMock = {
+    createSession: vi.fn((user: User) => tokenService.generateTokenPair(user)),
+    rotateSession: vi.fn((user: User) => tokenService.generateTokenPair(user)),
+    revokeSessionByToken: vi.fn(),
+    revokeAllSessions: vi.fn(),
+  };
   const service = new AuthService(
     users as unknown as UserRepository,
-    refreshTokens as unknown as RefreshTokenRepository,
+    sessions as unknown as SessionService,
     tokenService,
     logger,
   );
 
-  return { service, tokenService, users, refreshTokens, jwtService, config, logger };
+  return { service, tokenService, users, sessions, jwtService, config, logger };
 }
 
 describe('AuthService', () => {
   it('registers a user', async () => {
-    const { service, users, refreshTokens } = createMocks();
+    const { service, users, sessions } = createMocks();
     users.findByEmail.mockResolvedValue(null);
     users.create.mockResolvedValue(
       createUser({ passwordHash: await service.hashPassword('strong-password') }),
@@ -126,7 +114,7 @@ describe('AuthService', () => {
     expect(users.create).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'developer@reviewsha.local' }),
     );
-    expect(refreshTokens.create).toHaveBeenCalledOnce();
+    expect(sessions.createSession).toHaveBeenCalledOnce();
     expect(result.user).not.toHaveProperty('passwordHash');
   });
 
@@ -236,10 +224,12 @@ describe('AuthService', () => {
     await expect(service.verifyPassword('broken', 'strong-password')).resolves.toBe(false);
   });
 
-  it('hashes refresh token deterministically', () => {
-    const { service } = createMocks();
-    expect(service.hashToken('token')).toBe(service.hashToken('token'));
-    expect(service.hashToken('token')).not.toBe('token');
+  it('hashes refresh token with Argon2', async () => {
+    const { service, tokenService } = createMocks();
+    const hash = await service.hashToken('token');
+    expect(hash).toMatch(/^\$argon2/);
+    expect(hash).not.toBe('token');
+    await expect(tokenService.verifyRefreshTokenHash(hash, 'token')).resolves.toBe(true);
   });
 
   it('verifies an access token through TokenService', async () => {
@@ -270,61 +260,52 @@ describe('AuthService', () => {
   });
 
   it('logs out current refresh token', async () => {
-    const { service, refreshTokens } = createMocks();
-    refreshTokens.findByHash.mockResolvedValue(createRefreshToken());
+    const { service, sessions } = createMocks();
+    sessions.revokeSessionByToken.mockResolvedValue(undefined);
 
     await service.logout(
       { id: createUser().id, email: createUser().email, role: Role.USER },
       'refresh-token',
+      'refresh-jti',
     );
 
-    expect(refreshTokens.revoke).toHaveBeenCalledWith(service.hashToken('refresh-token'));
+    expect(sessions.revokeSessionByToken).toHaveBeenCalledWith(
+      createUser().id,
+      'refresh-token',
+      'refresh-jti',
+    );
   });
 
   it('logs out all devices', async () => {
-    const { service, refreshTokens } = createMocks();
+    const { service, sessions } = createMocks();
 
     await service.logoutAll({ id: createUser().id, email: createUser().email, role: Role.USER });
 
-    expect(refreshTokens.revokeAll).toHaveBeenCalledWith(createUser().id);
+    expect(sessions.revokeAllSessions).toHaveBeenCalledWith(createUser().id);
   });
 
   it('rotates refresh token', async () => {
-    const { service, users, refreshTokens } = createMocks();
+    const { service, users, sessions, tokenService } = createMocks();
     users.findById.mockResolvedValue(createUser());
-    refreshTokens.findByHash.mockResolvedValue(createRefreshToken());
+    sessions.rotateSession.mockImplementation((user: User) => tokenService.generateTokenPair(user));
 
     const result = await service.refresh({
       id: createUser().id,
       email: createUser().email,
       role: Role.USER,
       refreshToken: 'old-refresh',
+      jti: 'refresh-jti',
     });
 
-    expect(refreshTokens.revoke).toHaveBeenCalledWith(service.hashToken('old-refresh'));
+    expect(sessions.rotateSession).toHaveBeenCalledOnce();
     expect(result.refreshToken).toBeTruthy();
   });
 
   it('rejects revoked refresh token reuse', async () => {
-    const { service, users, refreshTokens } = createMocks();
+    const { service, users, sessions } = createMocks();
     users.findById.mockResolvedValue(createUser());
-    refreshTokens.findByHash.mockResolvedValue(createRefreshToken({ revokedAt: now }));
-
-    await expect(
-      service.refresh({
-        id: createUser().id,
-        email: createUser().email,
-        role: Role.USER,
-        refreshToken: 'old-refresh',
-      }),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
-  });
-
-  it('rejects expired refresh token', async () => {
-    const { service, users, refreshTokens } = createMocks();
-    users.findById.mockResolvedValue(createUser());
-    refreshTokens.findByHash.mockResolvedValue(
-      createRefreshToken({ expiresAt: new Date(Date.now() - 1_000) }),
+    sessions.rotateSession.mockRejectedValue(
+      new UnauthorizedException('Refresh token has been revoked'),
     );
 
     await expect(
@@ -333,6 +314,25 @@ describe('AuthService', () => {
         email: createUser().email,
         role: Role.USER,
         refreshToken: 'old-refresh',
+        jti: 'refresh-jti',
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('rejects expired refresh token', async () => {
+    const { service, users, sessions } = createMocks();
+    users.findById.mockResolvedValue(createUser());
+    sessions.rotateSession.mockRejectedValue(
+      new UnauthorizedException('Refresh token has expired'),
+    );
+
+    await expect(
+      service.refresh({
+        id: createUser().id,
+        email: createUser().email,
+        role: Role.USER,
+        refreshToken: 'old-refresh',
+        jti: 'refresh-jti',
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });

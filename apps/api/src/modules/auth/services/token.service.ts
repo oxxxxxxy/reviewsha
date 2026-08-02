@@ -2,7 +2,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
+import * as argon2 from 'argon2';
 import type { User } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
 import type { JwtConfig } from '../../../config/jwt.config';
@@ -111,8 +112,16 @@ export class TokenService {
     return decoded && typeof decoded === 'object' ? (decoded as T) : null;
   }
 
-  hashRefreshToken(token: string): string {
-    return createHash('sha256').update(token).digest('hex');
+  async hashRefreshToken(token: string): Promise<string> {
+    return argon2.hash(token);
+  }
+
+  async verifyRefreshTokenHash(tokenHash: string, token: string): Promise<boolean> {
+    try {
+      return await argon2.verify(tokenHash, token);
+    } catch {
+      return false;
+    }
   }
 
   getRefreshTokenExpiresAt(): Date {

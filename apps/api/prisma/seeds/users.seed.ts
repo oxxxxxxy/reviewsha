@@ -71,10 +71,12 @@ export async function seedUsersModule(context: SeedContext): Promise<Map<string,
       userId: developer.id,
       revokedAt: null,
       expiresAt: SEED_EXPIRES_AT,
+      jti: 'seed-refresh-token-jti',
     },
     create: {
       userId: developer.id,
       tokenHash: hashSeedValue(DEVELOPER_REFRESH_TOKEN),
+      jti: 'seed-refresh-token-jti',
       expiresAt: SEED_EXPIRES_AT,
     },
   });

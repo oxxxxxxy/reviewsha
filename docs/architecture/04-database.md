@@ -1269,3 +1269,33 @@ Repository Layer инкапсулирует Prisma-запросы по сущн�
 - `new PrismaClient()` запрещён в runtime-коде кроме `PrismaService`.
 - `prisma db push` не используется для production.
 - Любая новая таблица или связь должна появляться через новую Prisma migration и отражаться в ER-диаграмме.
+
+---
+
+# 26. Stage 4.4 Refresh Token Sessions
+
+`RefreshToken` теперь является основной таблицей пользовательских refresh-сессий.
+
+Дополнительные поля:
+
+- `jti` — уникальный идентификатор Refresh JWT;
+- `userAgent`;
+- `ip`;
+- `browser`;
+- `os`;
+- `lastUsedAt`;
+- `lastIp`;
+- `lastUserAgent`;
+- `revokedReason`.
+
+Причины отзыва представлены enum `RefreshTokenRevokedReason`:
+
+- `LOGOUT`;
+- `LOGOUT_ALL`;
+- `ROTATION`;
+- `REUSE_DETECTED`;
+- `PASSWORD_CHANGED`;
+- `ADMIN_REVOKED`;
+- `EXPIRED_CLEANUP`.
+
+Refresh Token хранится только в виде Argon2 hash. Поиск активной сессии выполняется по `jti`, после чего hash проверяется через Argon2 verify.

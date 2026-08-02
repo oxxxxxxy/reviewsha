@@ -889,3 +889,69 @@ JWT Infrastructure подготовлена к будущему расширен
 - API Tokens;
 - Personal Access Tokens;
 - переход на RS256/ES256 через замену JwtConfig и TokenService без переписывания AuthModule.
+
+---
+
+# 20. Реализация Stage 4.4 Refresh Token & Session Management
+
+Refresh Token lifecycle вынесен в отдельный SessionModule.
+
+## 20.1 SessionModule
+
+```txt
+apps/api/src/modules/sessions
+```
+
+Содержит:
+
+- `SessionsController`;
+- `SessionService`;
+- DTO;
+- Mapper;
+- interfaces.
+
+## 20.2 SessionService
+
+`SessionService` является единственной точкой управления Refresh Token и сессиями.
+
+Он отвечает за:
+
+- создание сессии после register/login;
+- hash Refresh Token через Argon2;
+- сохранение `jti`;
+- проверку Refresh Token по `jti` + Argon2 verify;
+- rotation;
+- logout одной сессии;
+- logout-all;
+- reuse detection;
+- список активных сессий;
+- отзыв выбранной сессии;
+- cleanup expired sessions;
+- обновление `lastUsedAt`, `lastIp`, `lastUserAgent`.
+
+## 20.3 Auth integration
+
+AuthModule больше не работает напрямую с `RefreshTokenRepository`.
+
+```txt
+AuthService
+  ↓
+SessionService
+  ↓
+RefreshTokenRepository
+  ↓
+Prisma
+```
+
+## 20.4 API
+
+```txt
+GET    /api/v1/sessions
+DELETE /api/v1/sessions/:id
+```
+
+Оба endpoint защищены `JwtAuthGuard`.
+
+## 20.5 Security
+
+Если отозванный Refresh Token используется повторно, SessionService выполняет reuse detection и отзывает все активные сессии пользователя с причиной `REUSE_DETECTED`.

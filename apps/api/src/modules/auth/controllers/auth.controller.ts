@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -9,7 +9,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
+import type { SessionContext } from '../../sessions/interfaces/session-context.interface';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Public } from '../decorators/public.decorator';
 import { AuthResponseDto } from '../dto/auth-response.dto';
@@ -31,8 +33,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   @ApiCreatedResponse({ type: AuthResponseDto })
   @ApiConflictResponse({ description: 'Email already exists' })
-  register(@Body() dto: RegisterDto): Promise<AuthResponseDto> {
-    return this.authService.register(dto);
+  register(@Body() dto: RegisterDto, @Req() request: Request): Promise<AuthResponseDto> {
+    return this.authService.register(dto, this.toSessionContext(request));
   }
 
   @Public()
@@ -41,8 +43,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiOkResponse({ type: AuthResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials or inactive user' })
-  login(@Body() dto: LoginDto): Promise<AuthResponseDto> {
-    return this.authService.login(dto);
+  login(@Body() dto: LoginDto, @Req() request: Request): Promise<AuthResponseDto> {
+    return this.authService.login(dto, this.toSessionContext(request));
   }
 
   @Post('logout')
@@ -73,8 +75,11 @@ export class AuthController {
   @ApiBody({ type: RefreshDto })
   @ApiOkResponse({ type: AuthResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid, expired or revoked refresh token' })
-  refresh(@CurrentUser() user: AuthenticatedRefreshUser): Promise<AuthResponseDto> {
-    return this.authService.refresh(user);
+  refresh(
+    @CurrentUser() user: AuthenticatedRefreshUser,
+    @Req() request: Request,
+  ): Promise<AuthResponseDto> {
+    return this.authService.refresh(user, this.toSessionContext(request));
   }
 
   @Get('me')
@@ -85,5 +90,12 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Invalid token or inactive user' })
   me(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
     return this.authService.me(user);
+  }
+
+  private toSessionContext(request: Request): SessionContext {
+    return {
+      ip: request.ip,
+      userAgent: request.headers['user-agent'],
+    };
   }
 }

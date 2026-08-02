@@ -7,6 +7,7 @@ import type { JwtConfig } from '../../config/jwt.config';
 import { AppConfigModule } from '../../config/config.module';
 import { DatabaseModule } from '../../database/database.module';
 import { RepositoriesModule } from '../../repositories';
+import { SessionsModule } from '../sessions/sessions.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './controllers/auth.controller';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -20,6 +21,7 @@ import { RefreshStrategy } from './strategies/refresh.strategy';
 @Module({
   imports: [
     UsersModule,
+    SessionsModule,
     DatabaseModule,
     RepositoriesModule,
     AppConfigModule,

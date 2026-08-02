@@ -134,6 +134,16 @@ enum InvitationStatus {
   EXPIRED
 }
 
+enum RefreshTokenRevokedReason {
+  LOGOUT
+  LOGOUT_ALL
+  ROTATION
+  REUSE_DETECTED
+  PASSWORD_CHANGED
+  ADMIN_REVOKED
+  EXPIRED_CLEANUP
+}
+
 model User {
   id           String    @id @default(uuid()) @db.Uuid
   email        String    @unique @db.VarChar(320)
@@ -505,17 +515,27 @@ model QueueJob {
 }
 
 model RefreshToken {
-  id        String    @id @default(uuid()) @db.Uuid
-  userId    String    @map("user_id") @db.Uuid
-  tokenHash String    @map("token_hash") @db.VarChar(255)
-  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+  id            String                     @id @default(uuid()) @db.Uuid
+  userId        String                     @map("user_id") @db.Uuid
+  tokenHash     String                     @map("token_hash") @db.VarChar(255)
+  jti           String                     @unique @db.VarChar(64)
+  userAgent     String?                    @map("user_agent") @db.Text
+  ip            String?                    @db.VarChar(64)
+  browser       String?                    @db.VarChar(120)
+  os            String?                    @db.VarChar(120)
+  lastUsedAt    DateTime?                  @map("last_used_at") @db.Timestamptz(3)
+  lastIp        String?                    @map("last_ip") @db.VarChar(64)
+  lastUserAgent String?                    @map("last_user_agent") @db.Text
+  expiresAt     DateTime                   @map("expires_at") @db.Timestamptz(3)
+  createdAt     DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  revokedAt     DateTime?                  @map("revoked_at") @db.Timestamptz(3)
+  revokedReason RefreshTokenRevokedReason? @map("revoked_reason")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([tokenHash])
   @@index([userId])
   @@index([expiresAt])
+  @@index([revokedAt])
   @@map("refresh_tokens")
 }
