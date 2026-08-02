@@ -994,7 +994,7 @@ CI использует:
 - Corepack;
 - Yarn Classic `1.22.22`;
 - cache по `yarn.lock`;
-- build artifacts для `dist` директорий через `actions/upload-artifact@v5`.
+- artifact upload временно отключён, чтобы не получать предупреждения GitHub Actions о deprecated Node runtime в upload-artifact.
 
 Подготовлены placeholder steps для будущих проверок:
 

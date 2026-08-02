@@ -133,19 +133,6 @@ jobs:
         run: yarn build
       - name: API documentation generation
         run: yarn docs:api
-      - name: Upload build artifacts
-        if: ${{ success() }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: reviewsha-build-node-${{ matrix.node-version }}
-          if-no-files-found: ignore
-          retention-days: 7
-          path: |
-            apps/api/dist
-            apps/worker/dist
-            apps/web/dist
-            apps/admin/dist
-            packages/*/dist
 
   openapi-docs:
     name: OpenAPI contract / Node ${{ matrix.node-version }}
@@ -283,14 +270,6 @@ jobs:
         run: yarn install --immutable --non-interactive
       - name: Stage 4 API tests and coverage
         run: yarn test:stage4
-      - name: Upload Stage 4 coverage summary
-        if: ${{ success() }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: stage4-coverage-node-${{ matrix.node-version }}
-          if-no-files-found: ignore
-          retention-days: 7
-          path: apps/api/coverage/stage4
 
   e2e-tests:
     name: Playwright E2E / Node ${{ matrix.node-version }}
