@@ -184,3 +184,19 @@ JWT_REFRESH_EXPIRES_IN=30d
 JWT_ISSUER=reviewsha-api
 JWT_AUDIENCE=reviewsha-clients
 ```
+
+## JWT Infrastructure
+
+JWT operations are centralized in `TokenService`:
+
+```txt
+src/modules/auth/services/token.service.ts
+```
+
+Rules:
+
+- Auth/business services do not call `JwtService.sign()` or `JwtService.verify()` directly.
+- `JwtAuthGuard` and `RefreshAuthGuard` verify tokens through `TokenService`.
+- JWT configuration lives in `src/config/jwt.config.ts` and is populated from ENV.
+- Refresh Token is stored only as hash in PostgreSQL.
+- JWT and Refresh Token values are never logged.

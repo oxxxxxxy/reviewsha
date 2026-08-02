@@ -15,16 +15,25 @@ import { RefreshTokenRepository } from '../../../../src/repositories/auth/refres
 import { UserRepository } from '../../../../src/repositories/user/user.repository';
 import { AuthController } from '../../../../src/modules/auth/controllers/auth.controller';
 import { AuthService } from '../../../../src/modules/auth/services/auth.service';
+import { TokenService } from '../../../../src/modules/auth/services/token.service';
 import { JwtStrategy } from '../../../../src/modules/auth/strategies/jwt.strategy';
 import { RefreshStrategy } from '../../../../src/modules/auth/strategies/refresh.strategy';
 
 const jwtConfig = {
-  secret: 'access-secret',
-  expiresIn: '15m',
-  refreshSecret: 'refresh-secret',
-  refreshExpiresIn: '30d',
-  issuer: 'reviewsha-api',
-  audience: 'reviewsha-clients',
+  access: {
+    secret: 'access-secret',
+    expiresIn: '15m',
+    issuer: 'reviewsha-api',
+    audience: 'reviewsha-clients',
+    algorithm: 'HS256' as const,
+  },
+  refresh: {
+    secret: 'refresh-secret',
+    expiresIn: '30d',
+    issuer: 'reviewsha-api',
+    audience: 'reviewsha-clients',
+    algorithm: 'HS256' as const,
+  },
 };
 
 function createState() {
@@ -109,6 +118,7 @@ describe('AuthModule HTTP integration', () => {
       controllers: [AuthController],
       providers: [
         AuthService,
+        TokenService,
         JwtStrategy,
         RefreshStrategy,
         { provide: UserRepository, useValue: state.userRepository },
@@ -231,10 +241,10 @@ describe('AuthModule HTTP integration', () => {
     const expired = await jwt.signAsync(
       { sub: registered.user.id, email: registered.user.email, role: Role.USER, type: 'access' },
       {
-        secret: jwtConfig.secret,
+        secret: jwtConfig.access.secret,
         expiresIn: '-1s',
-        issuer: jwtConfig.issuer,
-        audience: jwtConfig.audience,
+        issuer: jwtConfig.access.issuer,
+        audience: jwtConfig.access.audience,
       },
     );
 
@@ -252,10 +262,10 @@ describe('AuthModule HTTP integration', () => {
     const adminToken = await jwt.signAsync(
       { sub: registered.user.id, email: registered.user.email, role: Role.ADMIN, type: 'access' },
       {
-        secret: jwtConfig.secret,
+        secret: jwtConfig.access.secret,
         expiresIn: '15m',
-        issuer: jwtConfig.issuer,
-        audience: jwtConfig.audience,
+        issuer: jwtConfig.access.issuer,
+        audience: jwtConfig.access.audience,
       },
     );
 

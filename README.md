@@ -20,11 +20,12 @@ AI SaaS platform for automated code review.
 | 3.5 Repository Layer               | ✅ COMPLETE | Репозитории для MVP-сущностей, интерфейсы, DI и unit-тесты                                    |
 | 4.1 Users Module                   | ✅ COMPLETE | CRUD пользователей, DTO validation, Swagger, поиск, пагинация и сортировка                    |
 | 4.2 Auth Module                    | ✅ COMPLETE | JWT auth, Argon2 passwords, refresh rotation, guards, roles and sessions                      |
+| 4.3 JWT Infrastructure             | ✅ COMPLETE | Централизованный TokenService, JwtConfig, verify/decode/hash и TokenService-backed guards     |
 
 Следующий этап:
 
 ```txt
-Этап 4.3 Projects Module
+Этап 4.4 Projects Module
 ```
 
 ---
@@ -570,7 +571,7 @@ Studio используется только для визуальной про�
 
 ## Аутентификация
 
-`apps/api/src/modules/auth` реализует JWT-аутентификацию с Access Token и Refresh Token.
+`apps/api/src/modules/auth` реализует JWT-аутентификацию с Access Token и Refresh Token. JWT-инфраструктура централизована в `TokenService`, а конфигурация вынесена в `apps/api/src/config/jwt.config.ts`.
 
 Endpoints под `/api/v1`:
 
@@ -591,8 +592,10 @@ GET  /api/v1/auth/me
 - хранение Refresh Token только как SHA-256 hash в `refresh_tokens`;
 - Refresh Token rotation;
 - отзыв одного токена и всех токенов пользователя;
+- единый `TokenService` для `generate`, `verify`, `decode` и hash Refresh Token;
 - `JwtStrategy` и `RefreshStrategy`;
 - `JwtAuthGuard`, `RefreshAuthGuard`, `RolesGuard`;
+- Guards проверяют токены только через `TokenService`;
 - decorators `@CurrentUser()`, `@Public()`, `@Roles()`;
 - role checks для `ADMIN` и `USER`;
 - Swagger Bearer Authorize.

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserRepository } from '../../../repositories/user/user.repository';
-import type { JwtConfig } from '../../../config/app.config';
+import type { JwtConfig } from '../../../config/jwt.config';
 import type { AuthenticatedUser, JwtAccessPayload } from '../types/auth.types';
 
 @Injectable()
@@ -16,9 +16,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: jwtConfig.secret,
-      issuer: jwtConfig.issuer,
-      audience: jwtConfig.audience,
+      secretOrKey: jwtConfig.access.secret,
+      issuer: jwtConfig.access.issuer,
+      audience: jwtConfig.access.audience,
+      algorithms: [jwtConfig.access.algorithm],
     });
   }
 

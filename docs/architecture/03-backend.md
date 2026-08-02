@@ -1811,3 +1811,31 @@ GET  /auth/me
 - multi-device sessions: enabled;
 - roles: `ADMIN`, `USER`;
 - Swagger Bearer auth: enabled.
+
+---
+
+# 20. Реализация Stage 4.3: JWT Infrastructure
+
+JWT вынесен в инфраструктурный слой AuthModule.
+
+## Компоненты
+
+```txt
+ConfigModule
+  ↓
+jwt.config.ts
+  ↓
+TokenService
+  ↓
+JwtAuthGuard / RefreshAuthGuard
+  ↓
+AuthController / future protected modules
+```
+
+## Правило зависимости
+
+Backend-сервисы не вызывают `JwtService.sign()` и `JwtService.verify()` напрямую. Генерация, проверка, decode, hash Refresh Token и mapping JWT ошибок выполняются через `TokenService`.
+
+## Защищённые маршруты
+
+`JwtAuthGuard` и `RefreshAuthGuard` используют `TokenService`, загружают пользователя через `UserRepository`, проверяют `isActive` и записывают минимальный `request.user`.

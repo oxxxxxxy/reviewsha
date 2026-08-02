@@ -3,43 +3,28 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
-  UnprocessableEntityException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService, type JwtSignOptions } from '@nestjs/jwt';
-import { createHash, randomUUID } from 'node:crypto';
 import * as argon2 from 'argon2';
 import type { User } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
-import type { JwtConfig } from '../../../config/app.config';
 import { RefreshTokenRepository } from '../../../repositories/auth/refresh-token.repository';
 import { UserRepository } from '../../../repositories/user/user.repository';
 import { UserMapper } from '../../users/mappers/user.mapper';
 import type { UserResponseDto } from '../../users/dto/user-response.dto';
-import { ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE } from '../constants/auth.constants';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 import type { AuthResponseDto, TokenPairDto } from '../dto/auth-response.dto';
-import type {
-  AuthenticatedRefreshUser,
-  AuthenticatedUser,
-  JwtAccessPayload,
-  JwtRefreshPayload,
-} from '../types/auth.types';
+import type { AuthenticatedRefreshUser, AuthenticatedUser } from '../types/auth.types';
+import { TokenService } from './token.service';
 
 @Injectable()
 export class AuthService {
-  private readonly jwtConfig: JwtConfig;
-
   constructor(
     private readonly users: UserRepository,
     private readonly refreshTokens: RefreshTokenRepository,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly tokenService: TokenService,
     private readonly logger: ApiLoggerService,
-  ) {
-    this.jwtConfig = this.configService.getOrThrow<JwtConfig>('jwt');
-  }
+  ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
     const email = this.normalizeEmail(dto.email);
@@ -87,7 +72,7 @@ export class AuthService {
 
   async logout(user: AuthenticatedUser, refreshToken: string): Promise<void> {
     await this.assertRefreshTokenActive(user.id, refreshToken);
-    await this.refreshTokens.revoke(this.hashToken(refreshToken));
+    await this.refreshTokens.revoke(this.tokenService.hashRefreshToken(refreshToken));
     this.logger.log(`User logged out: ${user.id}`, 'AuthService');
   }
 
@@ -106,9 +91,9 @@ export class AuthService {
     }
 
     await this.assertRefreshTokenActive(user.id, user.refreshToken);
-    await this.refreshTokens.revoke(this.hashToken(user.refreshToken));
-
     const tokens = await this.issueTokenPair(dbUser);
+    await this.refreshTokens.revoke(this.tokenService.hashRefreshToken(user.refreshToken));
+
     this.logger.log(`Tokens refreshed for user: ${dbUser.id}`, 'AuthService');
     return { ...tokens, user: UserMapper.toResponse(dbUser) };
   }
@@ -138,60 +123,31 @@ export class AuthService {
   }
 
   hashToken(token: string): string {
-    return createHash('sha256').update(token).digest('hex');
+    return this.tokenService.hashRefreshToken(token);
   }
 
-  async generateAccessToken(user: User): Promise<string> {
-    const payload: JwtAccessPayload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-      type: ACCESS_TOKEN_TYPE,
-      jti: randomUUID(),
-    };
-
-    return this.jwtService.signAsync(payload, {
-      secret: this.jwtConfig.secret,
-      expiresIn: this.jwtConfig.expiresIn as JwtSignOptions['expiresIn'],
-      issuer: this.jwtConfig.issuer,
-      audience: this.jwtConfig.audience,
-    });
+  generateAccessToken(user: User): Promise<string> {
+    return this.tokenService.generateAccessToken(user);
   }
 
-  async generateRefreshToken(user: User): Promise<string> {
-    const payload: JwtRefreshPayload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-      type: REFRESH_TOKEN_TYPE,
-      jti: randomUUID(),
-    };
-
-    return this.jwtService.signAsync(payload, {
-      secret: this.jwtConfig.refreshSecret,
-      expiresIn: this.jwtConfig.refreshExpiresIn as JwtSignOptions['expiresIn'],
-      issuer: this.jwtConfig.issuer,
-      audience: this.jwtConfig.audience,
-    });
+  generateRefreshToken(user: User): Promise<string> {
+    return this.tokenService.generateRefreshToken(user);
   }
 
   private async issueTokenPair(user: User): Promise<TokenPairDto> {
-    const [accessToken, refreshToken] = await Promise.all([
-      this.generateAccessToken(user),
-      this.generateRefreshToken(user),
-    ]);
+    const tokens = await this.tokenService.generateTokenPair(user);
 
     await this.refreshTokens.create({
       user: { connect: { id: user.id } },
-      tokenHash: this.hashToken(refreshToken),
-      expiresAt: this.getRefreshTokenExpiresAt(),
+      tokenHash: this.tokenService.hashRefreshToken(tokens.refreshToken),
+      expiresAt: this.tokenService.getRefreshTokenExpiresAt(),
     });
 
-    return { accessToken, refreshToken };
+    return tokens;
   }
 
   private async assertRefreshTokenActive(userId: string, refreshToken: string): Promise<void> {
-    const tokenHash = this.hashToken(refreshToken);
+    const tokenHash = this.tokenService.hashRefreshToken(refreshToken);
     const stored = await this.refreshTokens.findByHash(tokenHash);
 
     if (!stored || stored.userId !== userId || stored.revokedAt) {
@@ -205,33 +161,5 @@ export class AuthService {
 
   private normalizeEmail(email: string): string {
     return email.trim().toLowerCase();
-  }
-
-  private getRefreshTokenExpiresAt(): Date {
-    const ttlMs = this.parseDurationMs(this.jwtConfig.refreshExpiresIn);
-    if (ttlMs <= 0) {
-      throw new UnprocessableEntityException('Invalid refresh token ttl');
-    }
-
-    return new Date(Date.now() + ttlMs);
-  }
-
-  private parseDurationMs(value: string): number {
-    const match = /^(\d+)(s|m|h|d)$/.exec(value);
-    if (!match) {
-      const seconds = Number(value);
-      return Number.isFinite(seconds) ? seconds * 1000 : 0;
-    }
-
-    const amount = Number(match[1]);
-    const unit = match[2] ?? 's';
-    const multipliers: Record<string, number> = {
-      s: 1000,
-      m: 60 * 1000,
-      h: 60 * 60 * 1000,
-      d: 24 * 60 * 60 * 1000,
-    };
-
-    return amount * (multipliers[unit] ?? 0);
   }
 }

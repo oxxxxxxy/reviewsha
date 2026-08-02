@@ -12,6 +12,7 @@ import { Public } from '../../../../src/modules/auth/decorators/public.decorator
 import { Roles } from '../../../../src/modules/auth/decorators/roles.decorator';
 import { RolesGuard } from '../../../../src/modules/auth/guards/roles.guard';
 import { AuthService } from '../../../../src/modules/auth/services/auth.service';
+import { TokenService } from '../../../../src/modules/auth/services/token.service';
 import { JwtStrategy } from '../../../../src/modules/auth/strategies/jwt.strategy';
 import { RefreshStrategy } from '../../../../src/modules/auth/strategies/refresh.strategy';
 
@@ -61,12 +62,20 @@ function createRefreshToken(overrides: Partial<RefreshToken> = {}): RefreshToken
 function createConfig(): ConfigService {
   return {
     getOrThrow: vi.fn(() => ({
-      secret: 'access-secret',
-      expiresIn: '15m',
-      refreshSecret: 'refresh-secret',
-      refreshExpiresIn: '30d',
-      issuer: 'reviewsha-api',
-      audience: 'reviewsha-clients',
+      access: {
+        secret: 'access-secret',
+        expiresIn: '15m',
+        issuer: 'reviewsha-api',
+        audience: 'reviewsha-clients',
+        algorithm: 'HS256',
+      },
+      refresh: {
+        secret: 'refresh-secret',
+        expiresIn: '30d',
+        issuer: 'reviewsha-api',
+        audience: 'reviewsha-clients',
+        algorithm: 'HS256',
+      },
     })),
   } as unknown as ConfigService;
 }
@@ -89,15 +98,15 @@ function createMocks() {
   };
   const jwtService = new JwtService();
   const config = createConfig();
+  const tokenService = new TokenService(jwtService, config, logger);
   const service = new AuthService(
     users as unknown as UserRepository,
     refreshTokens as unknown as RefreshTokenRepository,
-    jwtService,
-    config,
+    tokenService,
     logger,
   );
 
-  return { service, users, refreshTokens, jwtService, config, logger };
+  return { service, tokenService, users, refreshTokens, jwtService, config, logger };
 }
 
 describe('AuthService', () => {
@@ -231,6 +240,33 @@ describe('AuthService', () => {
     const { service } = createMocks();
     expect(service.hashToken('token')).toBe(service.hashToken('token'));
     expect(service.hashToken('token')).not.toBe('token');
+  });
+
+  it('verifies an access token through TokenService', async () => {
+    const { service, tokenService } = createMocks();
+    const token = await service.generateAccessToken(createUser());
+
+    await expect(tokenService.verifyAccessToken(token)).resolves.toMatchObject({
+      sub: createUser().id,
+      type: 'access',
+    });
+  });
+
+  it('verifies a refresh token through TokenService', async () => {
+    const { service, tokenService } = createMocks();
+    const token = await service.generateRefreshToken(createUser());
+
+    await expect(tokenService.verifyRefreshToken(token)).resolves.toMatchObject({
+      sub: createUser().id,
+      type: 'refresh',
+    });
+  });
+
+  it('decodes tokens only for diagnostics', async () => {
+    const { service, tokenService } = createMocks();
+    const token = await service.generateAccessToken(createUser());
+
+    expect(tokenService.decodeToken(token)).toMatchObject({ sub: createUser().id });
   });
 
   it('logs out current refresh token', async () => {

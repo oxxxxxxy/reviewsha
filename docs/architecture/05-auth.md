@@ -793,3 +793,99 @@ Refresh Token:
 - Повторное использование отозванного Refresh Token возвращает `401`.
 - Неактивный пользователь не может login/refresh/me.
 - Логи не содержат password/JWT/refresh token.
+
+---
+
+# 19. Реализация Stage 4.3 JWT Infrastructure
+
+JWT вынесен из бизнес-логики авторизации в централизованный инфраструктурный слой.
+
+## 19.1 JwtConfig
+
+Типизированная конфигурация находится в:
+
+```txt
+apps/api/src/config/jwt.config.ts
+```
+
+Конфиг разделён на две области:
+
+- Access Token;
+- Refresh Token.
+
+Обе области используют:
+
+- secret из ENV;
+- TTL из ENV;
+- issuer;
+- audience;
+- algorithm `HS256`.
+
+## 19.2 TokenService
+
+Единая точка работы с JWT:
+
+```txt
+apps/api/src/modules/auth/services/token.service.ts
+```
+
+TokenService отвечает за:
+
+- `generateAccessToken()`;
+- `generateRefreshToken()`;
+- `generateTokenPair()`;
+- `verifyAccessToken()`;
+- `verifyRefreshToken()`;
+- `decodeToken()` только для диагностики;
+- hash Refresh Token перед сохранением;
+- расчёт срока жизни Refresh Token;
+- единый mapping JWT ошибок в `401 Unauthorized`.
+
+Сервисы приложения не используют `JwtService.sign()` / `JwtService.verify()` напрямую.
+
+## 19.3 Guards integration
+
+`JwtAuthGuard` и `RefreshAuthGuard` используют `TokenService` как единственный механизм проверки токенов.
+
+Guard выполняет:
+
+1. извлечение токена из HTTP request;
+2. верификацию через TokenService;
+3. загрузку пользователя через Repository Layer;
+4. проверку активности пользователя;
+5. запись безопасного `request.user`.
+
+## 19.4 Payload
+
+Payload типизирован отдельно:
+
+```txt
+interfaces/access-token.interface.ts
+interfaces/refresh-token.interface.ts
+interfaces/token-pair.interface.ts
+```
+
+Access Token содержит минимальный набор:
+
+- `sub`;
+- `email`;
+- `role`;
+- `type`;
+- `jti`.
+
+Refresh Token также содержит уникальный `jti`.
+
+## 19.5 Refresh Token storage
+
+Согласно архитектуре хранения Refresh Token в PostgreSQL сохраняется только как SHA-256 hash. Открытый JWT в базе не хранится.
+
+## 19.6 Extensibility
+
+JWT Infrastructure подготовлена к будущему расширению:
+
+- OAuth providers;
+- Google/GitHub/Discord login;
+- Magic Links;
+- API Tokens;
+- Personal Access Tokens;
+- переход на RS256/ES256 через замену JwtConfig и TokenService без переписывания AuthModule.

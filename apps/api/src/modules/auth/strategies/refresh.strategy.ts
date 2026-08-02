@@ -4,7 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
 import { UserRepository } from '../../../repositories/user/user.repository';
-import type { JwtConfig } from '../../../config/app.config';
+import type { JwtConfig } from '../../../config/jwt.config';
 import type { AuthenticatedRefreshUser, JwtRefreshPayload } from '../types/auth.types';
 
 function extractRefreshToken(request: Request): string | null {
@@ -23,9 +23,10 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
       jwtFromRequest: ExtractJwt.fromExtractors([extractRefreshToken]),
       passReqToCallback: true,
       ignoreExpiration: false,
-      secretOrKey: jwtConfig.refreshSecret,
-      issuer: jwtConfig.issuer,
-      audience: jwtConfig.audience,
+      secretOrKey: jwtConfig.refresh.secret,
+      issuer: jwtConfig.refresh.issuer,
+      audience: jwtConfig.refresh.audience,
+      algorithms: [jwtConfig.refresh.algorithm],
     });
   }
 

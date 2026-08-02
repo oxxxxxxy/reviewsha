@@ -28,12 +28,20 @@ describe('appConfig', () => {
     expect(config.database.url).toBe('postgresql://custom');
     expect(config.database.logQueries).toBe(true);
     expect(config.jwt).toEqual({
-      secret: 'access',
-      expiresIn: '10m',
-      refreshSecret: 'refresh',
-      refreshExpiresIn: '7d',
-      issuer: 'issuer',
-      audience: 'audience',
+      access: {
+        secret: 'access',
+        expiresIn: '10m',
+        issuer: 'issuer',
+        audience: 'audience',
+        algorithm: 'HS256',
+      },
+      refresh: {
+        secret: 'refresh',
+        expiresIn: '7d',
+        issuer: 'issuer',
+        audience: 'audience',
+        algorithm: 'HS256',
+      },
     });
   });
 
@@ -46,7 +54,7 @@ describe('appConfig', () => {
     expect(config.app.port).toBe(3000);
     expect(config.app.apiPrefix).toBe('api/v1');
     expect(config.database.logQueries).toBe(false);
-    expect(config.jwt.expiresIn).toBe('15m');
-    expect(config.jwt.refreshExpiresIn).toBe('30d');
+    expect(config.jwt.access.expiresIn).toBe('15m');
+    expect(config.jwt.refresh.expiresIn).toBe('30d');
   });
 });

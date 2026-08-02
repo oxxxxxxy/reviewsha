@@ -1,4 +1,5 @@
 import { API_BASE_PATH, DEFAULT_URLS } from '@reviewsha/config';
+import { createJwtConfig, type JwtConfig } from './jwt.config';
 
 export type AppConfig = {
   nodeEnv: string;
@@ -6,15 +7,6 @@ export type AppConfig = {
   port: number;
   apiPrefix: string;
   corsOrigin: string;
-};
-
-export type JwtConfig = {
-  secret: string;
-  expiresIn: string;
-  refreshSecret: string;
-  refreshExpiresIn: string;
-  issuer: string;
-  audience: string;
 };
 
 export default (): {
@@ -35,12 +27,5 @@ export default (): {
       'postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public',
     logQueries: process.env.PRISMA_LOG_QUERIES === 'true',
   },
-  jwt: {
-    secret: process.env.JWT_SECRET ?? 'reviewsha-access-secret-change-me',
-    expiresIn: process.env.JWT_EXPIRES_IN ?? '15m',
-    refreshSecret: process.env.JWT_REFRESH_SECRET ?? 'reviewsha-refresh-secret-change-me',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN ?? '30d',
-    issuer: process.env.JWT_ISSUER ?? 'reviewsha-api',
-    audience: process.env.JWT_AUDIENCE ?? 'reviewsha-clients',
-  },
+  jwt: createJwtConfig(process.env),
 });
