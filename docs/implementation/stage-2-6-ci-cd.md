@@ -21,8 +21,25 @@
 `ci.yml` запускается при:
 
 - push в `main`;
-- pull request;
-- ручном запуске `workflow_dispatch`.
+- push в `dev`;
+- pull request в `main` или `dev`;
+- ручном запуске `workflow_dispatch`;
+- nightly schedule `0 2 * * *`.
+
+## Branch strategy
+
+Постоянные ветки:
+
+```txt
+main — стабильная ветка;
+dev  — интеграционная ветка разработки.
+```
+
+Ожидаемый поток изменений:
+
+```txt
+feature/* → dev → main
+```
 
 ## Runtime
 
@@ -37,31 +54,20 @@ Node.js 24 — текущая LTS-линейка для проекта. Матр
 
 ## Pipeline stages
 
-Текущая логика CI:
+Текущая логика CI разбита на параллельные jobs:
 
 ```txt
-Checkout
-↓
-Corepack / Node / Yarn
-↓
-Install
-↓
-Lint
-↓
-Typecheck
-↓
-Format Check
-↓
-Build
-↓
-Test
-↓
-Docker Compose config
-↓
-Prepared Security / Docker placeholders
-↓
-Upload build artifacts
+quality        → lint + typecheck + format check
+build          → build + TypeDoc + artifacts
+unit-tests     → package/app unit tests
+smoke-tests    → Stage 2 smoke/integration checks
+prisma-tests   → Stage 3 Prisma migration/seed checks
+e2e-tests      → Playwright browser tests
+docker-config  → docker compose config + future security placeholders
+ci-result      → aggregate gate
 ```
+
+Такой layout уменьшает wall-clock время CI: независимые проверки стартуют параллельно, а `ci-result` только агрегирует результат.
 
 Команды:
 
@@ -70,9 +76,13 @@ yarn install --immutable --non-interactive
 yarn lint
 yarn typecheck
 yarn format:check --ignore-unknown
-yarn build
-yarn test
-docker compose config
+yarn ci:quality
+yarn ci:build
+yarn ci:unit
+yarn ci:smoke
+yarn ci:prisma
+yarn ci:e2e
+yarn ci:docker
 ```
 
 ## Кэширование
@@ -147,13 +157,13 @@ Deploy
 ## Definition of Done
 
 - ✅ создан `.github/workflows/ci.yml`;
-- ✅ workflow запускается при push, pull request и workflow_dispatch;
+- ✅ workflow запускается при push в `main`/`dev`, pull request, workflow_dispatch и nightly schedule;
 - ✅ используется Node.js LTS;
 - ✅ включён Corepack;
 - ✅ используется Yarn Classic 1.22.22;
 - ✅ зависимости устанавливаются через `yarn install --immutable --non-interactive`;
 - ✅ включено кэширование Yarn dependencies;
-- ✅ автоматически выполняются lint, typecheck, format check, build и test;
+- ✅ автоматически выполняются lint, typecheck, format check, build, docs, unit, smoke, Prisma и E2E tests;
 - ✅ выполняется `docker compose config`;
 - ✅ подготовлены placeholder steps для Docker image build и security checks;
 - ✅ build artifacts публикуются через `actions/upload-artifact`;

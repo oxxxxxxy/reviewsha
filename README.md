@@ -746,9 +746,44 @@ JetBrains IDE:
 
 ---
 
+## Git workflow
+
+Используем две постоянные ветки:
+
+```txt
+main  — стабильная ветка, только проверенные изменения;
+dev   — интеграционная ветка для текущей разработки.
+```
+
+Правило работы:
+
+```txt
+feature/* → dev → main
+```
+
+Перед push обязательно локально прогонять профиль, соответствующий CI:
+
+```bash
+yarn ci:local
+```
+
+Для быстрых локальных проверок можно запускать отдельные профили:
+
+```bash
+yarn ci:quality
+yarn ci:build
+yarn ci:unit
+yarn ci:smoke
+yarn ci:prisma
+yarn ci:e2e
+yarn ci:docker
+```
+
+---
+
 ## CI/CD
 
-Проект использует GitHub Actions, потому что исходный код находится на GitHub.
+Проект использует GitHub Actions, потому что исходный код находится на GitHub. CI разбит на параллельные jobs: quality, build/docs, unit-tests, smoke-tests, prisma-tests, e2e-tests и docker-config.
 
 Workflows:
 

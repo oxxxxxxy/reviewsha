@@ -4,8 +4,14 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request:
+    branches:
+      - main
+      - dev
   workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -15,95 +21,69 @@ permissions:
   contents: read
 
 jobs:
-  verify:
-    name: Verify monorepo / Node ${{ matrix.node-version }}
+  quality:
+    name: Quality / Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         node-version:
           - 24.x
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
-
       - name: Enable Corepack
         run: corepack enable
-
       - name: Setup Node.js LTS
         uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
           cache-dependency-path: yarn.lock
-
       - name: Prepare Yarn Classic
         run: corepack prepare yarn@1.22.22 --activate
-
       - name: Show tool versions
         run: |
           node --version
           yarn --version
-          docker compose version
-
       - name: Install dependencies
         run: yarn install --immutable --non-interactive
-
       - name: Lint
         run: yarn lint
-
       - name: Typecheck
         run: yarn typecheck
-
       - name: Format check
         run: yarn format:check --ignore-unknown
 
+  build:
+    name: Build and docs / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 24.x
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Prepare Yarn Classic
+        run: corepack prepare yarn@1.22.22 --activate
+      - name: Install dependencies
+        run: yarn install --immutable --non-interactive
       - name: Build
         run: yarn build
-
       - name: API documentation generation
         run: yarn docs:api
-
-      - name: Test
-        run: yarn test
-
-      - name: Stage 2 smoke and integration tests
-        run: yarn test:stage2
-
-      - name: Stage 3 Prisma migration tests
-        run: yarn test:stage3
-
-      - name: Install Playwright browsers
-        run: yarn test:e2e:install
-
-      - name: E2E tests
-        run: yarn test:e2e
-
-      - name: Docker Compose config
-        run: docker compose config
-
-      - name: Docker image build placeholder
-        if: ${{ false }}
-        run: |
-          echo "Docker image build checks will be enabled when application Dockerfiles are added."
-
-      - name: Dependency audit placeholder
-        if: ${{ false }}
-        run: |
-          echo "Dependency audit will be enabled after audit policy is finalized."
-
-      - name: License check placeholder
-        if: ${{ false }}
-        run: |
-          echo "License checks will be enabled after allowed-license policy is finalized."
-
-      - name: Secret scan placeholder
-        if: ${{ false }}
-        run: |
-          echo "Secret scanning will be enabled after choosing a scanner."
-
       - name: Upload build artifacts
         if: ${{ success() }}
         uses: actions/upload-artifact@v5
@@ -117,3 +97,164 @@ jobs:
             apps/web/dist
             apps/admin/dist
             packages/*/dist
+
+  unit-tests:
+    name: Unit tests / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 24.x
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Prepare Yarn Classic
+        run: corepack prepare yarn@1.22.22 --activate
+      - name: Install dependencies
+        run: yarn install --immutable --non-interactive
+      - name: Test packages and apps
+        run: yarn test
+
+  smoke-tests:
+    name: Stage 2 smoke and integration / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 24.x
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Prepare Yarn Classic
+        run: corepack prepare yarn@1.22.22 --activate
+      - name: Install dependencies
+        run: yarn install --immutable --non-interactive
+      - name: Stage 2 smoke and integration tests
+        run: yarn test:stage2
+
+  prisma-tests:
+    name: Stage 3 Prisma migrations / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 24.x
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Prepare Yarn Classic
+        run: corepack prepare yarn@1.22.22 --activate
+      - name: Show Docker Compose version
+        run: docker compose version
+      - name: Install dependencies
+        run: yarn install --immutable --non-interactive
+      - name: Stage 3 Prisma migration tests
+        run: yarn test:stage3
+
+  e2e-tests:
+    name: Playwright E2E / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 24.x
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Prepare Yarn Classic
+        run: corepack prepare yarn@1.22.22 --activate
+      - name: Install dependencies
+        run: yarn install --immutable --non-interactive
+      - name: Install Playwright browsers
+        run: yarn test:e2e:install
+      - name: E2E tests
+        run: yarn test:e2e
+
+  docker-config:
+    name: Docker and future security checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Show Docker Compose version
+        run: docker compose version
+      - name: Docker Compose config
+        run: docker compose config
+      - name: Docker image build placeholder
+        if: ${{ false }}
+        run: |
+          echo "Docker image build checks will be enabled when application Dockerfiles are added."
+      - name: Dependency audit placeholder
+        if: ${{ false }}
+        run: |
+          echo "Dependency audit will be enabled after audit policy is finalized."
+      - name: License check placeholder
+        if: ${{ false }}
+        run: |
+          echo "License checks will be enabled after allowed-license policy is finalized."
+      - name: Secret scan placeholder
+        if: ${{ false }}
+        run: |
+          echo "Secret scanning will be enabled after choosing a scanner."
+
+  ci-result:
+    name: CI result
+    runs-on: ubuntu-latest
+    needs:
+      - quality
+      - build
+      - unit-tests
+      - smoke-tests
+      - prisma-tests
+      - e2e-tests
+      - docker-config
+    if: ${{ always() }}
+    steps:
+      - name: Check required jobs
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" || "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more CI jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All CI jobs passed."
