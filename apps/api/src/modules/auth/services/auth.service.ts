@@ -11,6 +11,7 @@ import { UserRepository } from '../../../repositories/user/user.repository';
 import { SessionService } from '../../sessions/services/session.service';
 import type { SessionContext } from '../../sessions/interfaces/session-context.interface';
 import { UserMapper } from '../../users/mappers/user.mapper';
+import { UpdateUserDto } from '../../users/dto/update-user.dto';
 import type { UserResponseDto } from '../../users/dto/user-response.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
@@ -119,6 +120,31 @@ export class AuthService {
     }
 
     return UserMapper.toResponse(dbUser);
+  }
+
+  async updateMe(user: AuthenticatedUser, dto: UpdateUserDto): Promise<UserResponseDto> {
+    const dbUser = await this.users.findById(user.id);
+    if (!dbUser) {
+      throw new NotFoundException('User not found');
+    }
+    if (!dbUser.isActive) {
+      throw new UnauthorizedException('User is not active');
+    }
+
+    const data: UpdateUserDto = {};
+    if (dto.displayName !== undefined) {
+      data.displayName = dto.displayName.trim();
+    }
+    if (dto.avatarUrl !== undefined) {
+      data.avatarUrl = dto.avatarUrl;
+    }
+    if (Object.keys(data).length === 0) {
+      return UserMapper.toResponse(dbUser);
+    }
+
+    const updated = await this.users.update(user.id, data);
+    this.logger.log(`Current user profile updated: ${user.id}`, 'AuthService');
+    return UserMapper.toResponse(updated);
   }
 
   async hashPassword(password: string): Promise<string> {

@@ -1976,3 +1976,12 @@ apps/api/src/swagger/
 - OpenAPI документ генерируется командой `yarn docs:openapi` и проверяется в CI.
 
 Swagger является контрактом для Frontend, Admin, SDK и автоматических тестов.
+
+
+## Stage 4 final audit updates
+
+- Current-user profile updates are available through `PATCH /api/v1/auth/me`.
+- User deletion uses soft delete: `deletedAt` is set and `isActive` becomes `false`.
+- `SessionRepository` is an explicit Sessions module repository over refresh-token persistence.
+- JWT defaults to `HS256`; config types are prepared for future `RS256`/`ES256` migration.
+- Stage 4 critical backend logic is validated by `yarn test:stage4` with coverage thresholds.

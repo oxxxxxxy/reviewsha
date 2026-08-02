@@ -1,6 +1,6 @@
 import type { JwtSignOptions, JwtVerifyOptions } from '@nestjs/jwt';
 
-export type JwtAlgorithm = 'HS256';
+export type JwtAlgorithm = 'HS256' | 'RS256' | 'ES256';
 
 export type JwtTokenKindConfig = {
   secret: string;
@@ -18,7 +18,7 @@ export type JwtConfig = {
 export function createJwtConfig(env: NodeJS.ProcessEnv = process.env): JwtConfig {
   const issuer = env.JWT_ISSUER ?? 'reviewsha-api';
   const audience = env.JWT_AUDIENCE ?? 'reviewsha-clients';
-  const algorithm: JwtAlgorithm = 'HS256';
+  const algorithm = (env.JWT_ALGORITHM ?? 'HS256') as JwtAlgorithm;
 
   return {
     access: {

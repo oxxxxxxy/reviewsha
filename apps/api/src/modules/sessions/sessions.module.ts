@@ -7,6 +7,7 @@ import type { JwtConfig } from '../../config/jwt.config';
 import { RepositoriesModule } from '../../repositories';
 import { TokenService } from '../auth/services/token.service';
 import { SessionsController } from './controllers/sessions.controller';
+import { SessionRepository } from './repositories/session.repository';
 import { SessionService } from './services/session.service';
 
 @Module({
@@ -30,7 +31,7 @@ import { SessionService } from './services/session.service';
     }),
   ],
   controllers: [SessionsController],
-  providers: [ApiLoggerService, TokenService, SessionService],
+  providers: [ApiLoggerService, TokenService, SessionRepository, SessionService],
   exports: [SessionService],
 })
 export class SessionsModule {}

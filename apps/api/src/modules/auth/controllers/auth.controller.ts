@@ -1,4 +1,14 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -10,6 +20,7 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { UpdateUserDto } from '../../users/dto/update-user.dto';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
 import type { SessionContext } from '../../sessions/interfaces/session-context.interface';
 import { CurrentUser } from '../../../common/auth/decorators/current-user.decorator';
@@ -117,6 +128,22 @@ export class AuthController {
   @ApiUnauthorizedResponse({ description: 'Invalid token or inactive user' })
   me(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {
     return this.authService.me(user);
+  }
+
+  @Patch('me')
+  @Roles(...AUTHORIZATION_POLICIES.auth.currentUser.roles)
+  @ApiBearerAuth('bearer')
+  @ApiOperation({
+    summary: 'Update current user profile',
+    description: 'Authenticated USER or ADMIN can update own profile fields.',
+  })
+  @ApiOkResponse({ type: UserResponseDto })
+  @ApiUnauthorizedResponse({ description: 'Invalid token or inactive user' })
+  updateMe(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    return this.authService.updateMe(user, dto);
   }
 
   private toSessionContext(request: Request): SessionContext {

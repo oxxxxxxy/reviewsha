@@ -29,7 +29,7 @@ AI SaaS platform for automated code review.
 Следующий этап:
 
 ```txt
-Этап 4.7 Projects Module
+Этап 5. Projects Module
 ```
 
 ---
@@ -129,6 +129,7 @@ yarn docs:api
 
 yarn test:stage2
 yarn test:stage3
+yarn test:stage4
 yarn test:e2e
 ```
 
@@ -613,6 +614,7 @@ JWT_REFRESH_SECRET=change-me-refresh
 JWT_REFRESH_EXPIRES_IN=30d
 JWT_ISSUER=reviewsha-api
 JWT_AUDIENCE=reviewsha-clients
+JWT_ALGORITHM=HS256
 ```
 
 В логах запрещены пароли, JWT и Refresh Token.
@@ -881,6 +883,20 @@ JetBrains IDE:
 
 ---
 
+## Stage 4 completion notes
+
+Stage 4 covers Users, JWT/Auth, Sessions, Guards, Roles and Swagger/OpenAPI. The next implementation track starts with the domain modules, beginning with **Stage 5 — Projects Module**.
+
+Key finalized decisions:
+
+- user deletion is implemented as soft delete through `deletedAt` + `isActive=false`;
+- Sessions module exposes an explicit `SessionRepository` alias over `RefreshTokenRepository`, because sessions are stored in `refresh_tokens`;
+- JWT defaults to `HS256`, while config types allow future `RS256`/`ES256` migration;
+- current-user profile updates are exposed through `PATCH /api/v1/auth/me`;
+- critical Stage 4 backend logic is checked by `yarn test:stage4` with coverage thresholds.
+
+---
+
 ## Swagger & OpenAPI
 
 Backend API documentation is available after starting `apps/api`:
@@ -930,6 +946,7 @@ yarn ci:openapi
 yarn ci:unit
 yarn ci:smoke
 yarn ci:prisma
+yarn ci:stage4
 yarn ci:e2e
 yarn ci:docker
 ```
@@ -938,7 +955,7 @@ yarn ci:docker
 
 ## CI/CD
 
-Проект использует GitHub Actions, потому что исходный код находится на GitHub. CI декомпозирован на параллельные jobs: lint, typecheck, format-check, build/docs, openapi-docs, unit-tests, smoke-tests, prisma-tests, e2e-tests и docker-config.
+Проект использует GitHub Actions, потому что исходный код находится на GitHub. CI декомпозирован на параллельные jobs: lint, typecheck, format-check, build/docs, openapi-docs, unit-tests, smoke-tests, prisma-tests, stage4-tests, e2e-tests и docker-config.
 
 Workflows:
 
@@ -966,6 +983,7 @@ yarn docs:openapi
 yarn test
 yarn test:stage2
 yarn test:stage3
+yarn test:stage4
 yarn test:e2e
 docker compose config
 ```
@@ -1033,6 +1051,7 @@ Unit-тесты не хранятся внутри `src`, чтобы production-
 yarn test
 yarn test:stage2
 yarn test:stage3
+yarn test:stage4
 yarn test:e2e
 ```
 

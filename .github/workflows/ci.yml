@@ -257,6 +257,41 @@ jobs:
       - name: Stage 3 Prisma migration tests
         run: yarn test:stage3
 
+  stage4-tests:
+    name: Stage 4 auth API and coverage / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 24.x
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Prepare Yarn Classic
+        run: corepack prepare yarn@1.22.22 --activate
+      - name: Install dependencies
+        run: yarn install --immutable --non-interactive
+      - name: Stage 4 API tests and coverage
+        run: yarn test:stage4
+      - name: Upload Stage 4 coverage summary
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: stage4-coverage-node-${{ matrix.node-version }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: apps/api/coverage/stage4
+
   e2e-tests:
     name: Playwright E2E / Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
@@ -326,6 +361,7 @@ jobs:
       - unit-tests
       - smoke-tests
       - prisma-tests
+      - stage4-tests
       - e2e-tests
       - docker-config
     if: ${{ always() }}

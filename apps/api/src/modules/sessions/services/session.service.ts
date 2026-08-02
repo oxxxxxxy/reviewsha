@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import type { RefreshToken, User } from '@prisma/client';
 import { RefreshTokenRevokedReason } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
-import { RefreshTokenRepository } from '../../../repositories/auth/refresh-token.repository';
+import { SessionRepository } from '../repositories/session.repository';
 import type { TokenPair } from '../../auth/interfaces';
 import type { RefreshTokenPayload } from '../../auth/interfaces/refresh-token.interface';
 import { TokenService } from '../../auth/services/token.service';
@@ -16,7 +16,7 @@ export class SessionService {
   private readonly maxSessionsPerUser: number;
 
   constructor(
-    @Inject(RefreshTokenRepository) private readonly sessions: RefreshTokenRepository,
+    @Inject(SessionRepository) private readonly sessions: SessionRepository,
     @Inject(TokenService) private readonly tokenService: TokenService,
     @Inject(ConfigService) private readonly configService: ConfigService,
     @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,

@@ -49,3 +49,12 @@ yarn docs:openapi
 ```
 
 The GitHub Actions workflow has a dedicated `openapi-docs` job so API-contract generation is visible separately from application build.
+
+
+## Stage 4 final audit updates
+
+- Current-user profile updates are available through `PATCH /api/v1/auth/me`.
+- User deletion uses soft delete: `deletedAt` is set and `isActive` becomes `false`.
+- `SessionRepository` is an explicit Sessions module repository over refresh-token persistence.
+- JWT defaults to `HS256`; config types are prepared for future `RS256`/`ES256` migration.
+- Stage 4 critical backend logic is validated by `yarn test:stage4` with coverage thresholds.

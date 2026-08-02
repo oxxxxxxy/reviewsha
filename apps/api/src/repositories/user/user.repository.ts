@@ -64,6 +64,9 @@ export class UserRepository extends BaseRepository<User> implements IUserReposit
   }
 
   delete(id: string, options?: RepositoryOptions): Promise<User> {
-    return this.deleteById(id, options);
+    return this.getClient(options).user.update({
+      where: { id },
+      data: { deletedAt: new Date(), isActive: false },
+    });
   }
 }

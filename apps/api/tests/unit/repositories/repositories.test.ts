@@ -186,11 +186,14 @@ describe('UserRepository', () => {
     });
   });
 
-  it('deletes a user through BaseRepository', async () => {
+  it('soft deletes a user', async () => {
     const prisma = createPrismaMock();
 
     await new UserRepository(asPrismaService(prisma)).delete('user-id');
-    expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'user-id' } });
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-id' },
+      data: { deletedAt: expect.any(Date), isActive: false },
+    });
   });
 });
 

@@ -17,6 +17,7 @@ export const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
   JWT_ISSUER: z.string().default('reviewsha-api'),
   JWT_AUDIENCE: z.string().default('reviewsha-clients'),
+  JWT_ALGORITHM: z.enum(['HS256', 'RS256', 'ES256']).default('HS256'),
   MAX_SESSIONS_PER_USER: z.coerce.number().int().positive().default(10),
   INTERNAL_API_KEY: z.string().default('reviewsha-internal-api-key-change-me'),
 });

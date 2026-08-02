@@ -12,7 +12,7 @@ import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HttpExceptionFilter } from '../../../../src/common/http-exception.filter';
 import { ApiLoggerService } from '../../../../src/common/logger/api-logger.service';
-import { RefreshTokenRepository } from '../../../../src/repositories/auth/refresh-token.repository';
+import { SessionRepository } from '../../../../src/modules/sessions/repositories/session.repository';
 import { UserRepository } from '../../../../src/repositories/user/user.repository';
 import { AuthController } from '../../../../src/modules/auth/controllers/auth.controller';
 import { AuthService } from '../../../../src/modules/auth/services/auth.service';
@@ -51,6 +51,12 @@ function createState() {
       async (email: string) => [...users.values()].find((user) => user.email === email) ?? null,
     ),
     findById: vi.fn(async (id: string) => users.get(id) ?? null),
+    update: vi.fn(async (id: string, data: Partial<User>) => {
+      const user = users.get(id);
+      if (!user) throw new Error('missing user');
+      Object.assign(user, data, { updatedAt: new Date() });
+      return user;
+    }),
     create: vi.fn(async (data: { email: string; passwordHash: string; displayName: string }) => {
       const user: User = {
         id: `00000000-0000-4000-8000-${String(userSeq++).padStart(12, '0')}`,
@@ -179,7 +185,7 @@ describe('AuthModule HTTP integration', () => {
         RefreshStrategy,
         { provide: APP_GUARD, useClass: JwtAuthGuard },
         { provide: UserRepository, useValue: state.userRepository },
-        { provide: RefreshTokenRepository, useValue: state.refreshTokenRepository },
+        { provide: SessionRepository, useValue: state.refreshTokenRepository },
         { provide: ApiLoggerService, useValue: logger },
         {
           provide: ConfigService,
@@ -232,6 +238,17 @@ describe('AuthModule HTTP integration', () => {
       .set('Authorization', `Bearer ${login.body.accessToken}`)
       .expect(200)
       .expect(({ body }) => expect(body.email).toBe('developer@reviewsha.local'));
+  });
+
+  it('updates current user profile', async () => {
+    const registered = await register();
+
+    await request(app.getHttpServer())
+      .patch('/api/v1/auth/me')
+      .set('Authorization', `Bearer ${registered.accessToken}`)
+      .send({ displayName: 'Updated Developer' })
+      .expect(200)
+      .expect(({ body }) => expect(body.displayName).toBe('Updated Developer'));
   });
 
   it('runs Login → Refresh → Me', async () => {

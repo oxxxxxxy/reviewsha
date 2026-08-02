@@ -22,6 +22,7 @@ interface UserRepositoryMock {
   findByEmail: Mock;
   findById: Mock;
   create: Mock;
+  update: Mock;
 }
 
 interface SessionServiceMock {
@@ -73,6 +74,7 @@ function createMocks() {
     findByEmail: vi.fn(),
     findById: vi.fn(),
     create: vi.fn(),
+    update: vi.fn(),
   };
   const logger = { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as unknown as ApiLoggerService & {
     log: Mock;
