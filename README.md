@@ -19,11 +19,12 @@ AI SaaS platform for automated code review.
 | 3.4 Prisma Client                  | ✅ COMPLETE | Единый PrismaService, DatabaseModule, health check PostgreSQL и транзакции                    |
 | 3.5 Repository Layer               | ✅ COMPLETE | Репозитории для MVP-сущностей, интерфейсы, DI и unit-тесты                                    |
 | 4.1 Users Module                   | ✅ COMPLETE | CRUD пользователей, DTO validation, Swagger, поиск, пагинация и сортировка                    |
+| 4.2 Auth Module                    | ✅ COMPLETE | JWT auth, Argon2 passwords, refresh rotation, guards, roles and sessions                      |
 
 Следующий этап:
 
 ```txt
-Этап 4.2 Auth Module
+Этап 4.3 Projects Module
 ```
 
 ---
@@ -564,6 +565,50 @@ yarn workspace @reviewsha/api prisma:studio
 ```
 
 Studio используется только для визуальной проверки данных в dev-окружении.
+
+---
+
+## Аутентификация
+
+`apps/api/src/modules/auth` реализует JWT-аутентификацию с Access Token и Refresh Token.
+
+Endpoints под `/api/v1`:
+
+```txt
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+POST /api/v1/auth/logout-all
+POST /api/v1/auth/refresh
+GET  /api/v1/auth/me
+```
+
+Реализовано:
+
+- Argon2 hashing для паролей;
+- Access Token через `JWT_SECRET`;
+- Refresh Token через `JWT_REFRESH_SECRET`;
+- хранение Refresh Token только как SHA-256 hash в `refresh_tokens`;
+- Refresh Token rotation;
+- отзыв одного токена и всех токенов пользователя;
+- `JwtStrategy` и `RefreshStrategy`;
+- `JwtAuthGuard`, `RefreshAuthGuard`, `RolesGuard`;
+- decorators `@CurrentUser()`, `@Public()`, `@Roles()`;
+- role checks для `ADMIN` и `USER`;
+- Swagger Bearer Authorize.
+
+ENV:
+
+```env
+JWT_SECRET=change-me-access
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_SECRET=change-me-refresh
+JWT_REFRESH_EXPIRES_IN=30d
+JWT_ISSUER=reviewsha-api
+JWT_AUDIENCE=reviewsha-clients
+```
+
+В логах запрещены пароли, JWT и Refresh Token.
 
 ---
 

@@ -1754,3 +1754,60 @@ DELETE /users/:id
 ## 18.6 Auth boundary
 
 `UsersModule` не выполняет login, token issuing, refresh token rotation и access guards. Эти функции относятся к будущему `AuthModule`.
+
+
+---
+
+# 19. Реализация Stage 4.2: AuthModule
+
+`AuthModule` реализует регистрацию, вход, выход, refresh rotation, текущего пользователя и базовую ролевую авторизацию.
+
+## 19.1 Слойность
+
+```txt
+AuthController
+  ↓
+AuthService
+  ↓
+UserRepository + RefreshTokenRepository
+  ↓
+PrismaService
+```
+
+Прямые обращения к Prisma из `AuthService` отсутствуют.
+
+## 19.2 Структура
+
+```txt
+apps/api/src/modules/auth/
+├── auth.module.ts
+├── controllers
+├── services
+├── strategies
+├── guards
+├── decorators
+├── dto
+├── constants
+└── types
+```
+
+## 19.3 API
+
+```txt
+POST /auth/register
+POST /auth/login
+POST /auth/logout
+POST /auth/logout-all
+POST /auth/refresh
+GET  /auth/me
+```
+
+## 19.4 Security
+
+- passwords: Argon2;
+- access tokens: JWT, not persisted;
+- refresh tokens: JWT + DB hash;
+- refresh rotation: enabled;
+- multi-device sessions: enabled;
+- roles: `ADMIN`, `USER`;
+- Swagger Bearer auth: enabled.

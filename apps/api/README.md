@@ -156,3 +156,31 @@ DELETE /api/v1/users/:id
 ```
 
 Модуль использует `UsersController → UsersService → UserRepository`, DTO validation, Swagger decorators и `UserMapper`. Наружу никогда не возвращается `passwordHash`.
+
+## Auth Module
+
+JWT-аутентификация находится в `src/modules/auth`.
+
+Endpoints:
+
+```txt
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/logout
+POST /api/v1/auth/logout-all
+POST /api/v1/auth/refresh
+GET  /api/v1/auth/me
+```
+
+Модуль использует `AuthController → AuthService → UserRepository/RefreshTokenRepository`, Argon2 для паролей, hash Refresh Token, refresh rotation, Passport JWT strategies, guards и decorators.
+
+Переменные окружения:
+
+```env
+JWT_SECRET=change-me-access
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_SECRET=change-me-refresh
+JWT_REFRESH_EXPIRES_IN=30d
+JWT_ISSUER=reviewsha-api
+JWT_AUDIENCE=reviewsha-clients
+```

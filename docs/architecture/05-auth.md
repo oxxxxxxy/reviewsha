@@ -724,3 +724,72 @@ GET /auth/me
 Главный принцип:
 
 > Пользователь всегда идентифицирован через JWT, а доступ к данным проверяется через роли и права.
+
+
+---
+
+# 18. Реализация Stage 4.2 AuthModule
+
+Backend реализация находится в:
+
+```txt
+apps/api/src/modules/auth
+```
+
+## 18.1 Endpoints
+
+Под глобальным prefix `/api/v1` доступны:
+
+```txt
+POST /auth/register
+POST /auth/login
+POST /auth/logout
+POST /auth/logout-all
+POST /auth/refresh
+GET  /auth/me
+```
+
+## 18.2 Token model
+
+Access Token:
+
+- JWT;
+- подписывается `JWT_SECRET`;
+- короткий TTL `JWT_EXPIRES_IN`;
+- не хранится в БД;
+- передаётся через `Authorization: Bearer <token>`.
+
+Refresh Token:
+
+- JWT;
+- подписывается `JWT_REFRESH_SECRET`;
+- TTL `JWT_REFRESH_EXPIRES_IN`;
+- хранится в PostgreSQL только как SHA-256 hash;
+- поддерживает rotation;
+- может быть отозван точечно или полностью для пользователя.
+
+## 18.3 Password hashing
+
+Пароли хешируются через Argon2. Открытый пароль никогда не сохраняется и не логируется.
+
+## 18.4 Guards and decorators
+
+Реализованы:
+
+- `JwtAuthGuard`;
+- `RefreshAuthGuard`;
+- `RolesGuard`;
+- `@CurrentUser()`;
+- `@Public()`;
+- `@Roles()`.
+
+## 18.5 Session management
+
+Несколько устройств поддерживаются через несколько записей `refresh_tokens`. `logout` отзывает один refresh token, `logout-all` отзывает все активные refresh token пользователя.
+
+## 18.6 Security rules
+
+- Refresh Token rotation обязательна.
+- Повторное использование отозванного Refresh Token возвращает `401`.
+- Неактивный пользователь не может login/refresh/me.
+- Логи не содержат password/JWT/refresh token.
