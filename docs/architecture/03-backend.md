@@ -1687,3 +1687,70 @@ PostgreSQL
 - multi-entity write операции выполняются через транзакции;
 - общие CRUD-примитивы находятся в `BaseRepository`;
 - инфраструктурный `HealthService` может использовать `PrismaService.healthCheck()` для проверки доступности БД.
+
+---
+
+# 18. Реализация Stage 4.1: UsersModule
+
+`UsersModule` — первый доменный Backend-модуль. Он реализует CRUD пользователей и инфраструктуру, которую в следующем этапе будет использовать `AuthModule`.
+
+## 18.1 Структура
+
+```txt
+apps/api/src/modules/users/
+├── users.module.ts
+├── controllers/users.controller.ts
+├── services/users.service.ts
+├── repositories/user.repository.ts
+├── dto
+├── mappers
+├── validators
+├── guards
+├── decorators
+├── constants
+├── interfaces
+└── types
+```
+
+## 18.2 Слойность
+
+```txt
+UsersController
+  ↓
+UsersService
+  ↓
+UserRepository
+  ↓
+PrismaService
+```
+
+`UsersService` содержит бизнес-логику и не обращается к Prisma напрямую.
+
+## 18.3 REST API
+
+Под глобальным prefix `/api/v1` доступны:
+
+```txt
+GET    /users
+GET    /users/:id
+POST   /users
+PATCH  /users/:id
+DELETE /users/:id
+```
+
+## 18.4 DTO и ответы
+
+- `CreateUserDto`: `email`, `password`, `displayName`.
+- `UpdateUserDto`: `displayName`, `avatarUrl`, `isActive`.
+- `UserQueryDto`: `page`, `limit`, `search`, `sort`, `order`.
+- `UserResponseDto` не содержит `passwordHash`.
+
+## 18.5 Поиск и сортировка
+
+Поиск выполняется по `email` и `displayName`.
+
+Сортировка поддерживает `createdAt`, `displayName`, `email`.
+
+## 18.6 Auth boundary
+
+`UsersModule` не выполняет login, token issuing, refresh token rotation и access guards. Эти функции относятся к будущему `AuthModule`.

@@ -1,0 +1,8 @@
+export const USER_PASSWORD_MIN_LENGTH = 8;
+export const USER_PASSWORD_MAX_LENGTH = 128;
+export const USER_DISPLAY_NAME_MIN_LENGTH = 2;
+export const USER_DISPLAY_NAME_MAX_LENGTH = 120;
+export const USER_EMAIL_MAX_LENGTH = 320;
+export const USER_DEFAULT_PAGE = 1;
+export const USER_DEFAULT_LIMIT = 20;
+export const USER_MAX_LIMIT = 100;

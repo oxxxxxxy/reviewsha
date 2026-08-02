@@ -140,3 +140,19 @@ yarn workspace @reviewsha/api prisma:reset
 Реализованы репозитории для `User`, `Project`, `UploadedFile`, `Scan`, `Report`, `Finding`, `RefreshToken`, `QueueJob`, `ChatSession`, `ChatMessage`.
 
 Правило: будущие сервисы получают данные только через репозитории и не обращаются к `PrismaService` напрямую, кроме инфраструктурных health checks. Для транзакций используется `RepositoryOptions.tx`.
+
+## Users Module
+
+CRUD пользователей находится в `src/modules/users`.
+
+Endpoints:
+
+```txt
+GET    /api/v1/users
+GET    /api/v1/users/:id
+POST   /api/v1/users
+PATCH  /api/v1/users/:id
+DELETE /api/v1/users/:id
+```
+
+Модуль использует `UsersController → UsersService → UserRepository`, DTO validation, Swagger decorators и `UserMapper`. Наружу никогда не возвращается `passwordHash`.

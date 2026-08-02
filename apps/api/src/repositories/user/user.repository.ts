@@ -7,7 +7,11 @@ import {
   type PrismaRepositoryClient,
 } from '../base/base.repository';
 import type { RepositoryOptions } from '../base/repository.interface';
-import type { IUserRepository } from './user.repository.interface';
+import type {
+  FindUsersParams,
+  FindUsersResult,
+  IUserRepository,
+} from './user.repository.interface';
 
 @Injectable()
 export class UserRepository extends BaseRepository<User> implements IUserRepository {
@@ -17,6 +21,34 @@ export class UserRepository extends BaseRepository<User> implements IUserReposit
 
   protected getDelegate(client: PrismaRepositoryClient): BaseDelegate<User> {
     return client.user as unknown as BaseDelegate<User>;
+  }
+
+  async findMany(params: FindUsersParams, options?: RepositoryOptions): Promise<FindUsersResult> {
+    const skip = (params.page - 1) * params.limit;
+    const where: Prisma.UserWhereInput = {
+      deletedAt: null,
+      ...(params.search
+        ? {
+            OR: [
+              { email: { contains: params.search, mode: 'insensitive' } },
+              { displayName: { contains: params.search, mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+
+    const client = this.getClient(options);
+    const [items, total] = await Promise.all([
+      client.user.findMany({
+        where,
+        orderBy: { [params.sort]: params.order },
+        skip,
+        take: params.limit,
+      }),
+      client.user.count({ where }),
+    ]);
+
+    return { items, total };
   }
 
   findByEmail(email: string, options?: RepositoryOptions): Promise<User | null> {

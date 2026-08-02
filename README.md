@@ -18,11 +18,12 @@ AI SaaS platform for automated code review.
 | 3.3 Seed                           | ✅ COMPLETE | Модульный deterministic seed для dev/test/demo данных                                         |
 | 3.4 Prisma Client                  | ✅ COMPLETE | Единый PrismaService, DatabaseModule, health check PostgreSQL и транзакции                    |
 | 3.5 Repository Layer               | ✅ COMPLETE | Репозитории для MVP-сущностей, интерфейсы, DI и unit-тесты                                    |
+| 4.1 Users Module                   | ✅ COMPLETE | CRUD пользователей, DTO validation, Swagger, поиск, пагинация и сортировка                    |
 
 Следующий этап:
 
 ```txt
-Этап 4. Backend Domain Modules
+Этап 4.2 Auth Module
 ```
 
 ---
@@ -563,6 +564,33 @@ yarn workspace @reviewsha/api prisma:studio
 ```
 
 Studio используется только для визуальной проверки данных в dev-окружении.
+
+---
+
+## Users Module
+
+`apps/api/src/modules/users` реализует первый доменный Backend-модуль. Он не отвечает за авторизацию и не выдаёт токены — это зона будущего `AuthModule`.
+
+Endpoints под глобальным prefix `/api/v1`:
+
+```txt
+GET    /api/v1/users
+GET    /api/v1/users/:id
+POST   /api/v1/users
+PATCH  /api/v1/users/:id
+DELETE /api/v1/users/:id
+```
+
+Поддерживается:
+
+- DTO validation через `class-validator` / `class-transformer`;
+- Swagger-документация всех endpoints;
+- пагинация `page` / `limit`;
+- поиск по `email` и `displayName`;
+- сортировка по `createdAt`, `displayName`, `email`;
+- ответы без `passwordHash`;
+- логирование create/update/delete без паролей;
+- доступ к данным только через `UserRepository`.
 
 ---
 
