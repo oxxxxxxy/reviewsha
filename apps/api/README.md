@@ -220,3 +220,15 @@ Rules:
 - Rotation revokes the old session.
 - Reuse detection revokes all active sessions.
 - `MAX_SESSIONS_PER_USER` limits active sessions per user.
+
+## Roles & Authorization
+
+RBAC definitions live in `src/common/authorization`.
+
+Rules:
+
+- Use `APP_ROLES` instead of string role literals.
+- Use `AUTHORIZATION_POLICIES` for endpoint access rules.
+- Public endpoints use `@Public()`.
+- Protected endpoints use `@Roles(...)`.
+- `RolesGuard` is global and checks `@Roles(...)` metadata.

@@ -13,6 +13,8 @@ import type { Request } from 'express';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
 import type { SessionContext } from '../../sessions/interfaces/session-context.interface';
 import { CurrentUser } from '../../../common/auth/decorators/current-user.decorator';
+import { Roles } from '../../../common/auth/decorators/roles.decorator';
+import { AUTHORIZATION_POLICIES } from '../../../common/authorization';
 import { Public } from '../../../common/auth/decorators/public.decorator';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -50,9 +52,13 @@ export class AuthController {
   }
 
   @Post('logout')
+  @Roles(...AUTHORIZATION_POLICIES.auth.logout.roles)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Logout current refresh token' })
+  @ApiOperation({
+    summary: 'Logout current refresh token',
+    description: AUTHORIZATION_POLICIES.auth.logout.description,
+  })
   @ApiBody({ type: RefreshDto })
   @ApiUnauthorizedResponse({ description: 'Invalid or revoked token' })
   async logout(@CurrentUser() user: AuthenticatedUser, @Body() dto: RefreshDto): Promise<void> {
@@ -60,9 +66,13 @@ export class AuthController {
   }
 
   @Post('logout-all')
+  @Roles(...AUTHORIZATION_POLICIES.auth.logout.roles)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Logout all devices' })
+  @ApiOperation({
+    summary: 'Logout all devices',
+    description: AUTHORIZATION_POLICIES.auth.logout.description,
+  })
   async logoutAll(@CurrentUser() user: AuthenticatedUser): Promise<void> {
     await this.authService.logoutAll(user);
   }
@@ -83,8 +93,12 @@ export class AuthController {
   }
 
   @Get('me')
+  @Roles(...AUTHORIZATION_POLICIES.auth.currentUser.roles)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current user' })
+  @ApiOperation({
+    summary: 'Get current user',
+    description: AUTHORIZATION_POLICIES.auth.currentUser.description,
+  })
   @ApiOkResponse({ type: UserResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid token or inactive user' })
   me(@CurrentUser() user: AuthenticatedUser): Promise<UserResponseDto> {

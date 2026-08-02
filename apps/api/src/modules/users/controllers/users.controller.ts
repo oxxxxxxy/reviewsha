@@ -27,15 +27,21 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserQueryDto } from '../dto/user-query.dto';
 import { UserResponseDto, UsersListResponseDto } from '../dto/user-response.dto';
+import { Roles } from '../../../common/auth/decorators/roles.decorator';
+import { AUTHORIZATION_POLICIES } from '../../../common/authorization';
 import { UsersService } from '../services/users.service';
 
 @ApiTags('Users')
+@Roles(...AUTHORIZATION_POLICIES.users.manage.roles)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiOperation({ summary: 'List users with pagination, search and sorting' })
+  @ApiOperation({
+    summary: 'List users with pagination, search and sorting',
+    description: AUTHORIZATION_POLICIES.users.read.description,
+  })
   @ApiOkResponse({ type: UsersListResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid query parameters' })
   findAll(@Query() query: UserQueryDto): Promise<UsersListResponseDto> {
@@ -43,7 +49,10 @@ export class UsersController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get user by id' })
+  @ApiOperation({
+    summary: 'Get user by id',
+    description: AUTHORIZATION_POLICIES.users.read.description,
+  })
   @ApiParam({ name: 'id', description: 'User UUID' })
   @ApiOkResponse({ type: UserResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid user id' })
@@ -53,7 +62,10 @@ export class UsersController {
   }
 
   @Post()
-  @ApiOperation({ summary: 'Create user' })
+  @ApiOperation({
+    summary: 'Create user',
+    description: AUTHORIZATION_POLICIES.users.manage.description,
+  })
   @ApiCreatedResponse({ type: UserResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid payload' })
   @ApiConflictResponse({ description: 'Email already exists' })
@@ -62,7 +74,10 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update user' })
+  @ApiOperation({
+    summary: 'Update user',
+    description: AUTHORIZATION_POLICIES.users.manage.description,
+  })
   @ApiParam({ name: 'id', description: 'User UUID' })
   @ApiOkResponse({ type: UserResponseDto })
   @ApiBadRequestResponse({ description: 'Invalid user id or payload' })
@@ -77,7 +92,10 @@ export class UsersController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete user' })
+  @ApiOperation({
+    summary: 'Delete user',
+    description: AUTHORIZATION_POLICIES.users.manage.description,
+  })
   @ApiParam({ name: 'id', description: 'User UUID' })
   @ApiNoContentResponse({ description: 'User deleted' })
   @ApiBadRequestResponse({ description: 'Invalid user id' })

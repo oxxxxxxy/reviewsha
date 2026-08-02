@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 
 import { JwtAuthGuard } from './common/auth/guards/jwt-auth.guard';
+import { RolesGuard } from './common/auth/guards/roles.guard';
 import { ApiLoggerService } from './common/logger/api-logger.service';
 import { AppConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
@@ -21,6 +22,10 @@ import { SessionsModule } from './modules/sessions/sessions.module';
     SessionsModule,
     HealthModule,
   ],
-  providers: [ApiLoggerService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
+  providers: [
+    ApiLoggerService,
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
 })
 export class AppModule {}

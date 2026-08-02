@@ -1882,3 +1882,67 @@ apps/api/src/common/auth
 ## 21.5 API Key
 
 `ApiKeyGuard` проверяет заголовок `x-api-key` against `INTERNAL_API_KEY`. Используется как база для будущих worker/webhook/CLI/internal endpoint.
+
+---
+
+# 22. Реализация Stage 4.6: Roles & Authorization
+
+Централизованная RBAC-инфраструктура находится в:
+
+```txt
+apps/api/src/common/authorization
+```
+
+## 22.1 Role constants
+
+Глобальные роли экспортируются через `APP_ROLES`.
+
+```txt
+APP_ROLES.USER
+APP_ROLES.ADMIN
+```
+
+Контроллеры и политики не должны использовать строковые литералы ролей.
+
+## 22.2 Authorization policies
+
+Все правила доступа описаны в `AUTHORIZATION_POLICIES`.
+
+Примеры:
+
+- `AUTHORIZATION_POLICIES.auth.currentUser`;
+- `AUTHORIZATION_POLICIES.sessions.readOwn`;
+- `AUTHORIZATION_POLICIES.users.manage`;
+- `AUTHORIZATION_POLICIES.projects.readOwnOrAdmin`;
+- `AUTHORIZATION_POLICIES.admin.accessPanel`.
+
+## 22.3 Explicit endpoint access
+
+Каждый endpoint должен быть явно помечен:
+
+- `@Public()` для публичных маршрутов;
+- `@Roles(...)` для защищённых маршрутов.
+
+`RolesGuard` подключён глобально и использует metadata из `@Roles(...)`.
+
+## 22.4 Owner override
+
+Политики поддерживают `ownershipRequired`. Для будущих Projects/Scans/Reports это позволит комбинировать:
+
+```txt
+@Roles(...policy.roles)
+@Ownership('project')
+```
+
+ADMIN сможет обходить ownership-check в доменном checker-слое, а USER будет ограничен собственными ресурсами.
+
+## 22.5 Permission-based readiness
+
+Добавлены future permission constants:
+
+- `projects.read`;
+- `projects.create`;
+- `projects.update`;
+- `projects.delete`;
+- `users.manage`;
+- `reports.export`.

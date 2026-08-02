@@ -979,3 +979,35 @@ common/auth/types
 `OwnershipGuard` подготовлен для доменных модулей Projects/Scans/Reports.
 
 `ApiKeyGuard` подготовлен для внутренних интеграций.
+
+---
+
+# 22. Реализация Stage 4.6 Roles & Authorization
+
+RBAC правила вынесены в `common/authorization`.
+
+`RolesGuard` больше не зависит от локальных правил контроллеров. Он читает роли из `@Roles(...)`, а сами роли берутся из централизованных policy definitions.
+
+## 22.1 Protected endpoints
+
+Auth endpoints:
+
+- `POST /auth/logout` — `USER`, `ADMIN`;
+- `POST /auth/logout-all` — `USER`, `ADMIN`;
+- `GET /auth/me` — `USER`, `ADMIN`.
+
+Session endpoints:
+
+- `GET /sessions` — `USER`, `ADMIN`, own sessions;
+- `DELETE /sessions/:id` — `USER`, `ADMIN`, own sessions.
+
+Users endpoints:
+
+- `/users/*` — `ADMIN`.
+
+## 22.2 Public endpoints
+
+- `POST /auth/register`;
+- `POST /auth/login`;
+- `POST /auth/refresh`;
+- `GET /health`.

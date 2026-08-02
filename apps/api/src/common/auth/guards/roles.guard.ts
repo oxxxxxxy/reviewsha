@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
-import type { Role } from '@prisma/client';
 import { ApiLoggerService } from '../../logger/api-logger.service';
+import type { AppRole } from '../../authorization/roles/role.constants';
 import { ROLES_KEY } from '../constants/auth.constants';
 import type { AuthenticatedUser } from '../types/auth.types';
 
@@ -14,7 +14,7 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const roles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+    const roles = this.reflector.getAllAndOverride<AppRole[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);

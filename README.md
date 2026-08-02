@@ -23,11 +23,12 @@ AI SaaS platform for automated code review.
 | 4.3 JWT Infrastructure             | ✅ COMPLETE | Централизованный TokenService, JwtConfig, verify/decode/hash и TokenService-backed guards     |
 | 4.4 Refresh Token & Sessions       | ✅ COMPLETE | SessionModule, SessionService, rotation, reuse detection, session list/revoke and cleanup     |
 | 4.5 Guards                         | ✅ COMPLETE | Common auth guards/decorators, global JWT protection, roles, ownership and API key guard      |
+| 4.6 Roles & Authorization          | ✅ COMPLETE | Centralized RBAC role constants, authorization policies, explicit endpoint access rules       |
 
 Следующий этап:
 
 ```txt
-Этап 4.6 Projects Module
+Этап 4.7 Projects Module
 ```
 
 ---
@@ -681,6 +682,25 @@ apps/api/src/common/auth
 
 ---
 
+## Roles & Authorization
+
+Централизованная RBAC-инфраструктура находится в:
+
+```txt
+apps/api/src/common/authorization
+```
+
+Используется:
+
+- `APP_ROLES` — единые role constants;
+- `AUTHORIZATION_POLICIES` — правила доступа;
+- `FUTURE_PERMISSIONS` — подготовка к permission-based access;
+- `ownershipRequired` metadata — подготовка к owner override.
+
+Правило проекта: каждый endpoint должен быть явно отмечен `@Public()` или `@Roles(...)`.
+
+---
+
 ## Users Module
 
 `apps/api/src/modules/users` реализует первый доменный Backend-модуль. Он не отвечает за авторизацию и не выдаёт токены — это зона будущего `AuthModule`.
@@ -875,7 +895,7 @@ dev   — интеграционная ветка для текущей разр
 feature/* → dev → main
 ```
 
-Перед push обязательно локально прогонять профиль, соответствующий CI:
+Перед push обязательно локально прогонять единый профиль, соответствующий всем проверкам CI. Это заменяет ручной запуск отдельных тестовых наборов по одному:
 
 ```bash
 yarn ci:local
@@ -897,7 +917,7 @@ yarn ci:docker
 
 ## CI/CD
 
-Проект использует GitHub Actions, потому что исходный код находится на GitHub. CI разбит на параллельные jobs: quality, build/docs, unit-tests, smoke-tests, prisma-tests, e2e-tests и docker-config.
+Проект использует GitHub Actions, потому что исходный код находится на GitHub. CI декомпозирован на параллельные jobs: lint, typecheck, format-check, build/docs, unit-tests, smoke-tests, prisma-tests, e2e-tests и docker-config.
 
 Workflows:
 
