@@ -45,7 +45,9 @@
     "ci:prisma": "yarn test:stage3",
     "ci:e2e": "yarn test:e2e:install && yarn test:e2e",
     "ci:docker": "docker compose config",
-    "ci:local": "yarn install --immutable --non-interactive && yarn ci:quality && yarn ci:build && yarn ci:unit && yarn ci:smoke && yarn ci:prisma && yarn ci:e2e && yarn ci:docker"
+    "ci:local": "yarn install --immutable --non-interactive && yarn ci:quality && yarn ci:build && yarn ci:openapi && yarn ci:unit && yarn ci:smoke && yarn ci:prisma && yarn ci:e2e && yarn ci:docker",
+    "docs:openapi": "yarn workspace @reviewsha/api docs:openapi",
+    "ci:openapi": "yarn docs:openapi"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

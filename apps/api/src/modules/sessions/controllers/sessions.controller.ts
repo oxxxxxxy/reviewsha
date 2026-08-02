@@ -5,18 +5,21 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { CurrentUser } from '../../../common/auth/decorators/current-user.decorator';
 import { Roles } from '../../../common/auth/decorators/roles.decorator';
 import { AUTHORIZATION_POLICIES } from '../../../common/authorization';
+import { ApiStandardErrors } from '../../../common/swagger';
 import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
 import { SessionResponseDto } from '../dto/session-response.dto';
 import { SessionService } from '../services/session.service';
 
 @ApiTags('Sessions')
-@ApiBearerAuth()
+@ApiBearerAuth('bearer')
+@ApiStandardErrors()
 @Controller('sessions')
 export class SessionsController {
   constructor(private readonly sessionService: SessionService) {}
@@ -27,7 +30,11 @@ export class SessionsController {
     summary: 'List active user sessions',
     description: AUTHORIZATION_POLICIES.sessions.readOwn.description,
   })
-  @ApiOkResponse({ type: SessionResponseDto, isArray: true })
+  @ApiOkResponse({
+    type: SessionResponseDto,
+    isArray: true,
+    description: 'Active sessions for the current user.',
+  })
   @ApiUnauthorizedResponse({ description: 'Invalid access token' })
   list(@CurrentUser() user: AuthenticatedUser): Promise<SessionResponseDto[]> {
     return this.sessionService.listSessions(user.id, user.jti);
@@ -39,6 +46,11 @@ export class SessionsController {
   @ApiOperation({
     summary: 'Revoke one session',
     description: AUTHORIZATION_POLICIES.sessions.revokeOwn.description,
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'Session UUID.',
+    example: '00000000-0000-4000-8000-000000000001',
   })
   @ApiNoContentResponse({ description: 'Session revoked' })
   @ApiNotFoundResponse({ description: 'Session not found' })

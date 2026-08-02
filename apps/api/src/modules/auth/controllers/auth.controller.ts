@@ -15,6 +15,7 @@ import type { SessionContext } from '../../sessions/interfaces/session-context.i
 import { CurrentUser } from '../../../common/auth/decorators/current-user.decorator';
 import { Roles } from '../../../common/auth/decorators/roles.decorator';
 import { AUTHORIZATION_POLICIES } from '../../../common/authorization';
+import { ApiStandardErrors } from '../../../common/swagger';
 import { Public } from '../../../common/auth/decorators/public.decorator';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -28,13 +29,18 @@ import type {
 } from '../../../common/auth/types/auth.types';
 
 @ApiTags('Auth')
+@ApiStandardErrors()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
+  @ApiOperation({
+    summary: 'Register a new user',
+    description:
+      'Public endpoint. Creates a user, stores an Argon2 password hash and returns a token pair.',
+  })
   @ApiCreatedResponse({ type: AuthResponseDto })
   @ApiConflictResponse({ description: 'Email already exists' })
   register(@Body() dto: RegisterDto, @Req() request: Request): Promise<AuthResponseDto> {
@@ -44,7 +50,11 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Login with email and password' })
+  @ApiOperation({
+    summary: 'Login with email and password',
+    description:
+      'Public endpoint. Validates credentials, creates a session and returns a token pair.',
+  })
   @ApiOkResponse({ type: AuthResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials or inactive user' })
   login(@Body() dto: LoginDto, @Req() request: Request): Promise<AuthResponseDto> {
@@ -54,7 +64,7 @@ export class AuthController {
   @Post('logout')
   @Roles(...AUTHORIZATION_POLICIES.auth.logout.roles)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({
     summary: 'Logout current refresh token',
     description: AUTHORIZATION_POLICIES.auth.logout.description,
@@ -68,7 +78,7 @@ export class AuthController {
   @Post('logout-all')
   @Roles(...AUTHORIZATION_POLICIES.auth.logout.roles)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({
     summary: 'Logout all devices',
     description: AUTHORIZATION_POLICIES.auth.logout.description,
@@ -81,7 +91,11 @@ export class AuthController {
   @Post('refresh')
   @UseGuards(RefreshAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Rotate refresh token and issue a new token pair' })
+  @ApiOperation({
+    summary: 'Rotate refresh token and issue a new token pair',
+    description:
+      'Public refresh endpoint protected by RefreshAuthGuard. Rotates the refresh token and revokes the old session token.',
+  })
   @ApiBody({ type: RefreshDto })
   @ApiOkResponse({ type: AuthResponseDto })
   @ApiUnauthorizedResponse({ description: 'Invalid, expired or revoked refresh token' })
@@ -94,7 +108,7 @@ export class AuthController {
 
   @Get('me')
   @Roles(...AUTHORIZATION_POLICIES.auth.currentUser.roles)
-  @ApiBearerAuth()
+  @ApiBearerAuth('bearer')
   @ApiOperation({
     summary: 'Get current user',
     description: AUTHORIZATION_POLICIES.auth.currentUser.description,

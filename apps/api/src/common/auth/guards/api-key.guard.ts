@@ -1,4 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 import { ApiLoggerService } from '../../logger/api-logger.service';
@@ -6,8 +12,8 @@ import { ApiLoggerService } from '../../logger/api-logger.service';
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
   constructor(
-    private readonly configService: ConfigService,
-    private readonly logger: ApiLoggerService,
+    @Inject(ConfigService) private readonly configService: ConfigService,
+    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
   ) {}
 
   canActivate(context: ExecutionContext): boolean {

@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -29,9 +30,12 @@ import { UserQueryDto } from '../dto/user-query.dto';
 import { UserResponseDto, UsersListResponseDto } from '../dto/user-response.dto';
 import { Roles } from '../../../common/auth/decorators/roles.decorator';
 import { AUTHORIZATION_POLICIES } from '../../../common/authorization';
+import { ApiStandardErrors } from '../../../common/swagger';
 import { UsersService } from '../services/users.service';
 
 @ApiTags('Users')
+@ApiBearerAuth('bearer')
+@ApiStandardErrors()
 @Roles(...AUTHORIZATION_POLICIES.users.manage.roles)
 @Controller('users')
 export class UsersController {
@@ -42,7 +46,10 @@ export class UsersController {
     summary: 'List users with pagination, search and sorting',
     description: AUTHORIZATION_POLICIES.users.read.description,
   })
-  @ApiOkResponse({ type: UsersListResponseDto })
+  @ApiOkResponse({
+    type: UsersListResponseDto,
+    description: 'Paginated list of users.',
+  })
   @ApiBadRequestResponse({ description: 'Invalid query parameters' })
   findAll(@Query() query: UserQueryDto): Promise<UsersListResponseDto> {
     return this.usersService.findAll(query);
@@ -53,8 +60,12 @@ export class UsersController {
     summary: 'Get user by id',
     description: AUTHORIZATION_POLICIES.users.read.description,
   })
-  @ApiParam({ name: 'id', description: 'User UUID' })
-  @ApiOkResponse({ type: UserResponseDto })
+  @ApiParam({
+    name: 'id',
+    description: 'User UUID.',
+    example: '00000000-0000-4000-8000-000000000001',
+  })
+  @ApiOkResponse({ type: UserResponseDto, description: 'User record.' })
   @ApiBadRequestResponse({ description: 'Invalid user id' })
   @ApiNotFoundResponse({ description: 'User not found' })
   findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<UserResponseDto> {
@@ -66,7 +77,7 @@ export class UsersController {
     summary: 'Create user',
     description: AUTHORIZATION_POLICIES.users.manage.description,
   })
-  @ApiCreatedResponse({ type: UserResponseDto })
+  @ApiCreatedResponse({ type: UserResponseDto, description: 'Created user record.' })
   @ApiBadRequestResponse({ description: 'Invalid payload' })
   @ApiConflictResponse({ description: 'Email already exists' })
   create(@Body() dto: CreateUserDto): Promise<UserResponseDto> {
@@ -78,8 +89,12 @@ export class UsersController {
     summary: 'Update user',
     description: AUTHORIZATION_POLICIES.users.manage.description,
   })
-  @ApiParam({ name: 'id', description: 'User UUID' })
-  @ApiOkResponse({ type: UserResponseDto })
+  @ApiParam({
+    name: 'id',
+    description: 'User UUID.',
+    example: '00000000-0000-4000-8000-000000000001',
+  })
+  @ApiOkResponse({ type: UserResponseDto, description: 'User record.' })
   @ApiBadRequestResponse({ description: 'Invalid user id or payload' })
   @ApiNotFoundResponse({ description: 'User not found' })
   @ApiUnprocessableEntityResponse({ description: 'No update fields provided' })
@@ -96,7 +111,11 @@ export class UsersController {
     summary: 'Delete user',
     description: AUTHORIZATION_POLICIES.users.manage.description,
   })
-  @ApiParam({ name: 'id', description: 'User UUID' })
+  @ApiParam({
+    name: 'id',
+    description: 'User UUID.',
+    example: '00000000-0000-4000-8000-000000000001',
+  })
   @ApiNoContentResponse({ description: 'User deleted' })
   @ApiBadRequestResponse({ description: 'Invalid user id' })
   @ApiNotFoundResponse({ description: 'User not found' })

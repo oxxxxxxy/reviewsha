@@ -147,6 +147,33 @@ jobs:
             apps/admin/dist
             packages/*/dist
 
+  openapi-docs:
+    name: OpenAPI contract / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 24.x
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Prepare Yarn Classic
+        run: corepack prepare yarn@1.22.22 --activate
+      - name: Install dependencies
+        run: yarn install --immutable --non-interactive
+      - name: Generate OpenAPI JSON
+        run: yarn docs:openapi
+
   unit-tests:
     name: Unit tests / Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
@@ -295,6 +322,7 @@ jobs:
       - typecheck
       - format-check
       - build
+      - openapi-docs
       - unit-tests
       - smoke-tests
       - prisma-tests

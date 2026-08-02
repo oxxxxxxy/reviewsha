@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
@@ -19,9 +19,9 @@ export class TokenService {
   private readonly jwtConfig: JwtConfig;
 
   constructor(
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-    private readonly logger: ApiLoggerService,
+    @Inject(JwtService) private readonly jwtService: JwtService,
+    @Inject(ConfigService) private readonly configService: ConfigService,
+    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
   ) {
     this.jwtConfig = this.configService.getOrThrow<JwtConfig>('jwt');
   }

@@ -3,11 +3,11 @@ import 'reflect-metadata';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import type { AppConfig } from './config/app.config';
+import { setupSwagger } from './swagger/swagger.config';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {
@@ -33,20 +33,7 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('Reviewsha API')
-    .setDescription('Ревьюша API — AI SaaS platform for automated code review.')
-    .setVersion('0.1.0')
-    .addBearerAuth()
-    .build();
-
-  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup(`${appConfig.apiPrefix}/docs`, app, swaggerDocument, {
-    jsonDocumentUrl: `${appConfig.apiPrefix}/docs-json`,
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+  setupSwagger(app, appConfig.apiPrefix);
 
   await app.listen(appConfig.port, appConfig.host);
 

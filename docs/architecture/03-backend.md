@@ -1946,3 +1946,33 @@ ADMIN сможет обходить ownership-check в доменном checker-
 - `projects.delete`;
 - `users.manage`;
 - `reports.export`.
+
+---
+
+## 23. Реализация Stage 4.7: Swagger & API Documentation
+
+Swagger вынесен в отдельный инфраструктурный слой:
+
+```txt
+apps/api/src/swagger/
+├── swagger.config.ts
+└── generate-openapi.ts
+```
+
+Документация доступна по маршрутам:
+
+```txt
+/api/v1/docs
+/api/v1/docs-json
+```
+
+Правила Backend API:
+
+- каждый контроллер имеет `@ApiTags(...)`;
+- публичные endpoint помечаются `@Public()`;
+- защищённые endpoint используют `@ApiBearerAuth('bearer')`;
+- DTO документируются через `@ApiProperty()` и `@ApiPropertyOptional()`;
+- ошибки описываются единым `ApiErrorResponseDto`;
+- OpenAPI документ генерируется командой `yarn docs:openapi` и проверяется в CI.
+
+Swagger является контрактом для Frontend, Admin, SDK и автоматических тестов.

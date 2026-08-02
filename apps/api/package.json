@@ -23,7 +23,8 @@
     "test:prisma": "vitest run tests/unit/prisma --coverage=false",
     "prisma:reset": "yarn prisma:reset:schema && yarn prisma:seed",
     "prisma:migrate:status": "prisma migrate status --schema prisma/schema.prisma",
-    "prisma:reset:schema": "prisma migrate reset --schema prisma/schema.prisma --force"
+    "prisma:reset:schema": "prisma migrate reset --schema prisma/schema.prisma --force",
+    "docs:openapi": "yarn build:deps && tsc -p tsconfig.build.json && node dist/swagger/generate-openapi.js"
   },
   "dependencies": {
     "@nestjs/common": "^11",

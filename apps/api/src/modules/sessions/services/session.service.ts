@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { RefreshToken, User } from '@prisma/client';
 import { RefreshTokenRevokedReason } from '@prisma/client';
@@ -16,10 +16,10 @@ export class SessionService {
   private readonly maxSessionsPerUser: number;
 
   constructor(
-    private readonly sessions: RefreshTokenRepository,
-    private readonly tokenService: TokenService,
-    private readonly configService: ConfigService,
-    private readonly logger: ApiLoggerService,
+    @Inject(RefreshTokenRepository) private readonly sessions: RefreshTokenRepository,
+    @Inject(TokenService) private readonly tokenService: TokenService,
+    @Inject(ConfigService) private readonly configService: ConfigService,
+    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
   ) {
     this.maxSessionsPerUser = this.configService.get<number>('sessions.maxSessionsPerUser') ?? 10;
   }

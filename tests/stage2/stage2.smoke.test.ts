@@ -32,9 +32,11 @@ describe('Stage 2 smoke checks', () => {
 
   it('has Swagger and OpenAPI endpoints configured', () => {
     const main = read('apps/api/src/main.ts');
+    const swaggerConfig = read('apps/api/src/swagger/swagger.config.ts');
 
-    expect(main).toContain('SwaggerModule.setup');
-    expect(main).toContain('docs-json');
+    expect(main).toContain('setupSwagger');
+    expect(swaggerConfig).toContain('SwaggerModule.setup');
+    expect(swaggerConfig).toContain('docs-json');
   });
 
   it('has web app bootstrap, router and layout', () => {

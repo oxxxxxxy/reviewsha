@@ -1,5 +1,10 @@
 import { Controller, Get, Inject } from '@nestjs/common';
-import { ApiOkResponse, ApiServiceUnavailableResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOkResponse,
+  ApiOperation,
+  ApiServiceUnavailableResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { Public } from '../common/auth/decorators/public.decorator';
 import { HealthResponse, HealthService } from './health.service';
@@ -11,6 +16,10 @@ export class HealthController {
 
   @Public()
   @Get()
+  @ApiOperation({
+    summary: 'Health check',
+    description: 'Public endpoint. Returns API and database availability.',
+  })
   @ApiOkResponse({
     description: 'API health status.',
     schema: {

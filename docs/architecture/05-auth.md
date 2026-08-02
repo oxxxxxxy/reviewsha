@@ -1011,3 +1011,31 @@ Users endpoints:
 - `POST /auth/login`;
 - `POST /auth/refresh`;
 - `GET /health`.
+
+---
+
+## 23. Swagger для Auth и Security
+
+Auth, Sessions, Users и Health документируются в Swagger/OpenAPI.
+
+Публичные endpoint:
+
+```txt
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+POST /api/v1/auth/refresh
+GET  /api/v1/health
+```
+
+Защищённые endpoint отображают Bearer Authentication:
+
+```txt
+GET    /api/v1/auth/me
+POST   /api/v1/auth/logout
+POST   /api/v1/auth/logout-all
+GET    /api/v1/sessions
+DELETE /api/v1/sessions/:id
+/users/*
+```
+
+Swagger UI хранит авторизацию между запросами через `persistAuthorization` и использует схему `bearer`.

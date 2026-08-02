@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -18,8 +18,8 @@ function extractRefreshToken(request: Request): string | null {
 @Injectable()
 export class RefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor(
-    configService: ConfigService,
-    private readonly userRepository: UserRepository,
+    @Inject(ConfigService) configService: ConfigService,
+    @Inject(UserRepository) private readonly userRepository: UserRepository,
   ) {
     const jwtConfig = configService.getOrThrow<JwtConfig>('jwt');
     super({

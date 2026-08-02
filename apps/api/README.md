@@ -232,3 +232,20 @@ Rules:
 - Public endpoints use `@Public()`.
 - Protected endpoints use `@Roles(...)`.
 - `RolesGuard` is global and checks `@Roles(...)` metadata.
+
+## Swagger & OpenAPI
+
+Runtime documentation:
+
+```txt
+/api/v1/docs
+/api/v1/docs-json
+```
+
+Contract generation:
+
+```bash
+yarn workspace @reviewsha/api docs:openapi
+```
+
+All protected endpoints use `@ApiBearerAuth('bearer')`; public endpoints are marked with `@Public()`.

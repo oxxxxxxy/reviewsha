@@ -24,6 +24,7 @@ AI SaaS platform for automated code review.
 | 4.4 Refresh Token & Sessions       | ✅ COMPLETE | SessionModule, SessionService, rotation, reuse detection, session list/revoke and cleanup     |
 | 4.5 Guards                         | ✅ COMPLETE | Common auth guards/decorators, global JWT protection, roles, ownership and API key guard      |
 | 4.6 Roles & Authorization          | ✅ COMPLETE | Centralized RBAC role constants, authorization policies, explicit endpoint access rules       |
+| 4.7 Swagger & API Documentation    | ✅ COMPLETE | OpenAPI 3.1, Swagger UI, Bearer auth, DTO/errors/examples and CI contract generation          |
 
 Следующий этап:
 
@@ -880,6 +881,25 @@ JetBrains IDE:
 
 ---
 
+## Swagger & OpenAPI
+
+Backend API documentation is available after starting `apps/api`:
+
+```txt
+http://localhost:3000/api/v1/docs
+http://localhost:3000/api/v1/docs-json
+```
+
+OpenAPI can be generated locally without starting an HTTP server:
+
+```bash
+yarn docs:openapi
+```
+
+Swagger uses OpenAPI `3.1.0`, stable operation IDs for SDK generation, DTO schemas, normalized error models and JWT Bearer authentication. Protected endpoints show the **Authorize** flow; public endpoints stay unauthenticated.
+
+---
+
 ## Git workflow
 
 Используем две постоянные ветки:
@@ -906,6 +926,7 @@ yarn ci:local
 ```bash
 yarn ci:quality
 yarn ci:build
+yarn ci:openapi
 yarn ci:unit
 yarn ci:smoke
 yarn ci:prisma
@@ -917,7 +938,7 @@ yarn ci:docker
 
 ## CI/CD
 
-Проект использует GitHub Actions, потому что исходный код находится на GitHub. CI декомпозирован на параллельные jobs: lint, typecheck, format-check, build/docs, unit-tests, smoke-tests, prisma-tests, e2e-tests и docker-config.
+Проект использует GitHub Actions, потому что исходный код находится на GitHub. CI декомпозирован на параллельные jobs: lint, typecheck, format-check, build/docs, openapi-docs, unit-tests, smoke-tests, prisma-tests, e2e-tests и docker-config.
 
 Workflows:
 
@@ -941,6 +962,7 @@ yarn typecheck
 yarn format:check --ignore-unknown
 yarn build
 yarn docs:api
+yarn docs:openapi
 yarn test
 yarn test:stage2
 yarn test:stage3

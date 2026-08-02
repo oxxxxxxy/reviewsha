@@ -4,12 +4,12 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient, QueueStatus, Role, ScanStatus } from '@prisma/client';
+import { Client } from 'pg';
 import { PrismaService } from '../../apps/api/src/database/prisma.service';
 
 vi.setConfig({ hookTimeout: 120_000, testTimeout: 60_000 });
 
 const root = process.cwd();
-const postgresUser = 'reviewsha';
 const prismaSchemaPath = join(root, 'apps/api/prisma/schema.prisma');
 const migrationDir = join(root, 'apps/api/prisma/migrations');
 const testDatabases = [
@@ -49,30 +49,37 @@ function sleep(ms: number): void {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
-function dockerExec(args: string[]): string {
-  return execFileSync('docker', ['exec', 'reviewsha-postgres', ...args], {
-    cwd: root,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+function adminDatabaseUrl(): string {
+  return 'postgresql://reviewsha:reviewsha@localhost:5432/postgres';
 }
 
-function dockerInspect(args: string[]): string {
-  return execFileSync('docker', ['inspect', ...args], {
-    cwd: root,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  }).trim();
+function quoteIdentifier(identifier: string): string {
+  if (!/^[a-z0-9_]+$/u.test(identifier)) {
+    throw new Error(`Unsafe database identifier: ${identifier}`);
+  }
+
+  return `"${identifier}"`;
 }
 
-function retryPostgresAdmin(command: () => void): void {
+async function runPostgresAdmin(sql: string): Promise<void> {
+  const client = new Client({ connectionString: adminDatabaseUrl() });
+  await client.connect();
+
+  try {
+    await client.query(sql);
+  } finally {
+    await client.end();
+  }
+}
+
+async function retryPostgresAdmin(command: () => Promise<void>): Promise<void> {
   const deadline = Date.now() + 60_000;
   let lastError: unknown;
 
   while (Date.now() < deadline) {
     try {
-      waitForPostgres();
-      command();
+      await waitForPostgres();
+      await command();
       return;
     } catch (error) {
       lastError = error;
@@ -83,36 +90,21 @@ function retryPostgresAdmin(command: () => void): void {
   throw lastError instanceof Error ? lastError : new Error('PostgreSQL admin command failed');
 }
 
-function waitForPostgres(): void {
+async function waitForPostgres(): Promise<void> {
   const deadline = Date.now() + 90_000;
   let lastError: unknown;
   let stableChecks = 0;
 
   while (Date.now() < deadline) {
-    try {
-      const health = dockerInspect([
-        '-f',
-        '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}',
-        'reviewsha-postgres',
-      ]);
-      dockerExec(['pg_isready', '-U', postgresUser, '-d', postgresUser]);
-      dockerExec([
-        'psql',
-        '-U',
-        postgresUser,
-        '-d',
-        'postgres',
-        '-v',
-        'ON_ERROR_STOP=1',
-        '-c',
-        'SELECT 1;',
-      ]);
+    const client = new Client({
+      connectionString: adminDatabaseUrl(),
+      connectionTimeoutMillis: 2_000,
+    });
 
-      if (health === 'healthy' || health === 'none') {
-        stableChecks += 1;
-      } else {
-        stableChecks = 0;
-      }
+    try {
+      await client.connect();
+      await client.query('SELECT 1;');
+      stableChecks += 1;
 
       if (stableChecks >= 3) {
         return;
@@ -120,6 +112,12 @@ function waitForPostgres(): void {
     } catch (error) {
       lastError = error;
       stableChecks = 0;
+    } finally {
+      try {
+        await client.end();
+      } catch {
+        // The connection may not have been established yet.
+      }
     }
 
     sleep(1_000);
@@ -128,47 +126,47 @@ function waitForPostgres(): void {
   throw lastError instanceof Error ? lastError : new Error('PostgreSQL did not become ready');
 }
 
-function terminateDatabaseConnections(databaseName: string): void {
-  retryPostgresAdmin(() =>
-    dockerExec([
-      'psql',
-      '-U',
-      postgresUser,
-      '-d',
-      'postgres',
-      '-v',
-      'ON_ERROR_STOP=1',
-      '-c',
+async function terminateDatabaseConnections(databaseName: string): Promise<void> {
+  await retryPostgresAdmin(() =>
+    runPostgresAdmin(
       `SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${databaseName}';`,
-    ]),
+    ),
   );
 }
 
-function recreateDatabase(databaseName: string): void {
-  terminateDatabaseConnections(databaseName);
-  retryPostgresAdmin(() => dockerExec(['dropdb', '-U', postgresUser, '--if-exists', databaseName]));
-  retryPostgresAdmin(() => dockerExec(['createdb', '-U', postgresUser, databaseName]));
+async function dropDatabase(databaseName: string): Promise<void> {
+  await terminateDatabaseConnections(databaseName);
+  await retryPostgresAdmin(() =>
+    runPostgresAdmin(`DROP DATABASE IF EXISTS ${quoteIdentifier(databaseName)};`),
+  );
+}
+
+async function recreateDatabase(databaseName: string): Promise<void> {
+  await dropDatabase(databaseName);
+  await retryPostgresAdmin(() =>
+    runPostgresAdmin(`CREATE DATABASE ${quoteIdentifier(databaseName)};`),
+  );
 }
 
 describe('Stage 3 Prisma schema and migration infrastructure', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     execFileSync('docker', ['compose', 'up', '-d', 'postgres'], { cwd: root, stdio: 'inherit' });
-    waitForPostgres();
+    await waitForPostgres();
 
     for (const databaseName of testDatabases) {
-      recreateDatabase(databaseName);
+      await recreateDatabase(databaseName);
     }
-  }, 60_000);
+  }, 120_000);
 
-  afterAll(() => {
+  afterAll(async () => {
     for (const databaseName of testDatabases) {
       try {
-        dockerExec(['dropdb', '-U', postgresUser, '--if-exists', databaseName]);
+        await dropDatabase(databaseName);
       } catch {
         // Cleanup is best-effort: the next run recreates all dedicated test databases.
       }
     }
-  }, 10_000);
+  }, 60_000);
 
   it('formats Prisma schema', () => {
     expect(run('yarn', ['workspace', '@reviewsha/api', 'prisma:format'])).toContain('Formatted');
