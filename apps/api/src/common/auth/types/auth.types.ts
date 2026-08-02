@@ -1,6 +1,6 @@
 import type { Role } from '@prisma/client';
-import type { AccessTokenPayload } from '../interfaces/access-token.interface';
-import type { RefreshTokenPayload } from '../interfaces/refresh-token.interface';
+import type { AccessTokenPayload } from '../../../modules/auth/interfaces/access-token.interface';
+import type { RefreshTokenPayload } from '../../../modules/auth/interfaces/refresh-token.interface';
 
 export type JwtAccessPayload = AccessTokenPayload;
 export type JwtRefreshPayload = RefreshTokenPayload;

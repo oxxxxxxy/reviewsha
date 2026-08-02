@@ -2,12 +2,16 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import type { Role } from '@prisma/client';
+import { ApiLoggerService } from '../../logger/api-logger.service';
 import { ROLES_KEY } from '../constants/auth.constants';
 import type { AuthenticatedUser } from '../types/auth.types';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly logger: ApiLoggerService,
+  ) {}
 
   canActivate(context: ExecutionContext): boolean {
     const roles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
@@ -23,9 +27,11 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     if (!user || !roles.includes(user.role)) {
+      this.logger.warn('Role authorization failed', 'RolesGuard');
       throw new ForbiddenException('Insufficient role');
     }
 
+    this.logger.log(`Role authorization succeeded for userId=${user.id}`, 'RolesGuard');
     return true;
   }
 }

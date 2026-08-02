@@ -1839,3 +1839,46 @@ Backend-сервисы не вызывают `JwtService.sign()` и `JwtService.
 ## Защищённые маршруты
 
 `JwtAuthGuard` и `RefreshAuthGuard` используют `TokenService`, загружают пользователя через `UserRepository`, проверяют `isActive` и записывают минимальный `request.user`.
+
+---
+
+# 21. Реализация Stage 4.5: Guards
+
+Guards и auth decorators вынесены из доменного AuthModule в общий инфраструктурный слой:
+
+```txt
+apps/api/src/common/auth
+```
+
+## 21.1 Guards
+
+Реализованы:
+
+- `JwtAuthGuard`;
+- `RefreshAuthGuard`;
+- `RolesGuard`;
+- `OwnershipGuard`;
+- `ApiKeyGuard`.
+
+## 21.2 Decorators
+
+Реализованы:
+
+- `@Public()`;
+- `@CurrentUser()`;
+- `@Roles()`;
+- `@Ownership()`.
+
+## 21.3 Global protection
+
+`JwtAuthGuard` подключён глобально через `APP_GUARD` в `AppModule`.
+
+Все endpoint приватные по умолчанию. Публичные endpoint должны быть явно отмечены `@Public()`.
+
+## 21.4 Ownership
+
+`OwnershipGuard` содержит инфраструктуру проверки владения ресурсом. До появления доменных сервисов он безопасно запрещает доступ, если checker не настроен.
+
+## 21.5 API Key
+
+`ApiKeyGuard` проверяет заголовок `x-api-key` against `INTERNAL_API_KEY`. Используется как база для будущих worker/webhook/CLI/internal endpoint.

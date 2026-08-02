@@ -6,10 +6,10 @@ import { Role, type User } from '@prisma/client';
 import { describe, expect, it, vi, type Mock } from 'vitest';
 import { ApiLoggerService } from '../../../../src/common/logger/api-logger.service';
 import { UserRepository } from '../../../../src/repositories/user/user.repository';
-import { IS_PUBLIC_KEY, ROLES_KEY } from '../../../../src/modules/auth/constants/auth.constants';
-import { Public } from '../../../../src/modules/auth/decorators/public.decorator';
-import { Roles } from '../../../../src/modules/auth/decorators/roles.decorator';
-import { RolesGuard } from '../../../../src/modules/auth/guards/roles.guard';
+import { IS_PUBLIC_KEY, ROLES_KEY } from '../../../../src/common/auth/constants/auth.constants';
+import { Public } from '../../../../src/common/auth/decorators/public.decorator';
+import { Roles } from '../../../../src/common/auth/decorators/roles.decorator';
+import { RolesGuard } from '../../../../src/common/auth/guards/roles.guard';
 import { AuthService } from '../../../../src/modules/auth/services/auth.service';
 import { TokenService } from '../../../../src/modules/auth/services/token.service';
 import { SessionService } from '../../../../src/modules/sessions/services/session.service';
@@ -95,6 +95,10 @@ function createMocks() {
   );
 
   return { service, tokenService, users, sessions, jwtService, config, logger };
+}
+
+function createGuardLogger(): ApiLoggerService {
+  return { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as unknown as ApiLoggerService;
 }
 
 describe('AuthService', () => {
@@ -444,7 +448,7 @@ describe('Auth strategies, guards and decorators', () => {
 
   it('allows request with required ADMIN role', () => {
     const reflector = { getAllAndOverride: vi.fn(() => [Role.ADMIN]) } as unknown as Reflector;
-    const guard = new RolesGuard(reflector);
+    const guard = new RolesGuard(reflector, createGuardLogger());
     const context = {
       getHandler: vi.fn(),
       getClass: vi.fn(),
@@ -456,7 +460,7 @@ describe('Auth strategies, guards and decorators', () => {
 
   it('allows request with required USER role', () => {
     const reflector = { getAllAndOverride: vi.fn(() => [Role.USER]) } as unknown as Reflector;
-    const guard = new RolesGuard(reflector);
+    const guard = new RolesGuard(reflector, createGuardLogger());
     const context = {
       getHandler: vi.fn(),
       getClass: vi.fn(),
@@ -468,7 +472,7 @@ describe('Auth strategies, guards and decorators', () => {
 
   it('denies request with missing role', () => {
     const reflector = { getAllAndOverride: vi.fn(() => [Role.ADMIN]) } as unknown as Reflector;
-    const guard = new RolesGuard(reflector);
+    const guard = new RolesGuard(reflector, createGuardLogger());
     const context = {
       getHandler: vi.fn(),
       getClass: vi.fn(),

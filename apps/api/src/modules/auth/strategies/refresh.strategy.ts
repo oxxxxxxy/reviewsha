@@ -5,7 +5,10 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
 import { UserRepository } from '../../../repositories/user/user.repository';
 import type { JwtConfig } from '../../../config/jwt.config';
-import type { AuthenticatedRefreshUser, JwtRefreshPayload } from '../types/auth.types';
+import type {
+  AuthenticatedRefreshUser,
+  JwtRefreshPayload,
+} from '../../../common/auth/types/auth.types';
 
 function extractRefreshToken(request: Request): string | null {
   const body = request.body as { refreshToken?: string } | undefined;

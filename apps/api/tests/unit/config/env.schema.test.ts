@@ -17,6 +17,7 @@ describe('api env schema', () => {
     expect(config.JWT_REFRESH_SECRET).toBe('reviewsha-refresh-secret-change-me');
     expect(config.JWT_REFRESH_EXPIRES_IN).toBe('30d');
     expect(config.MAX_SESSIONS_PER_USER).toBe(10);
+    expect(config.INTERNAL_API_KEY).toBe('reviewsha-internal-api-key-change-me');
   });
 
   it('accepts production-like env', () => {
@@ -35,6 +36,7 @@ describe('api env schema', () => {
       JWT_ISSUER: 'issuer',
       JWT_AUDIENCE: 'audience',
       MAX_SESSIONS_PER_USER: '5',
+      INTERNAL_API_KEY: 'internal',
     });
 
     expect(result.success).toBe(true);
@@ -43,6 +45,7 @@ describe('api env schema', () => {
       expect(result.data.PRISMA_LOG_QUERIES).toBe(true);
       expect(result.data.JWT_SECRET).toBe('access');
       expect(result.data.MAX_SESSIONS_PER_USER).toBe(5);
+      expect(result.data.INTERNAL_API_KEY).toBe('internal');
     }
   });
 

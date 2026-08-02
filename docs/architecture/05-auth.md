@@ -955,3 +955,27 @@ DELETE /api/v1/sessions/:id
 ## 20.5 Security
 
 Если отозванный Refresh Token используется повторно, SessionService выполняет reuse detection и отзывает все активные сессии пользователя с причиной `REUSE_DETECTED`.
+
+---
+
+# 21. Реализация Stage 4.5 Guards
+
+Auth guards больше не находятся внутри доменного AuthModule. Они перенесены в общий слой:
+
+```txt
+common/auth/guards
+common/auth/decorators
+common/auth/constants
+common/auth/interfaces
+common/auth/types
+```
+
+`JwtAuthGuard` работает глобально и пропускает только endpoints с `@Public()`.
+
+`RefreshAuthGuard` используется только для refresh flow и проверяет Refresh JWT через `TokenService`.
+
+`RolesGuard` проверяет роли из `@Roles()`.
+
+`OwnershipGuard` подготовлен для доменных модулей Projects/Scans/Reports.
+
+`ApiKeyGuard` подготовлен для внутренних интеграций.

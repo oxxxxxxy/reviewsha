@@ -1,6 +1,7 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { ApiOkResponse, ApiServiceUnavailableResponse, ApiTags } from '@nestjs/swagger';
 
+import { Public } from '../common/auth/decorators/public.decorator';
 import { HealthResponse, HealthService } from './health.service';
 
 @ApiTags('Health')
@@ -8,6 +9,7 @@ import { HealthResponse, HealthService } from './health.service';
 export class HealthController {
   constructor(@Inject(HealthService) private readonly healthService: HealthService) {}
 
+  @Public()
   @Get()
   @ApiOkResponse({
     description: 'API health status.',

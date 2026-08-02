@@ -15,7 +15,10 @@ import type { UserResponseDto } from '../../users/dto/user-response.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 import type { AuthResponseDto } from '../dto/auth-response.dto';
-import type { AuthenticatedRefreshUser, AuthenticatedUser } from '../types/auth.types';
+import type {
+  AuthenticatedRefreshUser,
+  AuthenticatedUser,
+} from '../../../common/auth/types/auth.types';
 import { TokenService } from './token.service';
 
 @Injectable()

@@ -5,7 +5,6 @@ import { ApiLoggerService } from '../../common/logger/api-logger.service';
 import { AppConfigModule } from '../../config/config.module';
 import type { JwtConfig } from '../../config/jwt.config';
 import { RepositoriesModule } from '../../repositories';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TokenService } from '../auth/services/token.service';
 import { SessionsController } from './controllers/sessions.controller';
 import { SessionService } from './services/session.service';
@@ -31,7 +30,7 @@ import { SessionService } from './services/session.service';
     }),
   ],
   controllers: [SessionsController],
-  providers: [ApiLoggerService, TokenService, JwtAuthGuard, SessionService],
+  providers: [ApiLoggerService, TokenService, SessionService],
   exports: [SessionService],
 })
 export class SessionsModule {}

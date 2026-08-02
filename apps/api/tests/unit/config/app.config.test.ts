@@ -21,6 +21,7 @@ describe('appConfig', () => {
     process.env.JWT_ISSUER = 'issuer';
     process.env.JWT_AUDIENCE = 'audience';
     process.env.MAX_SESSIONS_PER_USER = '5';
+    process.env.INTERNAL_API_KEY = 'internal';
 
     const config = appConfig();
 
@@ -29,6 +30,7 @@ describe('appConfig', () => {
     expect(config.database.url).toBe('postgresql://custom');
     expect(config.database.logQueries).toBe(true);
     expect(config.sessions.maxSessionsPerUser).toBe(5);
+    expect(config.security.internalApiKey).toBe('internal');
     expect(config.jwt).toEqual({
       access: {
         secret: 'access',
@@ -57,6 +59,7 @@ describe('appConfig', () => {
     expect(config.app.apiPrefix).toBe('api/v1');
     expect(config.database.logQueries).toBe(false);
     expect(config.sessions.maxSessionsPerUser).toBe(10);
+    expect(config.security.internalApiKey).toBe('reviewsha-internal-api-key-change-me');
     expect(config.jwt.access.expiresIn).toBe('15m');
     expect(config.jwt.refresh.expiresIn).toBe('30d');
   });

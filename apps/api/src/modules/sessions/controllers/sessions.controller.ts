@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Param, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, HttpStatus, Param } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiNoContentResponse,
@@ -8,15 +8,13 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { CurrentUser } from '../../auth/decorators/current-user.decorator';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import type { AuthenticatedUser } from '../../auth/types/auth.types';
+import { CurrentUser } from '../../../common/auth/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
 import { SessionResponseDto } from '../dto/session-response.dto';
 import { SessionService } from '../services/session.service';
 
 @ApiTags('Sessions')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('sessions')
 export class SessionsController {
   constructor(private readonly sessionService: SessionService) {}

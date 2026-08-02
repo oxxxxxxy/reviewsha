@@ -18,6 +18,7 @@ export const envSchema = z.object({
   JWT_ISSUER: z.string().default('reviewsha-api'),
   JWT_AUDIENCE: z.string().default('reviewsha-clients'),
   MAX_SESSIONS_PER_USER: z.coerce.number().int().positive().default(10),
+  INTERNAL_API_KEY: z.string().default('reviewsha-internal-api-key-change-me'),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

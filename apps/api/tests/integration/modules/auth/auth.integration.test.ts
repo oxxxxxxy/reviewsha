@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -18,6 +19,7 @@ import { AuthService } from '../../../../src/modules/auth/services/auth.service'
 import { TokenService } from '../../../../src/modules/auth/services/token.service';
 import { SessionService } from '../../../../src/modules/sessions/services/session.service';
 import { SessionsController } from '../../../../src/modules/sessions/controllers/sessions.controller';
+import { JwtAuthGuard } from '../../../../src/common/auth/guards/jwt-auth.guard';
 import { JwtStrategy } from '../../../../src/modules/auth/strategies/jwt.strategy';
 import { RefreshStrategy } from '../../../../src/modules/auth/strategies/refresh.strategy';
 
@@ -175,6 +177,7 @@ describe('AuthModule HTTP integration', () => {
         SessionService,
         JwtStrategy,
         RefreshStrategy,
+        { provide: APP_GUARD, useClass: JwtAuthGuard },
         { provide: UserRepository, useValue: state.userRepository },
         { provide: RefreshTokenRepository, useValue: state.refreshTokenRepository },
         { provide: ApiLoggerService, useValue: logger },

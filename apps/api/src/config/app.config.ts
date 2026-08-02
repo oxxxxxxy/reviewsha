@@ -14,6 +14,7 @@ export default (): {
   database: { url: string; logQueries: boolean };
   jwt: JwtConfig;
   sessions: { maxSessionsPerUser: number };
+  security: { internalApiKey: string };
 } => ({
   app: {
     nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -31,5 +32,8 @@ export default (): {
   jwt: createJwtConfig(process.env),
   sessions: {
     maxSessionsPerUser: Number(process.env.MAX_SESSIONS_PER_USER ?? 10),
+  },
+  security: {
+    internalApiKey: process.env.INTERNAL_API_KEY ?? 'reviewsha-internal-api-key-change-me',
   },
 });

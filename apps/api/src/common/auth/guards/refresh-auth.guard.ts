@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import type { Request } from 'express';
 import { UserRepository } from '../../../repositories/user/user.repository';
-import { TokenService } from '../services/token.service';
+import { TokenService } from '../../../modules/auth/services/token.service';
 import type { AuthenticatedRefreshUser } from '../types/auth.types';
 
 @Injectable()

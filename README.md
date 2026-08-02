@@ -22,11 +22,12 @@ AI SaaS platform for automated code review.
 | 4.2 Auth Module                    | ✅ COMPLETE | JWT auth, Argon2 passwords, refresh rotation, guards, roles and sessions                      |
 | 4.3 JWT Infrastructure             | ✅ COMPLETE | Централизованный TokenService, JwtConfig, verify/decode/hash и TokenService-backed guards     |
 | 4.4 Refresh Token & Sessions       | ✅ COMPLETE | SessionModule, SessionService, rotation, reuse detection, session list/revoke and cleanup     |
+| 4.5 Guards                         | ✅ COMPLETE | Common auth guards/decorators, global JWT protection, roles, ownership and API key guard      |
 
 Следующий этап:
 
 ```txt
-Этап 4.5 Projects Module
+Этап 4.6 Projects Module
 ```
 
 ---
@@ -651,6 +652,32 @@ MAX_SESSIONS_PER_USER=10
 ```
 
 AuthModule не обращается к `RefreshTokenRepository` напрямую — только через `SessionService`.
+
+---
+
+## Guards и контроль доступа
+
+Общая инфраструктура защиты API находится в:
+
+```txt
+apps/api/src/common/auth
+```
+
+Реализовано:
+
+- `JwtAuthGuard`;
+- `RefreshAuthGuard`;
+- `RolesGuard`;
+- `OwnershipGuard`;
+- `ApiKeyGuard`;
+- `@Public()`;
+- `@CurrentUser()`;
+- `@Roles()`;
+- `@Ownership()`.
+
+`JwtAuthGuard` подключён глобально через `APP_GUARD`: все endpoints приватные по умолчанию. Публичные endpoints явно отмечаются `@Public()`.
+
+`INTERNAL_API_KEY` используется `ApiKeyGuard` для будущих внутренних интеграций, worker/webhooks/CLI.
 
 ---
 

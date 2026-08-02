@@ -8,7 +8,10 @@ import type { User } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
 import type { JwtConfig } from '../../../config/jwt.config';
 import { toJwtSignOptions, toJwtVerifyOptions } from '../../../config/jwt.config';
-import { ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE } from '../constants/auth.constants';
+import {
+  ACCESS_TOKEN_TYPE,
+  REFRESH_TOKEN_TYPE,
+} from '../../../common/auth/constants/auth.constants';
 import type { AccessTokenPayload, RefreshTokenPayload, TokenPair } from '../interfaces';
 
 @Injectable()
