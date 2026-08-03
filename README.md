@@ -66,6 +66,8 @@ Rew/
 └── README.md
 ```
 
+Для передачи контекста следующему Codex или разработчику используйте [`docs/development/codex-handoff.md`](docs/development/codex-handoff.md).
+
 ---
 
 ## Требования
