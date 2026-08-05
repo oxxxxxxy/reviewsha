@@ -1,29 +1,22 @@
 import { Queue } from 'bullmq';
-import IORedis from 'ioredis';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { QUEUE_NAMES } from '../../../../src/modules/queue/queue.constants';
 
-const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
 const runIntegration = process.env.RUN_STAGE7_INTEGRATION === 'true';
-const connection = new IORedis(redisUrl, {
-  maxRetriesPerRequest: null,
-  lazyConnect: !runIntegration,
-});
-connection.on('error', () => undefined);
+const connection = { host: process.env.REDIS_HOST ?? 'localhost', port: 6379 };
 const queue = new Queue(QUEUE_NAMES.scan, { connection });
 
 describe.skipIf(!runIntegration)('BullMQ and Redis integration', () => {
   beforeAll(async () => {
-    await connection.ping();
+    await queue.getJobCounts();
   });
 
   afterAll(async () => {
     await queue.close();
-    await connection.quit();
   });
 
   it('connects to Redis', async () => {
-    await expect(connection.ping()).resolves.toBe('PONG');
+    await expect(queue.getJobCounts()).resolves.toBeDefined();
   });
 
   it('creates a job in the configured queue', async () => {
