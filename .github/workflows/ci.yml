@@ -352,6 +352,33 @@ jobs:
       - name: Stage 7 Queue infrastructure tests
         run: yarn test:stage7
 
+  stage8-tests:
+    name: Stage 8 Worker infrastructure / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 24.x
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Enable Corepack
+        run: corepack enable
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - name: Prepare Yarn Classic
+        run: corepack prepare yarn@1.22.22 --activate
+      - name: Install dependencies
+        run: yarn install --immutable --non-interactive
+      - name: Stage 8 Worker infrastructure tests
+        run: yarn test:stage8
+
   e2e-tests:
     name: Playwright E2E / Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
@@ -425,6 +452,7 @@ jobs:
       - stage5-tests
       - stage6-tests
       - stage7-tests
+      - stage8-tests
       - e2e-tests
       - docker-config
     if: ${{ always() }}

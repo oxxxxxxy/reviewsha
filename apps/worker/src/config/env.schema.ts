@@ -12,6 +12,8 @@ export const workerEnvSchema = z.object({
   MINIO_ENDPOINT: z.string().min(1).default('http://localhost:9000'),
   MINIO_ACCESS_KEY: z.string().min(1).default('reviewsha'),
   MINIO_SECRET_KEY: z.string().min(1).default('reviewsha-password'),
+  MINIO_PORT: z.coerce.number().int().positive().default(9000),
+  MINIO_USE_SSL: z.coerce.boolean().default(false),
   AI_PROVIDER: z.enum(['deepseek', 'openai', 'local', 'mock']).default('deepseek'),
 });
 

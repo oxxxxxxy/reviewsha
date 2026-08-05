@@ -7,6 +7,8 @@ export type WorkerConfig = {
   minioEndpoint: string;
   minioAccessKey: string;
   minioSecretKey: string;
+  minioPort: number;
+  minioUseSSL: boolean;
   aiProvider: string;
 };
 
@@ -22,6 +24,8 @@ export default (): { worker: WorkerConfig } => ({
     minioEndpoint: process.env.MINIO_ENDPOINT ?? 'http://localhost:9000',
     minioAccessKey: process.env.MINIO_ACCESS_KEY ?? 'reviewsha',
     minioSecretKey: process.env.MINIO_SECRET_KEY ?? 'reviewsha-password',
+    minioPort: Number(process.env.MINIO_PORT ?? 9000),
+    minioUseSSL: process.env.MINIO_USE_SSL === 'true',
     aiProvider: process.env.AI_PROVIDER ?? 'deepseek',
   },
 });

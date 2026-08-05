@@ -58,6 +58,17 @@ export class QueueService implements OnModuleDestroy {
     return this.redisAvailable;
   }
 
+  async healthCheck(): Promise<{ redis: 'ok'; queues: Record<string, unknown> }> {
+    if (!this.connection || !this.redisAvailable) throw new Error('Redis unavailable');
+    await this.connection.ping();
+    const counts = await Promise.all(
+      [...this.queues.entries()].map(
+        async ([name, queue]) => [name, await queue.getJobCounts()] as const,
+      ),
+    );
+    return { redis: 'ok', queues: Object.fromEntries(counts) };
+  }
+
   async enqueueScan(payload: QueuePayload = {}): Promise<EnqueuedJob> {
     return this.enqueue(QUEUE_NAMES.scan, 'scan', payload);
   }

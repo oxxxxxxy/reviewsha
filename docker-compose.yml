@@ -104,6 +104,33 @@ services:
     networks:
       reviewsha_network:
 
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: reviewsha-worker
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      WORKER_NAME: ${WORKER_NAME:-reviewsha-worker}
+      WORKER_REDIS_REQUIRED: ${WORKER_REDIS_REQUIRED:-true}
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://${POSTGRES_USER:-reviewsha}:${POSTGRES_PASSWORD:-reviewsha}@postgres:5432/${POSTGRES_DB:-reviewsha}?schema=public
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-reviewsha}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-reviewsha-password}
+      MINIO_PORT: 9000
+      MINIO_USE_SSL: 'false'
+    networks:
+      reviewsha_network:
+
 volumes:
   postgres_data:
     name: reviewsha_postgres_data

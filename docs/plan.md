@@ -1000,7 +1000,7 @@ Autoscaling
 7.2 Job Pipeline (Pipeline, Retry, Monitoring) ✅ COMPLETE
 
 Этап 8. Worker
-8.1 Worker Infrastructure
+8.1 Worker Infrastructure ✅ COMPLETE
 8.2 Processing Jobs (Download, Extract, Parse, Merge, Cleanup)
 
 Этап 9. AI Pipeline

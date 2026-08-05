@@ -2,8 +2,27 @@
 
 Worker подключается к тем же Redis и именам BullMQ очередей, что и API. Stage 7.1
 фиксирует инфраструктуру и retry policy. Stage 7.2 создаёт jobs цепочки
-`extract → parse → analyze → merge → report → notify`; Stage 8 добавляет реальные
-processors и вызывает `PipelineService.handleSuccess()`/`handleFailure()`.
+`extract → parse → analyze → merge → report → notify`. Stage 8.1 добавляет
+standalone Nest application context, BullMQ consumers, typed processor registry,
+database/storage adapters, isolated temporary workspaces и graceful shutdown.
+Реальные Download/Extract/Parse/Merge/Cleanup операции выполняются на Stage 8.2.
+
+## Stage 8.1 Worker Infrastructure
+
+`apps/worker/src/main.ts` запускает `NestFactory.createApplicationContext` без
+HTTP-сервера и Controllers. `WorkerModule` регистрирует queue consumers,
+`WorkerDatabaseService`, `WorkerStorageService`, `WorkerHealthService`,
+`FilesystemService`, `TempStorageService`, `CleanupService` и
+`ProcessorRegistry`. Каждый job workspace изолирован в
+`/tmp/reviewsha/jobs/{jobId}/{source,extracted,output}`.
+
+Worker использует Redis/BullMQ, PostgreSQL через Prisma adapter-pg и MinIO через
+собственный adapter. `QueueService.healthCheck()` проверяет Redis и counts
+очередей, а `WorkerHealthService.check()` агрегирует Redis, database и storage.
+SIGINT/SIGTERM закрывают workers, queues, Redis и Prisma connections.
+
+Docker image собирается из `apps/worker/Dockerfile`; Compose service `worker`
+подключается к `postgres`, `redis` и `minio`.
 
 ## 1. Назначение документа
 

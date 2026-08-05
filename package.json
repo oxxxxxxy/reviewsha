@@ -44,8 +44,8 @@
     "ci:smoke": "yarn test:stage2",
     "ci:prisma": "yarn test:stage3",
     "ci:e2e": "yarn test:e2e:install && yarn test:e2e",
-    "ci:docker": "docker compose config",
-    "ci:local": "yarn install --immutable --non-interactive && yarn ci:quality && yarn ci:build && yarn ci:openapi && yarn ci:unit && yarn ci:smoke && yarn ci:prisma && yarn ci:stage4 && yarn ci:stage5 && yarn ci:stage6 && yarn ci:stage7 && yarn ci:e2e && yarn ci:docker",
+    "ci:docker": "docker compose config && docker build -f apps/worker/Dockerfile -t reviewsha-worker:ci .",
+    "ci:local": "yarn install --immutable --non-interactive && yarn ci:quality && yarn ci:build && yarn ci:openapi && yarn ci:unit && yarn ci:smoke && yarn ci:prisma && yarn ci:stage4 && yarn ci:stage5 && yarn ci:stage6 && yarn ci:stage7 && yarn ci:stage8 && yarn ci:e2e && yarn ci:docker",
     "docs:openapi": "yarn workspace @reviewsha/api docs:openapi",
     "ci:openapi": "yarn docs:openapi",
     "test:stage4": "yarn workspace @reviewsha/api test:stage4",
@@ -55,7 +55,9 @@
     "ci:stage4": "yarn test:stage4",
     "ci:stage5": "yarn test:stage5",
     "ci:stage6": "yarn test:stage6",
-    "ci:stage7": "yarn test:stage7"
+    "ci:stage7": "yarn test:stage7",
+    "test:stage8": "yarn workspace @reviewsha/worker test && yarn workspace @reviewsha/worker build && yarn workspace @reviewsha/worker typecheck && yarn workspace @reviewsha/worker lint",
+    "ci:stage8": "yarn test:stage8"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
