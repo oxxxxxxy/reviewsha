@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { ZipFile } from 'yazl';
 import { ZipValidator } from '../../../../src/modules/uploads/validators/zip.validator';
 
@@ -23,6 +26,21 @@ describe('ZipValidator', () => {
       await archive([['package.json', '{}']]),
     );
     expect(result.entries).toBe(1);
+  });
+
+  it('validates a ZIP from a temporary file without buffering the upload', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'reviewsha-upload-'));
+    const filePath = join(directory, 'project.zip');
+    const buffer = await archive([['package.json', '{}']]);
+    await writeFile(filePath, buffer);
+
+    try {
+      await expect(
+        validator.validateFile('project.zip', 'application/zip', buffer.length, filePath),
+      ).resolves.toMatchObject({ entries: 1 });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   it('rejects a non-ZIP extension', async () => {
@@ -62,6 +80,14 @@ describe('ZipValidator', () => {
         'application/zip',
         await archive([['node_modules/pkg.js', 'x']]),
       ),
+    ).rejects.toThrow('forbidden');
+  });
+
+  it('rejects environment files from the archive', async () => {
+    const archiveBuffer = await archive([['.env', 'DATABASE_URL=secret']]);
+
+    await expect(
+      validator.validate('project.zip', 'application/zip', archiveBuffer),
     ).rejects.toThrow('forbidden');
   });
 
