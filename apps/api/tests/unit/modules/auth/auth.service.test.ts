@@ -488,7 +488,7 @@ describe('Auth strategies, guards and decorators', () => {
     const jwt = new JwtService();
     const token = await jwt.signAsync(
       { sub: 'id', type: 'access', jti: 'jti' },
-      { secret: 'secret', expiresIn: '1s' },
+      { secret: 'secret', expiresIn: '10s' },
     );
     expect(jwt.verify(token, { secret: 'secret' })).toMatchObject({ sub: 'id' });
   });
@@ -497,7 +497,7 @@ describe('Auth strategies, guards and decorators', () => {
     const jwt = new JwtService();
     const token = await jwt.signAsync(
       { sub: 'id', type: 'refresh', jti: 'jti' },
-      { secret: 'secret', expiresIn: '1s' },
+      { secret: 'secret', expiresIn: '10s' },
     );
     expect(jwt.verify(token, { secret: 'secret' })).toMatchObject({ type: 'refresh', jti: 'jti' });
   });

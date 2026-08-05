@@ -56,7 +56,7 @@
     "ci:stage5": "yarn test:stage5",
     "ci:stage6": "yarn test:stage6",
     "ci:stage7": "yarn test:stage7",
-    "test:stage8": "yarn workspace @reviewsha/worker test && yarn workspace @reviewsha/worker build && yarn workspace @reviewsha/worker typecheck && yarn workspace @reviewsha/worker lint",
+    "test:stage8": "yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/worker test && yarn workspace @reviewsha/worker build && yarn workspace @reviewsha/worker typecheck && yarn workspace @reviewsha/worker lint",
     "ci:stage8": "yarn test:stage8"
   },
   "devDependencies": {
