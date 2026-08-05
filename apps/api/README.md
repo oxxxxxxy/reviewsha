@@ -269,3 +269,10 @@ yarn workspace @reviewsha/api docs:openapi
 ```
 
 All protected endpoints use `@ApiBearerAuth('bearer')`; public endpoints are marked with `@Public()`.
+
+## Storage Module
+
+`StorageService` — единственная точка доступа API к MinIO. Реализация находится в
+`src/modules/storage`; `MinioProvider` инкапсулирует SDK и создаёт bucket'ы
+`projects`, `reports` и `temp`. Поддерживаются stream upload/download, metadata,
+exists, copy, move, delete и presigned URL.

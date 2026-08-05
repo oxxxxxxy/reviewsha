@@ -26,7 +26,8 @@
     "prisma:reset:schema": "prisma migrate reset --schema prisma/schema.prisma --force",
     "docs:openapi": "yarn build:deps && tsc -p tsconfig.build.json && node dist/swagger/generate-openapi.js",
     "test:stage4": "yarn build:deps && vitest run --config vitest.stage4.coverage.config.mts --coverage",
-    "test:stage5": "yarn build:deps && vitest run tests/unit/modules/projects tests/unit/repositories/repositories.test.ts tests/unit/common/auth/authorization.policies.test.ts tests/integration/modules/projects --coverage=false"
+    "test:stage5": "yarn build:deps && vitest run tests/unit/modules/projects tests/unit/repositories/repositories.test.ts tests/unit/common/auth/authorization.policies.test.ts tests/integration/modules/projects --coverage=false",
+    "test:stage6": "yarn build:deps && vitest run tests/unit/modules/storage --coverage=false"
   },
   "dependencies": {
     "@nestjs/common": "^11",
@@ -44,6 +45,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "express": "^5.2.1",
+    "minio": "^8.0.6",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.22.0",

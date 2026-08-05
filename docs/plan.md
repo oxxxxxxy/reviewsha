@@ -992,7 +992,7 @@ Autoscaling
 5.2 Управление проектами (CRUD, архивирование, теги, история) ✅ COMPLETE
 
 Этап 6. Загрузка файлов
-6.1 File Storage (MinIO)
+6.1 File Storage (MinIO) ✅ COMPLETE
 6.2 Upload Pipeline (Upload API, ZIP Validation, Versioning)
 
 Этап 7. Очереди

@@ -20,6 +20,14 @@ export const envSchema = z.object({
   JWT_ALGORITHM: z.enum(['HS256', 'RS256', 'ES256']).default('HS256'),
   MAX_SESSIONS_PER_USER: z.coerce.number().int().positive().default(10),
   INTERNAL_API_KEY: z.string().default('reviewsha-internal-api-key-change-me'),
+  MINIO_ENDPOINT: z.string().default('localhost'),
+  MINIO_PORT: z.coerce.number().int().positive().default(9000),
+  MINIO_ACCESS_KEY: z.string().default('reviewsha'),
+  MINIO_SECRET_KEY: z.string().default('reviewsha-password'),
+  MINIO_BUCKET_PROJECTS: z.string().default('projects'),
+  MINIO_BUCKET_REPORTS: z.string().default('reports'),
+  MINIO_BUCKET_TEMP: z.string().default('temp'),
+  MINIO_USE_SSL: z.coerce.boolean().default(false),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

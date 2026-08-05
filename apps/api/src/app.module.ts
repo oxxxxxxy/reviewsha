@@ -12,6 +12,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { StorageModule } from './modules/storage/storage.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
     AuthModule,
     SessionsModule,
     ProjectsModule,
+    StorageModule,
     HealthModule,
   ],
   providers: [

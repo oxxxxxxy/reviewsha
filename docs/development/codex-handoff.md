@@ -11,7 +11,7 @@
 - Последний известный коммит до начала Stage 5.1: `9c82220 docs: add codex project handoff`.
 - Рабочее дерево должно оставаться чистым после завершения задачи.
 - Docker Compose и локальные сервисы сейчас остановлены.
-- Stage 5.2 Projects Management реализован в `apps/api/src/modules/projects/`; следующий функциональный шаг — Stage 6.1 MinIO file storage.
+- Stage 5.2 Projects Management и Stage 6.1 MinIO File Storage реализованы; следующий функциональный шаг — Stage 6.2 Upload Pipeline.
 
 Этапы 1–4.7 считаются завершёнными. Перед изменением уже реализованного кода нужно сверяться с соответствующим acceptance-документом и архитектурой, а не считать README единственным источником истины.
 
@@ -37,6 +37,11 @@
 Stage 5.2 добавил `ProjectTag`, `ProjectHistory`, migration
 `20260805191056_add_project_tags_and_history`, soft delete, archive/restore,
 filters, statistics and history endpoint.
+
+Stage 6.1 добавил `apps/api/src/modules/storage/`: `StorageService` is the only
+application-facing storage API, while `MinioProvider` is the only MinIO SDK adapter.
+The module owns bucket initialization, streaming operations, metadata, copy/move,
+presigned URLs and storage error mapping. Focused tests run with `yarn test:stage6`.
 
 ## 3. Структура монорепозитория
 
@@ -101,7 +106,7 @@ Workspace packages подключаются через Yarn workspace dependenci
 
 ### Projects
 
-`apps/api/src/modules/projects/` содержит `ProjectsController`, `ProjectsService`, DTO, `ProjectMapper`, `ProjectEvents` and module composition. Persistence is provided by the central `apps/api/src/repositories/project/project.repository.ts`, re-exported from the module repository path. Project routes are ownership-scoped for USER and admin-scoped for ADMIN. Tags and history are intentionally deferred to Stage 5.2.
+`apps/api/src/modules/projects/` содержит `ProjectsController`, `ProjectsService`, DTO, `ProjectMapper`, `ProjectEvents` and module composition. Persistence is provided by the central `apps/api/src/repositories/project/project.repository.ts`, re-exported from the module repository path. Project routes are ownership-scoped for USER and admin-scoped for ADMIN. Tags and history are implemented in Stage 5.2.
 
 ### Auth and sessions
 

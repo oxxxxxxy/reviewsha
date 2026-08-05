@@ -27,11 +27,12 @@ AI SaaS platform for automated code review.
 | 4.7 Swagger & API Documentation    | ✅ COMPLETE | OpenAPI 3.1, Swagger UI, Bearer auth, DTO/errors/examples and CI contract generation          |
 | 5.1 Projects Module                | ✅ COMPLETE | Ownership-aware Projects API, repository queries, lifecycle events, DTOs, mapper and tests    |
 | 5.2 Управление проектами           | ✅ COMPLETE | CRUD, soft delete, archive/restore, tags, filters, statistics, history and lifecycle events   |
+| 6.1 File Storage (MinIO)           | ✅ COMPLETE | StorageModule, MinioProvider, bucket strategy, streaming operations and presigned URLs        |
 
 Следующий этап:
 
 ```txt
-Этап 6.1 File Storage (MinIO)
+Этап 6.2 Upload Pipeline
 ```
 
 ---
@@ -154,6 +155,29 @@ yarn test:stage2
 yarn test:stage3
 yarn test:stage4
 yarn test:e2e
+```
+
+## File Storage (MinIO)
+
+Этап 6.1 добавляет единый `StorageModule`. API работает с MinIO только через
+`StorageService`; прямое использование MinIO SDK в доменных модулях запрещено.
+При старте создаются bucket'ы `projects`, `reports` и `temp`, если их ещё нет.
+
+```text
+MINIO_ENDPOINT=http://localhost:9000
+MINIO_PORT=9000
+MINIO_ACCESS_KEY=reviewsha
+MINIO_SECRET_KEY=reviewsha-password
+MINIO_BUCKET_PROJECTS=projects
+MINIO_BUCKET_REPORTS=reports
+MINIO_BUCKET_TEMP=temp
+MINIO_USE_SSL=false
+```
+
+Проверка Storage-модуля:
+
+```bash
+yarn test:stage6
 ```
 
 Групповые команды:

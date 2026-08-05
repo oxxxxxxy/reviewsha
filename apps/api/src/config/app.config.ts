@@ -9,12 +9,29 @@ export type AppConfig = {
   corsOrigin: string;
 };
 
+export type MinioConfig = {
+  endpoint: string;
+  port: number;
+  accessKey: string;
+  secretKey: string;
+  useSSL: boolean;
+  buckets: { projects: string; reports: string; temp: string };
+};
+
 export default (): {
   app: AppConfig;
   database: { url: string; logQueries: boolean };
   jwt: JwtConfig;
   sessions: { maxSessionsPerUser: number };
   security: { internalApiKey: string };
+  minio: {
+    endpoint: string;
+    port: number;
+    accessKey: string;
+    secretKey: string;
+    useSSL: boolean;
+    buckets: { projects: string; reports: string; temp: string };
+  };
 } => ({
   app: {
     nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -35,5 +52,17 @@ export default (): {
   },
   security: {
     internalApiKey: process.env.INTERNAL_API_KEY ?? 'reviewsha-internal-api-key-change-me',
+  },
+  minio: {
+    endpoint: process.env.MINIO_ENDPOINT ?? 'localhost',
+    port: Number(process.env.MINIO_PORT ?? 9000),
+    accessKey: process.env.MINIO_ACCESS_KEY ?? 'reviewsha',
+    secretKey: process.env.MINIO_SECRET_KEY ?? 'reviewsha-password',
+    useSSL: process.env.MINIO_USE_SSL === 'true',
+    buckets: {
+      projects: process.env.MINIO_BUCKET_PROJECTS ?? 'projects',
+      reports: process.env.MINIO_BUCKET_REPORTS ?? 'reports',
+      temp: process.env.MINIO_BUCKET_TEMP ?? 'temp',
+    },
   },
 });
