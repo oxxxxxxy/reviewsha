@@ -177,6 +177,11 @@ step }`. Состояние и прогресс сохраняются в `Scan`
 exponential backoff, а постоянные ошибки переводят pipeline в `FAILED` и создают
 dead-letter Job. Реальные processors реализуются Worker на Stage 8.
 
+Для мониторинга `QueueService` предоставляет counts по каждой очереди, а
+`PipelineService.getMetrics()` объединяет их с количеством pipeline в статусах
+`PENDING`, `RUNNING`, `COMPLETED`, `FAILED` и `CANCELLED`. API статуса pipeline:
+`GET /api/v1/pipelines/:id`; владелец может также вызвать `resume` и `cancel`.
+
 ---
 
 # 5. Scan Queue

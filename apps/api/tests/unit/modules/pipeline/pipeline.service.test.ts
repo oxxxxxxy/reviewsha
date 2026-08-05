@@ -27,6 +27,7 @@ function setup() {
     findById: vi.fn(async (): Promise<TestScan | null> => scan),
     create: vi.fn(async () => scan),
     updateStatus: vi.fn(async () => scan),
+    update: vi.fn(async () => scan),
     updateProgress: vi.fn(async () => scan),
     finish: vi.fn(async () => ({ ...scan, status: ScanStatus.COMPLETED, progress: 100 })),
   };

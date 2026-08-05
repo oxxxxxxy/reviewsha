@@ -29,6 +29,7 @@ function service() {
       state.status = status;
       return state;
     }),
+    update: vi.fn(async () => state),
     updateProgress: vi.fn(async (_id: string, progress: number) => {
       state.progress = progress;
       return state;

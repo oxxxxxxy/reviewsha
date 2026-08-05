@@ -1,9 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ScanStatus } from '@prisma/client';
+import {
+  PipelineStatus,
+  PipelineStep as PrismaPipelineStep,
+  Role,
+  ScanStatus,
+} from '@prisma/client';
 import { ApiLoggerService } from '../../common/logger/api-logger.service';
+import type { AuthenticatedUser } from '../../common/auth/types/auth.types';
 import { ScanRepository } from '../../repositories/scan/scan.repository';
 import { UploadEvents, UPLOAD_EVENTS, type UploadEvent } from '../uploads/events/upload.events';
-import { QueueService } from '../queue/queue.service';
+import { QueueService, type QueueMetrics } from '../queue/queue.service';
 import { QUEUE_NAMES } from '../queue/queue.constants';
 import { QueueEvents, QUEUE_EVENTS } from '../queue/queue.events';
 import { PIPELINE_EVENTS, PipelineEvents, type PipelineEvent } from './pipeline.events';
@@ -71,10 +77,17 @@ export class PipelineService {
       ...(event.userId ? { createdBy: { connect: { id: event.userId } } } : {}),
       status: ScanStatus.QUEUED,
       progress: 0,
+      pipelineStep: PrismaPipelineStep.EXTRACT,
+      pipelineStatus: PipelineStatus.PENDING,
     });
 
     await this.enqueueStep(scan.id, event.projectId, event.uploadId, PIPELINE_STEPS.extract);
     await this.scans.updateStatus(scan.id, ScanStatus.EXTRACTING);
+    await this.scans.update(scan.id, {
+      pipelineStatus: PipelineStatus.RUNNING,
+      pipelineStartedAt: new Date(),
+      pipelineStep: PrismaPipelineStep.EXTRACT,
+    });
     this.publish(PIPELINE_EVENTS.started, scan.id, event.projectId, event.uploadId);
     this.logger.log(`Pipeline started: ${scan.id}`, 'PipelineService');
     return this.scans.findById(scan.id);
@@ -98,6 +111,12 @@ export class PipelineService {
     );
     if (!next) {
       await this.scans.finish(scan.id, ScanStatus.COMPLETED);
+      await this.scans.update(scan.id, {
+        pipelineStatus: PipelineStatus.COMPLETED,
+        pipelineStep: PrismaPipelineStep.NOTIFY,
+        pipelineFinishedAt: new Date(),
+        pipelineAttempts: { increment: 1 },
+      });
       this.publish(
         PIPELINE_EVENTS.completed,
         scan.id,
@@ -111,6 +130,11 @@ export class PipelineService {
     await this.enqueueStep(scan.id, scan.projectId, scan.sourceFileId ?? '', next, result.resultId);
     await this.scans.updateProgress(scan.id, PIPELINE_PROGRESS[step]);
     await this.scans.updateStatus(scan.id, this.statusForStep(next));
+    await this.scans.update(scan.id, {
+      pipelineStatus: PipelineStatus.RUNNING,
+      pipelineStep: this.dbStep(next),
+      pipelineAttempts: { increment: 1 },
+    });
   }
 
   async handleFailure(
@@ -121,7 +145,19 @@ export class PipelineService {
   ): Promise<{ retriable: boolean }> {
     const scan = await this.getScan(pipelineId);
     const retriable = this.isRetryable(failure) && attempts < PIPELINE_RETRY_ATTEMPTS;
-    if (retriable || this.isTerminal(scan.status)) return { retriable };
+    if (this.isTerminal(scan.status)) return { retriable: false };
+
+    await this.scans.update(scan.id, {
+      pipelineStatus: retriable ? PipelineStatus.RUNNING : PipelineStatus.FAILED,
+      pipelineStep: this.dbStep(step),
+      pipelineErrorCode: failure.code ?? 'PIPELINE_FAILED',
+      pipelineErrorMessage: failure.message,
+      pipelineErrorStack: failure.stack,
+      pipelineErrorAt: new Date(),
+      pipelineAttempts: attempts,
+      ...(retriable ? {} : { pipelineFinishedAt: new Date() }),
+    });
+    if (retriable) return { retriable: true };
 
     await this.scans.updateStatus(scan.id, ScanStatus.FAILED);
     await this.queues.addJob(QUEUE_NAMES.deadLetter, 'pipeline.dead-letter', {
@@ -150,6 +186,14 @@ export class PipelineService {
     const step = this.stepForStatus(scan.status);
     if (!step) throw new Error(`Pipeline ${pipelineId} has no resumable step`);
     await this.scans.updateStatus(scan.id, this.statusForStep(step));
+    await this.scans.update(scan.id, {
+      pipelineStatus: PipelineStatus.RUNNING,
+      pipelineStep: this.dbStep(step),
+      pipelineErrorCode: null,
+      pipelineErrorMessage: null,
+      pipelineErrorStack: null,
+      pipelineErrorAt: null,
+    });
     await this.enqueueStep(scan.id, scan.projectId, scan.sourceFileId ?? '', step);
   }
 
@@ -157,12 +201,51 @@ export class PipelineService {
     const scan = await this.getScan(pipelineId);
     if (!this.isTerminal(scan.status)) {
       await this.scans.updateStatus(scan.id, ScanStatus.CANCELLED);
+      await this.scans.update(scan.id, {
+        pipelineStatus: PipelineStatus.CANCELLED,
+        pipelineFinishedAt: new Date(),
+      });
       this.publish(PIPELINE_EVENTS.cancelled, scan.id, scan.projectId, scan.sourceFileId ?? '');
     }
   }
 
   getProgress(pipelineId: string): Promise<unknown> {
     return this.getScan(pipelineId);
+  }
+
+  async getProgressForUser(user: AuthenticatedUser, pipelineId: string) {
+    const scan =
+      user.role === Role.ADMIN
+        ? await this.scans.findById(pipelineId)
+        : await this.scans.findByIdForOwner(pipelineId, user.id);
+    if (!scan) throw new NotFoundException('Pipeline not found');
+    return scan;
+  }
+
+  async resumeForUser(user: AuthenticatedUser, pipelineId: string): Promise<void> {
+    await this.getProgressForUser(user, pipelineId);
+    return this.resumePipeline(pipelineId);
+  }
+
+  async cancelForUser(user: AuthenticatedUser, pipelineId: string): Promise<void> {
+    await this.getProgressForUser(user, pipelineId);
+    return this.cancelPipeline(pipelineId);
+  }
+
+  async getMetrics(): Promise<{
+    pipeline: Record<PipelineStatus, number>;
+    queues: Record<string, QueueMetrics>;
+  }> {
+    const statuses = Object.values(PipelineStatus);
+    const counts = await Promise.all(
+      statuses.map((status) => this.scans.countByPipelineStatus(status)),
+    );
+    return {
+      pipeline: Object.fromEntries(
+        statuses.map((status, index) => [status, counts[index] ?? 0]),
+      ) as Record<PipelineStatus, number>,
+      queues: await this.queues.getAllQueueMetrics(),
+    };
   }
 
   isRetryable(failure: PipelineFailure): boolean {
@@ -204,6 +287,17 @@ export class PipelineService {
       merge: ScanStatus.AGGREGATING,
       report: ScanStatus.REPORTING,
       notify: ScanStatus.REPORTING,
+    }[step];
+  }
+
+  private dbStep(step: PipelineStep): PrismaPipelineStep {
+    return {
+      extract: PrismaPipelineStep.EXTRACT,
+      parse: PrismaPipelineStep.PARSE,
+      analyze: PrismaPipelineStep.ANALYZE,
+      merge: PrismaPipelineStep.MERGE,
+      report: PrismaPipelineStep.REPORT,
+      notify: PrismaPipelineStep.NOTIFY,
     }[step];
   }
 

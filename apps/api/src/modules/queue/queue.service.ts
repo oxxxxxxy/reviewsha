@@ -17,6 +17,15 @@ import { QueueRegistry } from './queue.registry';
 
 type QueueMap = Record<QueueName, Queue<QueueJobData>>;
 
+export interface QueueMetrics {
+  waiting: number;
+  active: number;
+  completed: number;
+  failed: number;
+  delayed: number;
+  paused: number;
+}
+
 @Injectable()
 export class QueueService implements OnModuleDestroy {
   private readonly queues: QueueMap;
@@ -89,6 +98,24 @@ export class QueueService implements OnModuleDestroy {
 
   async healthCheck(): Promise<void> {
     await Promise.all(this.registry.getAll().map((queue) => this.queues[queue].getJobCounts()));
+  }
+
+  getQueueMetrics(queueName: QueueName): Promise<QueueMetrics> {
+    return this.queues[queueName].getJobCounts(
+      'waiting',
+      'active',
+      'completed',
+      'failed',
+      'delayed',
+      'paused',
+    ) as unknown as Promise<QueueMetrics>;
+  }
+
+  async getAllQueueMetrics(): Promise<Record<QueueName, QueueMetrics>> {
+    const entries = await Promise.all(
+      this.registry.getAll().map(async (name) => [name, await this.getQueueMetrics(name)] as const),
+    );
+    return Object.fromEntries(entries) as Record<QueueName, QueueMetrics>;
   }
 
   getRedisConfig(): { url: string } {

@@ -70,6 +70,23 @@ enum ScanStepStatus {
   SKIPPED
 }
 
+enum PipelineStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PipelineStep {
+  EXTRACT
+  PARSE
+  ANALYZE
+  MERGE
+  REPORT
+  NOTIFY
+}
+
 enum Severity {
   INFO
   LOW
@@ -341,16 +358,25 @@ model UploadedFile {
 }
 
 model Scan {
-  id           String     @id @default(uuid()) @db.Uuid
-  projectId    String     @map("project_id") @db.Uuid
-  sourceFileId String?    @map("source_file_id") @db.Uuid
-  createdById  String?    @map("created_by_id") @db.Uuid
-  status       ScanStatus @default(CREATED)
-  progress     Int        @default(0)
-  startedAt    DateTime?  @map("started_at") @db.Timestamptz(3)
-  finishedAt   DateTime?  @map("finished_at") @db.Timestamptz(3)
-  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(3)
+  id                   String          @id @default(uuid()) @db.Uuid
+  projectId            String          @map("project_id") @db.Uuid
+  sourceFileId         String?         @map("source_file_id") @db.Uuid
+  createdById          String?         @map("created_by_id") @db.Uuid
+  status               ScanStatus      @default(CREATED)
+  progress             Int             @default(0)
+  startedAt            DateTime?       @map("started_at") @db.Timestamptz(3)
+  finishedAt           DateTime?       @map("finished_at") @db.Timestamptz(3)
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  deletedAt            DateTime?       @map("deleted_at") @db.Timestamptz(3)
+  pipelineStep         PipelineStep?   @map("pipeline_step")
+  pipelineStatus       PipelineStatus? @map("pipeline_status")
+  pipelineErrorCode    String?         @map("pipeline_error_code") @db.VarChar(120)
+  pipelineErrorMessage String?         @map("pipeline_error_message") @db.Text
+  pipelineErrorStack   String?         @map("pipeline_error_stack") @db.Text
+  pipelineAttempts     Int             @default(0) @map("pipeline_attempts")
+  pipelineStartedAt    DateTime?       @map("pipeline_started_at") @db.Timestamptz(3)
+  pipelineFinishedAt   DateTime?       @map("pipeline_finished_at") @db.Timestamptz(3)
+  pipelineErrorAt      DateTime?       @map("pipeline_error_at") @db.Timestamptz(3)
 
   createdBy  User?         @relation("ScanCreator", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Cascade)
   project    Project       @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)

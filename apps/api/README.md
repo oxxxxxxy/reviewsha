@@ -305,3 +305,7 @@ contents, secrets or tokens.
 `PipelineModule` consumes `upload.completed` and orchestrates
 `extract → parse → analyze → merge → report → notify`. State and progress are
 stored in `Scan`; exhausted or permanent failures go to `dead-letter.queue`.
+The authenticated API exposes `GET /api/v1/pipelines/:id`, plus resume and
+cancel actions, with owner/admin access checks. Queue and pipeline metrics are
+available through `QueueService.getAllQueueMetrics()` and
+`PipelineService.getMetrics()` for future monitoring and Admin UI.

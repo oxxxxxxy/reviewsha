@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, Scan, ScanStatus } from '@prisma/client';
+import type { PipelineStatus, Prisma, Scan, ScanStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
   BaseRepository,
@@ -36,6 +36,12 @@ export class ScanRepository extends BaseRepository<Scan> implements IScanReposit
     });
   }
 
+  findByIdForOwner(id: string, ownerId: string, options?: RepositoryOptions): Promise<Scan | null> {
+    return this.getClient(options).scan.findFirst({
+      where: { id, deletedAt: null, project: { ownerId } },
+    });
+  }
+
   create(data: Prisma.ScanCreateInput, options?: RepositoryOptions): Promise<Scan> {
     return this.getClient(options).scan.create({ data });
   }
@@ -52,6 +58,16 @@ export class ScanRepository extends BaseRepository<Scan> implements IScanReposit
     return this.getClient(options).scan.update({
       where: { id },
       data: { finishedAt: new Date(), progress: 100, status },
+    });
+  }
+
+  update(id: string, data: Prisma.ScanUpdateInput, options?: RepositoryOptions): Promise<Scan> {
+    return this.getClient(options).scan.update({ where: { id }, data });
+  }
+
+  countByPipelineStatus(status: PipelineStatus, options?: RepositoryOptions): Promise<number> {
+    return this.getClient(options).scan.count({
+      where: { pipelineStatus: status, deletedAt: null },
     });
   }
 }

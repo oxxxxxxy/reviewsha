@@ -26,3 +26,13 @@ upload.completed → extract → parse → analyze → merge → report → noti
 `handleSuccess`, `handleFailure`, `resumePipeline` и `cancelPipeline` являются
 контрактом между orchestration API и Worker. Реальные обработчики шагов появятся
 на Stage 8. Проверки: `yarn workspace @reviewsha/api test:stage7` и `yarn ci:local`.
+
+Состояние pipeline хранится в `Scan.pipelineStep`, `Scan.pipelineStatus`,
+`pipelineAttempts`, error-полях и timestamp-полях. Для владельца и администратора
+доступны `GET /api/v1/pipelines/:id`, `POST /api/v1/pipelines/:id/resume` и
+`POST /api/v1/pipelines/:id/cancel`. Метрики очередей и pipeline подготовлены
+для Admin Panel.
+
+HTTP-интеграционные тесты pipeline проверяют API статуса, прогресс, resume,
+cancel, ownership handoff и отсутствие чувствительных полей; они являются API
+E2E-аналогом до появления полноценного Worker в Stage 8.
