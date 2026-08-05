@@ -1160,6 +1160,16 @@ apps/api/prisma/seed.ts
 
 `UploadedFile`, `Finding`, `ChatSession` и `ChatMessage` используют более точные имена в коде, чтобы не конфликтовать с глобальными browser/Node naming conventions и явно отражать назначение модели.
 
+### Upload pipeline fields
+
+`UploadedFile` is the versioned source-archive record used by Stage 6.2. In addition
+to the storage metadata above it contains `status` (`PENDING`, `VALIDATING`,
+`UPLOADING`, `COMPLETED`, `FAILED`, `DELETED`) and a per-project `version` starting
+at `1`. The pair `(projectId, version)` is unique, and the migration
+`20260805200037_add_upload_status_and_version` adds the corresponding enum, columns,
+index and constraint. Soft-deleted uploads remain historical records and are
+excluded from active project upload queries.
+
 ## 25.2. Дополнительные технические таблицы
 
 `QueueJob` хранит журнал выполнения задач BullMQ и связывает job с `Project` и `Scan`, когда это применимо.

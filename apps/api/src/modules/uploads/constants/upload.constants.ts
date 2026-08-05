@@ -1,0 +1,8 @@
+export const UPLOAD_MAX_SIZE_BYTES = 100 * 1024 * 1024;
+export const UPLOAD_MIN_SIZE_BYTES = 22;
+export const UPLOAD_MAX_UNCOMPRESSED_BYTES = 1 * 1024 * 1024 * 1024;
+export const UPLOAD_MAX_ENTRIES = 10_000;
+export const UPLOAD_MAX_COMPRESSION_RATIO = 100;
+export const UPLOAD_MIME_TYPE = 'application/zip';
+export const UPLOAD_ALLOWED_EXTENSION = '.zip';
+export const UPLOAD_FORBIDDEN_PATHS = ['.git/', 'node_modules/', 'dist/', 'build/'];

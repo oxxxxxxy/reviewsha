@@ -299,7 +299,7 @@ jobs:
         run: yarn test:stage5
 
   stage6-tests:
-    name: Stage 6 Storage module / Node ${{ matrix.node-version }}
+    name: Stage 6 Upload and Storage modules / Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -322,7 +322,7 @@ jobs:
         run: corepack prepare yarn@1.22.22 --activate
       - name: Install dependencies
         run: yarn install --immutable --non-interactive
-      - name: Stage 6 Storage module tests
+      - name: Stage 6 Upload and Storage module tests
         run: yarn test:stage6
 
   e2e-tests:

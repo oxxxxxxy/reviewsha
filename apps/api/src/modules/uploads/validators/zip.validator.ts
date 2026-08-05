@@ -1,0 +1,114 @@
+import { Injectable } from '@nestjs/common';
+import { fromBuffer, type Entry, type ZipFile } from 'yauzl';
+import {
+  UPLOAD_ALLOWED_EXTENSION,
+  UPLOAD_FORBIDDEN_PATHS,
+  UPLOAD_MAX_COMPRESSION_RATIO,
+  UPLOAD_MAX_ENTRIES,
+  UPLOAD_MAX_SIZE_BYTES,
+  UPLOAD_MAX_UNCOMPRESSED_BYTES,
+  UPLOAD_MIN_SIZE_BYTES,
+  UPLOAD_MIME_TYPE,
+} from '../constants/upload.constants';
+import {
+  FileTooLargeException,
+  InvalidArchiveException,
+  InvalidFileTypeException,
+  ZipBombDetectedException,
+} from '../exceptions/upload.exceptions';
+
+export interface ZipValidationResult {
+  readonly entries: number;
+  readonly uncompressedSize: number;
+}
+
+@Injectable()
+export class ZipValidator {
+  async validate(fileName: string, mimeType: string, buffer: Buffer): Promise<ZipValidationResult> {
+    if (
+      !fileName.toLowerCase().endsWith(UPLOAD_ALLOWED_EXTENSION) ||
+      mimeType !== UPLOAD_MIME_TYPE
+    ) {
+      throw new InvalidFileTypeException();
+    }
+    if (buffer.length < UPLOAD_MIN_SIZE_BYTES) {
+      throw new InvalidArchiveException('Archive is empty');
+    }
+    if (buffer.length > UPLOAD_MAX_SIZE_BYTES) {
+      throw new FileTooLargeException();
+    }
+
+    return new Promise((resolve, reject) => {
+      fromBuffer(buffer, { lazyEntries: true, validateEntrySizes: true }, (error, zip) => {
+        if (error || !zip) return reject(new InvalidArchiveException());
+        this.readEntries(zip, 0, 0, resolve, reject);
+      });
+    });
+  }
+
+  private readEntries(
+    zip: ZipFile,
+    entries: number,
+    uncompressedSize: number,
+    resolve: (result: ZipValidationResult) => void,
+    reject: (error: Error) => void,
+  ): void {
+    let emittedEntry = false;
+    zip.once('entry', (entry: Entry) => {
+      emittedEntry = true;
+      const nextEntries = entries + 1;
+      const nextSize = uncompressedSize + entry.uncompressedSize;
+      try {
+        this.validateEntry(entry, nextEntries, nextSize);
+      } catch (error) {
+        zip.close();
+        reject(error as Error);
+        return;
+      }
+
+      zip.openReadStream(entry, (error, stream) => {
+        if (error || !stream) {
+          zip.close();
+          reject(new InvalidArchiveException());
+          return;
+        }
+        stream.on('error', () => {
+          zip.close();
+          reject(new InvalidArchiveException());
+        });
+        stream.resume();
+        stream.on('end', () => {
+          zip.removeAllListeners('entry');
+          this.readEntries(zip, nextEntries, nextSize, resolve, reject);
+        });
+      });
+    });
+    zip.once('end', () => {
+      if (!emittedEntry) {
+        if (entries === 0) reject(new InvalidArchiveException('Archive is empty'));
+        else resolve({ entries, uncompressedSize });
+      }
+    });
+    zip.once('error', () => reject(new InvalidArchiveException()));
+    zip.readEntry();
+  }
+
+  private validateEntry(entry: Entry, entries: number, uncompressedSize: number): void {
+    if (entries > UPLOAD_MAX_ENTRIES || uncompressedSize > UPLOAD_MAX_UNCOMPRESSED_BYTES) {
+      throw new ZipBombDetectedException();
+    }
+    const normalized = entry.fileName.replaceAll('\\', '/');
+    if (
+      normalized.split('/').includes('..') ||
+      UPLOAD_FORBIDDEN_PATHS.some((path) => normalized.startsWith(path))
+    ) {
+      throw new InvalidArchiveException('Archive contains a forbidden path');
+    }
+    if (
+      entry.compressedSize > 0 &&
+      entry.uncompressedSize / entry.compressedSize > UPLOAD_MAX_COMPRESSION_RATIO
+    ) {
+      throw new ZipBombDetectedException();
+    }
+  }
+}

@@ -276,3 +276,19 @@ All protected endpoints use `@ApiBearerAuth('bearer')`; public endpoints are mar
 `src/modules/storage`; `MinioProvider` инкапсулирует SDK и создаёт bucket'ы
 `projects`, `reports` и `temp`. Поддерживаются stream upload/download, metadata,
 exists, copy, move, delete и presigned URL.
+
+## Upload Module
+
+`UploadsModule` принимает ZIP-архивы через:
+
+```http
+POST /api/v1/projects/:projectId/uploads
+GET  /api/v1/projects/:projectId/uploads
+```
+
+Загрузка доступна владельцу проекта или администратору. До сохранения модуль
+проверяет размер, MIME/расширение, CRC и структуру ZIP, traversal, запрещённые
+каталоги, число записей, распакованный размер и коэффициент сжатия. После этого
+архив получает SHA-256 checksum, последовательную версию и детерминированный
+storage key, а запись сохраняется через `UploadedFileRepository`. MinIO доступен
+только через `StorageService`; событие `upload.completed` подготовлено для Stage 7.

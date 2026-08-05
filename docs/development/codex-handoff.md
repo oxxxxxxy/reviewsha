@@ -11,7 +11,7 @@
 - Последний известный коммит до начала Stage 5.1: `9c82220 docs: add codex project handoff`.
 - Рабочее дерево должно оставаться чистым после завершения задачи.
 - Docker Compose и локальные сервисы сейчас остановлены.
-- Stage 5.2 Projects Management и Stage 6.1 MinIO File Storage реализованы; следующий функциональный шаг — Stage 6.2 Upload Pipeline.
+- Stage 5.2 Projects Management, Stage 6.1 MinIO File Storage и Stage 6.2 Upload Pipeline реализованы; следующий функциональный шаг — Stage 7.1 Queue Infrastructure.
 
 Этапы 1–4.7 считаются завершёнными. Перед изменением уже реализованного кода нужно сверяться с соответствующим acceptance-документом и архитектурой, а не считать README единственным источником истины.
 
@@ -42,6 +42,10 @@ Stage 6.1 добавил `apps/api/src/modules/storage/`: `StorageService` is th
 application-facing storage API, while `MinioProvider` is the only MinIO SDK adapter.
 The module owns bucket initialization, streaming operations, metadata, copy/move,
 presigned URLs and storage error mapping. Focused tests run with `yarn test:stage6`.
+
+Stage 6.2 Upload Pipeline is complete. `UploadsModule` owns multipart ZIP validation,
+checksum, ownership, versioning and persistence; keep it dependent on `StorageService`
+rather than importing MinIO. The next planned work is Stage 7.1 Queue Infrastructure.
 
 ## 3. Структура монорепозитория
 

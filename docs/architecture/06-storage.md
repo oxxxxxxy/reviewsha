@@ -17,6 +17,18 @@
 MinIO
 ```
 
+API использует `StorageService` из `StorageModule`; MinIO SDK инкапсулирован в
+`MinioProvider`. Upload Module не импортирует SDK напрямую.
+
+Загрузка проекта хранится в bucket `projects` по ключу:
+
+```text
+users/{userId}/projects/{projectId}/uploads/{uploadId}.zip
+```
+
+Метаданные загрузки и версия хранятся в PostgreSQL (`uploaded_files`), содержимое —
+в MinIO. Принимаются только ZIP до 100 MB с защитой от path traversal и zip bomb.
+
 ---
 
 # 2. Общая концепция хранения

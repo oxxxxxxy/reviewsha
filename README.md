@@ -28,11 +28,12 @@ AI SaaS platform for automated code review.
 | 5.1 Projects Module                | ✅ COMPLETE | Ownership-aware Projects API, repository queries, lifecycle events, DTOs, mapper and tests    |
 | 5.2 Управление проектами           | ✅ COMPLETE | CRUD, soft delete, archive/restore, tags, filters, statistics, history and lifecycle events   |
 | 6.1 File Storage (MinIO)           | ✅ COMPLETE | StorageModule, MinioProvider, bucket strategy, streaming operations and presigned URLs        |
+| 6.2 Upload Pipeline                | ✅ COMPLETE | ZIP upload API, validation, checksum, ownership, MinIO persistence and versioning             |
 
 Следующий этап:
 
 ```txt
-Этап 6.2 Upload Pipeline
+Этап 7.1 Queue Infrastructure (Redis + BullMQ)
 ```
 
 ---
@@ -179,6 +180,14 @@ MINIO_USE_SSL=false
 ```bash
 yarn test:stage6
 ```
+
+### Upload Pipeline
+
+Загрузка исходного кода выполняется через `POST /api/v1/projects/:projectId/uploads`.
+Принимаются ZIP-архивы до 100 MB. Проверяются MIME/расширение, структура ZIP,
+CRC, traversal, запрещённые каталоги, количество записей, распакованный размер и
+коэффициент сжатия. Успешные загрузки получают последовательную версию и сохраняются
+через `StorageService` в MinIO; событие `upload.completed` подготовлено для Queue.
 
 Групповые команды:
 

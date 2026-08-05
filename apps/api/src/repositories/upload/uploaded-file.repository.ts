@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Prisma, UploadedFile } from '@prisma/client';
+import type { Prisma, UploadedFile, UploadStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
   BaseRepository,
@@ -34,6 +34,37 @@ export class UploadedFileRepository
       skip: options?.skip,
       take: options?.take,
     });
+  }
+
+  findLatestByProject(
+    projectId: string,
+    options?: RepositoryOptions,
+  ): Promise<UploadedFile | null> {
+    return this.getClient(options).uploadedFile.findFirst({
+      where: { projectId, deletedAt: null },
+      orderBy: { version: 'desc' },
+    });
+  }
+
+  async getNextVersion(projectId: string, options?: RepositoryOptions): Promise<number> {
+    const latest = await this.findLatestByProject(projectId, options);
+    return (latest?.version ?? 0) + 1;
+  }
+
+  updateStatus(
+    id: string,
+    status: UploadStatus,
+    options?: RepositoryOptions,
+  ): Promise<UploadedFile> {
+    return this.getClient(options).uploadedFile.update({ where: { id }, data: { status } });
+  }
+
+  update(
+    id: string,
+    data: Prisma.UploadedFileUpdateInput,
+    options?: RepositoryOptions,
+  ): Promise<UploadedFile> {
+    return this.getClient(options).uploadedFile.update({ where: { id }, data });
   }
 
   delete(id: string, options?: RepositoryOptions): Promise<UploadedFile> {

@@ -993,7 +993,7 @@ Autoscaling
 
 Этап 6. Загрузка файлов
 6.1 File Storage (MinIO) ✅ COMPLETE
-6.2 Upload Pipeline (Upload API, ZIP Validation, Versioning)
+6.2 Upload Pipeline (Upload API, ZIP Validation, Versioning) ✅ COMPLETE
 
 Этап 7. Очереди
 7.1 Queue Infrastructure (Redis + BullMQ)

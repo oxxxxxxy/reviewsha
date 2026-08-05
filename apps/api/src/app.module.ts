@@ -13,6 +13,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { StorageModule } from './modules/storage/storage.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { StorageModule } from './modules/storage/storage.module';
     SessionsModule,
     ProjectsModule,
     StorageModule,
+    UploadsModule,
     HealthModule,
   ],
   providers: [

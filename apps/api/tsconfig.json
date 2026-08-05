@@ -7,7 +7,7 @@
     "lib": ["ES2023"],
     "outDir": "dist",
     "rootDir": ".",
-    "types": ["node", "vitest/globals"],
+    "types": ["node", "multer", "vitest/globals"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,

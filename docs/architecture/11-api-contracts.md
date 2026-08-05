@@ -297,6 +297,18 @@ GET  /projects/:id/history
 
 # 8. File API
 
+## Upload Pipeline
+
+```text
+POST /projects/:projectId/uploads
+GET  /projects/:projectId/uploads
+```
+
+Запрос `multipart/form-data` содержит поле `file`. Ответ содержит `id`, `status`,
+`version`, `size`, `mimeType`, `checksum` и `storageKey`. Загрузки ограничены владельцем
+проекта или ADMIN. Ошибки валидации возвращают `422` с кодами `INVALID_FILE_TYPE`,
+`INVALID_ARCHIVE`, `FILE_TOO_LARGE` или `ZIP_BOMB_DETECTED`.
+
 ## Загрузка файла
 
 ```
