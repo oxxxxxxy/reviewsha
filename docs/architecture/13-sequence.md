@@ -29,6 +29,20 @@ MergeProcessor → output/context.json
 CleanupProcessor → remove temporary workspace
 ```
 
+После очистки контекст передаётся в AI/reporting pipeline:
+
+```text
+Merged context
+    ↓
+AI parser → chunks → prompt builder
+    ↓
+AIProvider / OmniRouter / DeepSeek
+    ↓
+response validator → issue aggregator → report builders
+    ↓
+Reports API → frontend
+```
+
 На Stage 7.2 API принимает `UploadCompleted`, создаёт Scan и регистрирует первый
 Job через `PipelineService`/`QueueService`. Каждый успешный шаг создаёт следующий
 Job; окончательно упавшие jobs отправляются в `dead-letter.queue`. Реальное

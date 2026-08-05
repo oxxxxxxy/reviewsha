@@ -33,11 +33,16 @@ AI SaaS platform for automated code review.
 | 7.2 Job Pipeline                   | ✅ COMPLETE | UploadCompleted trigger, six-step pipeline orchestration, retries, progress and dead-letter queue                        |
 | 8.1 Worker Infrastructure          | ✅ COMPLETE | Standalone Nest application context, BullMQ consumers, processors, DB/storage adapters, workspaces and graceful shutdown |
 | 8.2 Processing Jobs                | ✅ COMPLETE | Download, safe ZIP extraction, project parsing, context merge and idempotent cleanup                                     |
+| 9.1 AI Processing Pipeline         | ✅ COMPLETE | Project classification, token-aware chunks, context selection and structured prompts                                     |
+| 9.2 AI Integration                 | ✅ COMPLETE | Provider abstraction, OmniRouter-compatible DeepSeek configuration and response validation                               |
+| 9.3 Report Generation              | ✅ COMPLETE | Issue normalization/deduplication, scoring, Markdown and JSON builders                                                   |
+| 10.1 Reports Module                | ✅ COMPLETE | Ownership-aware report API, status, project history and deletion                                                         |
+| 10.2 Reports & History             | ✅ COMPLETE | Markdown/JSON/PDF export and report comparison                                                                           |
 
 Следующий этап:
 
 ```txt
-Следующий этап: AI Pipeline
+Следующий этап: AI Chat
 ```
 
 ---

@@ -21,6 +21,11 @@ Slip, превышение количества файлов, глубины и 
 удаляет `/tmp/reviewsha/jobs/{pipelineId}`. Payload очереди содержит только
 идентификаторы; бинарные данные остаются в MinIO и workspace.
 
+После подготовки контекста Worker использует AI layer (`parser → chunks →
+context → prompts`) и provider abstraction для OmniRouter. Ответы проходят
+JSON validation и reporting layer (aggregation, deduplication, score, Markdown
+и JSON builders).
+
 ## Stage 8.1 Worker Infrastructure
 
 `apps/worker/src/main.ts` запускает `NestFactory.createApplicationContext` без

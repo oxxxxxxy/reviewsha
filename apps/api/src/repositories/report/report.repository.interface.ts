@@ -3,6 +3,12 @@ import type { IRepository, RepositoryOptions } from '../base/repository.interfac
 
 export interface IReportRepository extends IRepository<Report> {
   findByScan(scanId: string, options?: RepositoryOptions): Promise<Report | null>;
+  findByIdForProject(
+    id: string,
+    projectId: string,
+    options?: RepositoryOptions,
+  ): Promise<Report | null>;
+  findByProject(projectId: string, options?: RepositoryOptions): Promise<Report[]>;
   create(data: Prisma.ReportCreateInput, options?: RepositoryOptions): Promise<Report>;
   update(id: string, data: Prisma.ReportUpdateInput, options?: RepositoryOptions): Promise<Report>;
   delete(id: string, options?: RepositoryOptions): Promise<Report>;

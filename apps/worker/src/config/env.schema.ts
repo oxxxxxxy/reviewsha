@@ -15,6 +15,12 @@ export const workerEnvSchema = z.object({
   MINIO_PORT: z.coerce.number().int().positive().default(9000),
   MINIO_USE_SSL: z.coerce.boolean().default(false),
   AI_PROVIDER: z.enum(['deepseek', 'openai', 'local', 'mock']).default('deepseek'),
+  OMNIROUTER_API_KEY: z.string().optional(),
+  OMNIROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),
+  AI_MODEL: z.string().default('deepseek/deepseek-chat'),
+  AI_MAX_TOKENS: z.coerce.number().int().positive().default(4000),
+  AI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.2),
+  AI_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
 });
 
 export type WorkerEnvConfig = z.infer<typeof workerEnvSchema>;

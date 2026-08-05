@@ -16,6 +16,7 @@ import { StorageModule } from './modules/storage/storage.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { QueueModule } from './modules/queue/queue.module';
 import { PipelineModule } from './modules/pipeline/pipeline.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PipelineModule } from './modules/pipeline/pipeline.module';
     UploadsModule,
     QueueModule,
     PipelineModule,
+    ReportsModule,
     HealthModule,
   ],
   providers: [

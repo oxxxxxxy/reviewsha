@@ -4,6 +4,24 @@
 → Merge → Cleanup`. Результат `Merge` (`context.json`) является входом для
 следующих этапов AI Pipeline и не содержит сам ZIP или секреты.
 
+## Реализация Stage 9
+
+`apps/worker/src/ai` содержит `AIProjectParser`, `ChunkBuilderService`,
+`ContextBuilderService` и `PromptBuilderService`. Parser исключает секреты,
+lock-файлы и generated directories, классифицирует файлы и определяет тип
+проекта. Chunk Builder ограничивает приблизительные токены, умеет объединять
+файлы в module chunks и формирует architecture chunk. Prompt Builder создаёт
+единый JSON-контракт для задач architecture, bugs, security, quality и
+performance.
+
+AI Provider изолирован интерфейсом `AIProvider`; `OmniRouterProvider` использует
+OpenAI-compatible `/chat/completions`, конфигурация берётся из ENV. Ответ
+проверяется `AIResponseValidator` до передачи в reporting layer.
+
+Reporting layer нормализует и дедуплицирует issues, рассчитывает score, создаёт
+JSON и Markdown отчёты. API `ReportsModule` предоставляет чтение, историю
+проекта, удаление, Markdown/JSON export и compare endpoint с проверкой владельца.
+
 ## 1. Назначение документа
 
 Этот документ описывает архитектуру искусственного интеллекта в системе:

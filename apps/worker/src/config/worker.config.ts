@@ -10,6 +10,12 @@ export type WorkerConfig = {
   minioPort: number;
   minioUseSSL: boolean;
   aiProvider: string;
+  aiApiKey?: string;
+  aiBaseUrl: string;
+  aiModel: string;
+  aiMaxTokens: number;
+  aiTemperature: number;
+  aiTimeoutMs: number;
 };
 
 export default (): { worker: WorkerConfig } => ({
@@ -27,5 +33,11 @@ export default (): { worker: WorkerConfig } => ({
     minioPort: Number(process.env.MINIO_PORT ?? 9000),
     minioUseSSL: process.env.MINIO_USE_SSL === 'true',
     aiProvider: process.env.AI_PROVIDER ?? 'deepseek',
+    aiApiKey: process.env.OMNIROUTER_API_KEY,
+    aiBaseUrl: process.env.OMNIROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1',
+    aiModel: process.env.AI_MODEL ?? 'deepseek/deepseek-chat',
+    aiMaxTokens: Number(process.env.AI_MAX_TOKENS ?? 4000),
+    aiTemperature: Number(process.env.AI_TEMPERATURE ?? 0.2),
+    aiTimeoutMs: Number(process.env.AI_TIMEOUT_MS ?? 60000),
   },
 });

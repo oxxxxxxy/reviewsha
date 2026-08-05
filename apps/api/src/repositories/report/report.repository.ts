@@ -23,6 +23,21 @@ export class ReportRepository extends BaseRepository<Report> implements IReportR
     return this.getClient(options).report.findUnique({ where: { scanId } });
   }
 
+  findByIdForProject(
+    id: string,
+    projectId: string,
+    options?: RepositoryOptions,
+  ): Promise<Report | null> {
+    return this.getClient(options).report.findFirst({ where: { id, projectId, deletedAt: null } });
+  }
+
+  findByProject(projectId: string, options?: RepositoryOptions): Promise<Report[]> {
+    return this.getClient(options).report.findMany({
+      where: { projectId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   create(data: Prisma.ReportCreateInput, options?: RepositoryOptions): Promise<Report> {
     return this.getClient(options).report.create({ data });
   }
