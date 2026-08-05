@@ -112,6 +112,17 @@ export class ProjectRepository extends BaseRepository<Project> implements IProje
     }) as Promise<ProjectDetails | null>;
   }
 
+  findByIdForOwnerIncludingDeleted(
+    id: string,
+    ownerId?: string,
+    options?: RepositoryOptions,
+  ): Promise<ProjectDetails | null> {
+    return this.getClient(options).project.findFirst({
+      where: { id, ...(ownerId ? { ownerId } : {}) },
+      include: projectDetailsInclude,
+    }) as Promise<ProjectDetails | null>;
+  }
+
   create(data: Prisma.ProjectCreateInput, options?: RepositoryOptions): Promise<Project> {
     return this.getClient(options).project.create({ data });
   }

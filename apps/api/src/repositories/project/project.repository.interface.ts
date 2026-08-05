@@ -49,6 +49,11 @@ export interface IProjectRepository extends IRepository<Project> {
     ownerId: string,
     options?: RepositoryOptions,
   ): Promise<ProjectDetails | null>;
+  findByIdForOwnerIncludingDeleted(
+    id: string,
+    ownerId?: string,
+    options?: RepositoryOptions,
+  ): Promise<ProjectDetails | null>;
   syncTags(projectId: string, tags: string[], options?: RepositoryOptions): Promise<void>;
   createHistory(
     projectId: string,

@@ -48,6 +48,7 @@ describe('ProjectsModule HTTP integration', () => {
       syncTags: vi.fn(async () => undefined),
       createHistory: vi.fn(async () => undefined),
       findHistory: vi.fn(async () => []),
+      findByIdForOwnerIncludingDeleted: vi.fn(async () => project),
     };
 
     const moduleRef = await Test.createTestingModule({

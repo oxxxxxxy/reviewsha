@@ -209,7 +209,11 @@ export class ProjectsService {
   }
 
   async history(user: AuthenticatedUser, id: string): Promise<ProjectHistoryListResponseDto> {
-    await this.findProject(user, id);
+    const project = await this.projectRepository.findByIdForOwnerIncludingDeleted(
+      id,
+      user.role === Role.ADMIN ? undefined : user.id,
+    );
+    if (!project) throw new NotFoundException('Project not found');
     return { data: ProjectMapper.toHistoryResponse(await this.projectRepository.findHistory(id)) };
   }
 

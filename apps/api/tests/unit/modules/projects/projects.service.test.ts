@@ -67,6 +67,7 @@ function setup() {
     syncTags: vi.fn(async () => undefined),
     createHistory: vi.fn(async () => undefined),
     findHistory: vi.fn(async () => []),
+    findByIdForOwnerIncludingDeleted: vi.fn(async () => projectDetails()),
   };
   const events = new ProjectEvents();
   const logger = { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as unknown as ApiLoggerService;
