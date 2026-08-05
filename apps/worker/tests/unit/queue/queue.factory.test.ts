@@ -33,8 +33,8 @@ describe('queue factory helpers', () => {
     expect(queue.name).toBe(QUEUE_NAMES.scan);
     expect(DEFAULT_JOB_OPTIONS).toMatchObject({
       attempts: 3,
-      removeOnComplete: 100,
-      removeOnFail: 500,
+      removeOnComplete: true,
+      removeOnFail: false,
     });
 
     await queue.close();

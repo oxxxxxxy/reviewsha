@@ -1,0 +1,99 @@
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { InjectQueue } from '@nestjs/bullmq';
+import type { Job, JobsOptions, Queue } from 'bullmq';
+import { ApiLoggerService } from '../../common/logger/api-logger.service';
+import {
+  DEFAULT_QUEUE_JOB_OPTIONS,
+  type QueueJobData,
+  type QueueJobPayload,
+  type QueueJobStatus,
+  type QueueName,
+  QUEUE_NAMES,
+} from './queue.constants';
+import { buildQueueJob } from './queue.job-builder';
+import { QueueEvents, QUEUE_EVENTS } from './queue.events';
+import { QueueRegistry } from './queue.registry';
+
+type QueueMap = Record<QueueName, Queue<QueueJobData>>;
+
+@Injectable()
+export class QueueService implements OnModuleDestroy {
+  private readonly queues: QueueMap;
+
+  constructor(
+    @InjectQueue(QUEUE_NAMES.scan) scan: Queue<QueueJobData>,
+    @InjectQueue(QUEUE_NAMES.file) file: Queue<QueueJobData>,
+    @InjectQueue(QUEUE_NAMES.ai) ai: Queue<QueueJobData>,
+    @InjectQueue(QUEUE_NAMES.report) report: Queue<QueueJobData>,
+    @InjectQueue(QUEUE_NAMES.notification) notification: Queue<QueueJobData>,
+    private readonly registry: QueueRegistry,
+    private readonly events: QueueEvents,
+    private readonly logger: ApiLoggerService,
+    private readonly config: ConfigService,
+  ) {
+    this.queues = {
+      [QUEUE_NAMES.scan]: scan,
+      [QUEUE_NAMES.file]: file,
+      [QUEUE_NAMES.ai]: ai,
+      [QUEUE_NAMES.report]: report,
+      [QUEUE_NAMES.notification]: notification,
+    };
+  }
+
+  async addJob(
+    queueName: QueueName,
+    type: string,
+    payload: QueueJobPayload = {},
+    options: JobsOptions = {},
+  ): Promise<{ id: string; queue: QueueName; data: QueueJobData }> {
+    const data = buildQueueJob(type, payload);
+    const job = await this.queues[queueName].add(type, data, {
+      ...DEFAULT_QUEUE_JOB_OPTIONS,
+      ...options,
+      jobId: data.id,
+    });
+    this.events.publish(QUEUE_EVENTS.created, { queue: queueName, job: data });
+    this.logger.log(`Queue job created: ${queueName}/${data.id}`, 'QueueService');
+    return { id: String(job.id), queue: queueName, data };
+  }
+
+  getJob(queueName: QueueName, id: string): Promise<Job<QueueJobData> | undefined> {
+    return this.queues[queueName].getJob(id);
+  }
+
+  async getJobStatus(queueName: QueueName, id: string): Promise<QueueJobStatus | null> {
+    const job = await this.getJob(queueName, id);
+    return job ? ((await job.getState()) as QueueJobStatus) : null;
+  }
+
+  async removeJob(queueName: QueueName, id: string): Promise<void> {
+    await this.queues[queueName].remove(id);
+  }
+
+  async retryJob(queueName: QueueName, id: string): Promise<void> {
+    const job = await this.getJob(queueName, id);
+    if (!job) throw new Error(`Queue job not found: ${id}`);
+    await job.retry('failed');
+  }
+
+  pauseQueue(queueName: QueueName): Promise<void> {
+    return this.queues[queueName].pause();
+  }
+
+  resumeQueue(queueName: QueueName): Promise<void> {
+    return this.queues[queueName].resume();
+  }
+
+  async healthCheck(): Promise<void> {
+    await Promise.all(this.registry.getAll().map((queue) => this.queues[queue].getJobCounts()));
+  }
+
+  getRedisConfig(): { url: string } {
+    return { url: this.config.getOrThrow<string>('redis.url') };
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await Promise.all(Object.values(this.queues).map((queue) => queue.close()));
+  }
+}

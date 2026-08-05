@@ -996,7 +996,7 @@ Autoscaling
 6.2 Upload Pipeline (Upload API, ZIP Validation, Versioning) ✅ COMPLETE
 
 Этап 7. Очереди
-7.1 Queue Infrastructure (Redis + BullMQ)
+7.1 Queue Infrastructure (Redis + BullMQ) ✅ COMPLETE
 7.2 Job Pipeline (Pipeline, Retry, Monitoring)
 
 Этап 8. Worker

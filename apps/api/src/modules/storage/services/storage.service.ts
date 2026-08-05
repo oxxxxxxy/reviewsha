@@ -19,6 +19,10 @@ export class StorageService {
     await this.provider.ensureBuckets();
   }
 
+  async healthCheck(): Promise<void> {
+    await this.provider.ensureBuckets();
+  }
+
   upload(input: StorageUpload): Promise<StorageMetadata> {
     return this.measure('upload', input.bucket, input.key, () => this.provider.upload(input));
   }

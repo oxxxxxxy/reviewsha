@@ -21,6 +21,15 @@ Redis
 BullMQ
 ```
 
+Реализация Stage 7.1 находится в `apps/api/src/modules/queue`. `QueueModule`
+регистрирует очереди через `@nestjs/bullmq`, а `QueueService` является единой
+точкой добавления и управления Job. Worker использует те же имена очередей через
+`@reviewsha/config`, поэтому строковые имена не дублируются.
+
+Redis конфигурируется через `REDIS_URL` или набор `REDIS_HOST`, `REDIS_PORT`,
+`REDIS_PASSWORD`, `REDIS_DB`. API health endpoint проверяет PostgreSQL, Redis и
+MinIO.
+
 ---
 
 # 2. Зачем нужны очереди
@@ -128,6 +137,28 @@ queues/
 
 └── notification.queue
 ```
+
+Все Job имеют envelope `{ id, type, payload, createdAt }`. В `payload` разрешены
+только JSON-safe идентификаторы (`uploadId`, `projectId`, `scanId` и подобные).
+Бинарные данные, секреты и токены отклоняются. Общая политика BullMQ: 3 попытки,
+exponential backoff с задержкой 1 секунда, completed jobs удаляются, failed jobs
+сохраняются для диагностики.
+
+## QueueService API
+
+```text
+addJob(queue, type, payload)
+getJob(queue, id)
+getJobStatus(queue, id)
+removeJob(queue, id)
+retryJob(queue, id)
+pauseQueue(queue)
+resumeQueue(queue)
+```
+
+Доменный код не создаёт BullMQ Queue напрямую. События
+`queue.job.created`, `queue.job.completed` и `queue.job.failed` подготовлены для
+связки с `UploadCompleted` и конкретным pipeline на Stage 7.2.
 
 ---
 

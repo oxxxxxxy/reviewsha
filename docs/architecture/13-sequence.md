@@ -11,6 +11,30 @@
 - зафиксировать порядок вызовов;
 - подготовить основу для UML Sequence Diagram.
 
+## 2.1 UploadCompleted и Queue Infrastructure (Stage 7.1)
+
+На Stage 7.1 API регистрирует Job через `QueueService`; конкретная обработка
+события и цепочка Worker будут добавлены на Stage 7.2.
+
+```text
+Upload API
+    ↓
+PostgreSQL: UploadedFile COMPLETED
+    ↓
+UploadEvents: upload.completed
+    ↓
+QueueService.addJob(file.queue / scan.queue, identifiers)
+    ↓
+BullMQ
+    ↓
+Redis
+    ↓
+Worker (Stage 7.2)
+```
+
+В payload передаются только `uploadId`, `projectId`, `scanId` и другие небольшие
+идентификаторы. ZIP-файлы, токены и секреты в Redis Job не передаются.
+
 ---
 
 # 2. Основные участники системы

@@ -14,6 +14,7 @@ import { SessionsModule } from './modules/sessions/sessions.module';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { QueueModule } from './modules/queue/queue.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
     ProjectsModule,
     StorageModule,
     UploadsModule,
+    QueueModule,
     HealthModule,
   ],
   providers: [

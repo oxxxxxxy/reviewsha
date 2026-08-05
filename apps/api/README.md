@@ -292,3 +292,11 @@ GET  /api/v1/projects/:projectId/uploads
 архив получает SHA-256 checksum, последовательную версию и детерминированный
 storage key, а запись сохраняется через `UploadedFileRepository`. MinIO доступен
 только через `StorageService`; событие `upload.completed` подготовлено для Stage 7.
+
+## Queue Module
+
+`QueueService` is the API-facing BullMQ abstraction. Queue names are imported from
+`@reviewsha/config` (`scan.queue`, `file.queue`, `ai.queue`, `report.queue` and
+`notification.queue`). Use `addJob`, `getJobStatus`, `retryJob`, `pauseQueue` and
+`resumeQueue`; do not instantiate `Queue` in domain modules. Job payloads contain
+only small JSON-safe identifiers and never file contents, secrets or tokens.

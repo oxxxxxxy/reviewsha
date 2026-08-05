@@ -29,7 +29,7 @@
 10. `docs/architecture/11-api-contracts.md` — API path, response/error contract.
 11. `docs/architecture/07-queues.md` и `08-worker.md` — очереди и Worker.
 12. `docs/development/standards.md` — code style, imports, tests, naming.
-13. `docs/implementation/stage-4-1-*` … `stage-4-7-*` — фактические acceptance и implementation notes.
+13. `docs/implementation/stage-4-1-*` … `stage-7-1-*` — фактические acceptance и implementation notes.
 14. Acceptance-документ текущего этапа — обязательный список результата.
 
 После каждой фичи синхронно обновлять код, тесты, README, implementation docs, архитектурные документы, OpenAPI и CI, если они затронуты.
@@ -46,6 +46,10 @@ presigned URLs and storage error mapping. Focused tests run with `yarn test:stag
 Stage 6.2 Upload Pipeline is complete. `UploadsModule` owns multipart ZIP validation,
 checksum, ownership, versioning and persistence; keep it dependent on `StorageService`
 rather than importing MinIO. The next planned work is Stage 7.1 Queue Infrastructure.
+
+Stage 7.1 Queue Infrastructure is complete. API `QueueModule` owns BullMQ
+registration and `QueueService`; Worker and API use the same central queue names.
+The next planned work is Stage 7.2 Job Pipeline, including `UploadCompleted` consumers.
 
 ## 3. Структура монорепозитория
 

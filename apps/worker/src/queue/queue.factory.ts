@@ -16,15 +16,15 @@ export const BULLMQ_REDIS_OPTIONS: RedisOptions = {
   connectTimeout: 500,
 };
 
-/** Default retry and cleanup policy for skeleton queue jobs. */
+/** Shared retry and cleanup policy for all BullMQ jobs. */
 export const DEFAULT_JOB_OPTIONS: JobsOptions = {
   attempts: 3,
   backoff: {
     type: 'exponential',
     delay: 1_000,
   },
-  removeOnComplete: 100,
-  removeOnFail: 500,
+  removeOnComplete: true,
+  removeOnFail: false,
 };
 
 /** Creates an isolated Redis connection configured for BullMQ. */

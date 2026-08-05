@@ -10,6 +10,11 @@ export const envSchema = z.object({
   DATABASE_URL: z
     .string()
     .default('postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public'),
+  REDIS_URL: z.string().url().optional(),
+  REDIS_HOST: z.string().default('localhost'),
+  REDIS_PORT: z.coerce.number().int().positive().default(6379),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_DB: z.coerce.number().int().nonnegative().default(0),
   PRISMA_LOG_QUERIES: z.coerce.boolean().default(false),
   JWT_SECRET: z.string().default('reviewsha-access-secret-change-me'),
   JWT_EXPIRES_IN: z.string().default('15m'),

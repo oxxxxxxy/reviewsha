@@ -18,13 +18,16 @@ export class HealthController {
   @Get()
   @ApiOperation({
     summary: 'Health check',
-    description: 'Public endpoint. Returns API and database availability.',
+    description: 'Public endpoint. Returns API, database, Redis and MinIO availability.',
   })
   @ApiOkResponse({
     description: 'API health status.',
     schema: {
       example: {
         status: 'ok',
+        database: 'ok',
+        redis: 'ok',
+        storage: 'ok',
       },
     },
   })

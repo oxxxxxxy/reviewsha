@@ -4,36 +4,37 @@ AI SaaS platform for automated code review.
 
 ## Текущее состояние проекта
 
-| Этап                               | Статус      | Результат                                                                                     |
-| ---------------------------------- | ----------- | --------------------------------------------------------------------------------------------- |
-| Этап 1. Проектирование системы     | ✅ COMPLETE | Архитектура, backend/frontend/worker/storage/queue/database проектирование, draw.io диаграммы |
-| 2.1 Yarn Workspaces                | ✅ COMPLETE | Инициализирован Yarn Classic monorepo                                                         |
-| 2.2 Создание приложений            | ✅ COMPLETE | Созданы `api`, `web`, `admin`, `worker`                                                       |
-| 2.3 Shared Packages                | ✅ COMPLETE | Созданы `config`, `types`, `sdk`, `ui`                                                        |
-| 2.4 Docker Compose                 | ✅ COMPLETE | Локальная инфраструктура PostgreSQL, Redis, MinIO                                             |
-| 2.5 Базовая инфраструктура проекта | ✅ COMPLETE | ENV, config, logging, errors, aliases, hooks, IDE, standards                                  |
-| 2.6 CI/CD — GitHub Actions         | ✅ COMPLETE | Автоматические проверки на push, pull request и ручной запуск                                 |
-| 3.1 Prisma Schema                  | ✅ COMPLETE | Полная Prisma-схема, первая миграция, seed, Prisma Client и Stage 3 acceptance tests          |
-| 3.2 Миграции                       | ✅ COMPLETE | Prisma Migrate workflow, reset/deploy/dev scripts, CI checks и документация                   |
-| 3.3 Seed                           | ✅ COMPLETE | Модульный deterministic seed для dev/test/demo данных                                         |
-| 3.4 Prisma Client                  | ✅ COMPLETE | Единый PrismaService, DatabaseModule, health check PostgreSQL и транзакции                    |
-| 3.5 Repository Layer               | ✅ COMPLETE | Репозитории для MVP-сущностей, интерфейсы, DI и unit-тесты                                    |
-| 4.1 Users Module                   | ✅ COMPLETE | CRUD пользователей, DTO validation, Swagger, поиск, пагинация и сортировка                    |
-| 4.2 Auth Module                    | ✅ COMPLETE | JWT auth, Argon2 passwords, refresh rotation, guards, roles and sessions                      |
-| 4.3 JWT Infrastructure             | ✅ COMPLETE | Централизованный TokenService, JwtConfig, verify/decode/hash и TokenService-backed guards     |
-| 4.4 Refresh Token & Sessions       | ✅ COMPLETE | SessionModule, SessionService, rotation, reuse detection, session list/revoke and cleanup     |
-| 4.5 Guards                         | ✅ COMPLETE | Common auth guards/decorators, global JWT protection, roles, ownership and API key guard      |
-| 4.6 Roles & Authorization          | ✅ COMPLETE | Centralized RBAC role constants, authorization policies, explicit endpoint access rules       |
-| 4.7 Swagger & API Documentation    | ✅ COMPLETE | OpenAPI 3.1, Swagger UI, Bearer auth, DTO/errors/examples and CI contract generation          |
-| 5.1 Projects Module                | ✅ COMPLETE | Ownership-aware Projects API, repository queries, lifecycle events, DTOs, mapper and tests    |
-| 5.2 Управление проектами           | ✅ COMPLETE | CRUD, soft delete, archive/restore, tags, filters, statistics, history and lifecycle events   |
-| 6.1 File Storage (MinIO)           | ✅ COMPLETE | StorageModule, MinioProvider, bucket strategy, streaming operations and presigned URLs        |
-| 6.2 Upload Pipeline                | ✅ COMPLETE | ZIP upload API, validation, checksum, ownership, MinIO persistence and versioning             |
+| Этап                               | Статус      | Результат                                                                                      |
+| ---------------------------------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| Этап 1. Проектирование системы     | ✅ COMPLETE | Архитектура, backend/frontend/worker/storage/queue/database проектирование, draw.io диаграммы  |
+| 2.1 Yarn Workspaces                | ✅ COMPLETE | Инициализирован Yarn Classic monorepo                                                          |
+| 2.2 Создание приложений            | ✅ COMPLETE | Созданы `api`, `web`, `admin`, `worker`                                                        |
+| 2.3 Shared Packages                | ✅ COMPLETE | Созданы `config`, `types`, `sdk`, `ui`                                                         |
+| 2.4 Docker Compose                 | ✅ COMPLETE | Локальная инфраструктура PostgreSQL, Redis, MinIO                                              |
+| 2.5 Базовая инфраструктура проекта | ✅ COMPLETE | ENV, config, logging, errors, aliases, hooks, IDE, standards                                   |
+| 2.6 CI/CD — GitHub Actions         | ✅ COMPLETE | Автоматические проверки на push, pull request и ручной запуск                                  |
+| 3.1 Prisma Schema                  | ✅ COMPLETE | Полная Prisma-схема, первая миграция, seed, Prisma Client и Stage 3 acceptance tests           |
+| 3.2 Миграции                       | ✅ COMPLETE | Prisma Migrate workflow, reset/deploy/dev scripts, CI checks и документация                    |
+| 3.3 Seed                           | ✅ COMPLETE | Модульный deterministic seed для dev/test/demo данных                                          |
+| 3.4 Prisma Client                  | ✅ COMPLETE | Единый PrismaService, DatabaseModule, health check PostgreSQL и транзакции                     |
+| 3.5 Repository Layer               | ✅ COMPLETE | Репозитории для MVP-сущностей, интерфейсы, DI и unit-тесты                                     |
+| 4.1 Users Module                   | ✅ COMPLETE | CRUD пользователей, DTO validation, Swagger, поиск, пагинация и сортировка                     |
+| 4.2 Auth Module                    | ✅ COMPLETE | JWT auth, Argon2 passwords, refresh rotation, guards, roles and sessions                       |
+| 4.3 JWT Infrastructure             | ✅ COMPLETE | Централизованный TokenService, JwtConfig, verify/decode/hash и TokenService-backed guards      |
+| 4.4 Refresh Token & Sessions       | ✅ COMPLETE | SessionModule, SessionService, rotation, reuse detection, session list/revoke and cleanup      |
+| 4.5 Guards                         | ✅ COMPLETE | Common auth guards/decorators, global JWT protection, roles, ownership and API key guard       |
+| 4.6 Roles & Authorization          | ✅ COMPLETE | Centralized RBAC role constants, authorization policies, explicit endpoint access rules        |
+| 4.7 Swagger & API Documentation    | ✅ COMPLETE | OpenAPI 3.1, Swagger UI, Bearer auth, DTO/errors/examples and CI contract generation           |
+| 5.1 Projects Module                | ✅ COMPLETE | Ownership-aware Projects API, repository queries, lifecycle events, DTOs, mapper and tests     |
+| 5.2 Управление проектами           | ✅ COMPLETE | CRUD, soft delete, archive/restore, tags, filters, statistics, history and lifecycle events    |
+| 6.1 File Storage (MinIO)           | ✅ COMPLETE | StorageModule, MinioProvider, bucket strategy, streaming operations and presigned URLs         |
+| 6.2 Upload Pipeline                | ✅ COMPLETE | ZIP upload API, validation, checksum, ownership, MinIO persistence and versioning              |
+| 7.1 Queue Infrastructure           | ✅ COMPLETE | Redis/BullMQ queues, job envelope, retry policy, QueueService, health check and CI integration |
 
 Следующий этап:
 
 ```txt
-Этап 7.1 Queue Infrastructure (Redis + BullMQ)
+Этап 7.2 Job Pipeline (Pipeline, Retry, Monitoring)
 ```
 
 ---

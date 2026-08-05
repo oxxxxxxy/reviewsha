@@ -9,6 +9,14 @@ export type AppConfig = {
   corsOrigin: string;
 };
 
+export type RedisConfig = {
+  url: string;
+  host: string;
+  port: number;
+  password?: string;
+  db: number;
+};
+
 export type MinioConfig = {
   endpoint: string;
   port: number;
@@ -21,6 +29,7 @@ export type MinioConfig = {
 export default (): {
   app: AppConfig;
   database: { url: string; logQueries: boolean };
+  redis: RedisConfig;
   jwt: JwtConfig;
   sessions: { maxSessionsPerUser: number };
   security: { internalApiKey: string };
@@ -45,6 +54,15 @@ export default (): {
       process.env.DATABASE_URL ??
       'postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public',
     logQueries: process.env.PRISMA_LOG_QUERIES === 'true',
+  },
+  redis: {
+    url:
+      process.env.REDIS_URL ??
+      `redis://${process.env.REDIS_HOST ?? 'localhost'}:${Number(process.env.REDIS_PORT ?? 6379)}`,
+    host: process.env.REDIS_HOST ?? 'localhost',
+    port: Number(process.env.REDIS_PORT ?? 6379),
+    password: process.env.REDIS_PASSWORD || undefined,
+    db: Number(process.env.REDIS_DB ?? 0),
   },
   jwt: createJwtConfig(process.env),
   sessions: {
