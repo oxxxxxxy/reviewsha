@@ -21,6 +21,7 @@ import { RepositoriesModule, REPOSITORY_PROVIDERS } from '../../../src/repositor
 interface DelegateMock extends BaseDelegate<unknown> {
   findMany: Mock;
   findUnique: Mock;
+  findFirst: Mock;
   count: Mock;
   delete: Mock;
   create: Mock;
@@ -58,6 +59,7 @@ function createDelegate(): DelegateMock {
   return {
     findMany: vi.fn(),
     findUnique: vi.fn(),
+    findFirst: vi.fn(),
     count: vi.fn(),
     delete: vi.fn(),
     create: vi.fn(),
@@ -198,6 +200,52 @@ describe('UserRepository', () => {
 });
 
 describe('ProjectRepository', () => {
+  it('finds filtered projects with pagination and total count', async () => {
+    const prisma = createPrismaMock();
+    prisma.project.findMany.mockResolvedValue([]);
+    prisma.project.count.mockResolvedValue(0);
+
+    await new ProjectRepository(asPrismaService(prisma)).findMany({
+      ownerId: 'owner-id',
+      search: 'review',
+      take: 20,
+      skip: 0,
+      sort: 'name',
+      order: 'asc',
+    });
+
+    expect(prisma.project.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ ownerId: 'owner-id', deletedAt: null }),
+        orderBy: { name: 'asc' },
+        skip: 0,
+        take: 20,
+      }),
+    );
+    expect(prisma.project.count).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ ownerId: 'owner-id' }) }),
+    );
+  });
+
+  it('finds active projects by id and owner', async () => {
+    const prisma = createPrismaMock();
+    prisma.project.findUnique.mockResolvedValue(null);
+    prisma.project.findFirst.mockResolvedValue({ id: 'project-id' });
+
+    await new ProjectRepository(asPrismaService(prisma)).findActiveById('project-id');
+    await new ProjectRepository(asPrismaService(prisma)).findActiveByIdForOwner(
+      'project-id',
+      'owner-id',
+    );
+
+    expect(prisma.project.findFirst).toHaveBeenNthCalledWith(1, {
+      where: { id: 'project-id', deletedAt: null },
+    });
+    expect(prisma.project.findFirst).toHaveBeenNthCalledWith(2, {
+      where: { id: 'project-id', ownerId: 'owner-id', deletedAt: null },
+    });
+  });
+
   it('finds projects by owner', async () => {
     const prisma = createPrismaMock();
 

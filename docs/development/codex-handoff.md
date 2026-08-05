@@ -8,10 +8,10 @@
 - Основная ветка: `main`.
 - Рабочая ветка разработки: `dev`.
 - На момент создания файла `main` и `dev` синхронизированы.
-- Последний коммит: `200796b fix(api): align user password hashing with auth`.
+- Последний известный коммит до начала Stage 5.1: `9c82220 docs: add codex project handoff`.
 - Рабочее дерево должно оставаться чистым после завершения задачи.
 - Docker Compose и локальные сервисы сейчас остановлены.
-- Следующий запланированный этап: **Этап 5 — Projects Module**.
+- Stage 5.1 Projects Module реализован в `apps/api/src/modules/projects/`; следующий функциональный шаг — Stage 5.2 tags/history.
 
 Этапы 1–4.7 считаются завершёнными. Перед изменением уже реализованного кода нужно сверяться с соответствующим acceptance-документом и архитектурой, а не считать README единственным источником истины.
 
@@ -94,6 +94,10 @@ Workspace packages подключаются через Yarn workspace dependenci
 ### Users
 
 `apps/api/src/modules/users/` содержит controller, service, DTO, mapper, validation and module. Users CRUD доступен только административным ролям. Профиль текущего пользователя обновляется через `PATCH /api/v1/auth/me`. `UserRepository.delete()` — soft delete (`deletedAt` и `isActive=false`), не hard delete.
+
+### Projects
+
+`apps/api/src/modules/projects/` содержит `ProjectsController`, `ProjectsService`, DTO, `ProjectMapper`, `ProjectEvents` and module composition. Persistence is provided by the central `apps/api/src/repositories/project/project.repository.ts`, re-exported from the module repository path. Project routes are ownership-scoped for USER and admin-scoped for ADMIN. Tags and history are intentionally deferred to Stage 5.2.
 
 ### Auth and sessions
 
@@ -204,6 +208,7 @@ yarn test                 # package + app unit/integration tests
 yarn test:stage2          # Stage 2 smoke/integration
 yarn test:stage3          # Prisma/migrations/seed/PostgreSQL
 yarn test:stage4          # auth API tests + coverage thresholds
+yarn test:stage5          # Projects module unit/integration tests
 yarn test:e2e             # Playwright web/admin
 ```
 
@@ -222,6 +227,7 @@ yarn test:e2e             # Playwright web/admin
 - Stage 2 smoke;
 - Stage 3 Prisma;
 - Stage 4 auth/coverage;
+- Stage 5 Projects module;
 - Playwright E2E;
 - Docker Compose config;
 - aggregate result.

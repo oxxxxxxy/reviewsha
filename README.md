@@ -25,6 +25,7 @@ AI SaaS platform for automated code review.
 | 4.5 Guards                         | ✅ COMPLETE | Common auth guards/decorators, global JWT protection, roles, ownership and API key guard      |
 | 4.6 Roles & Authorization          | ✅ COMPLETE | Centralized RBAC role constants, authorization policies, explicit endpoint access rules       |
 | 4.7 Swagger & API Documentation    | ✅ COMPLETE | OpenAPI 3.1, Swagger UI, Bearer auth, DTO/errors/examples and CI contract generation          |
+| 5.1 Projects Module                | ✅ COMPLETE | Ownership-aware Projects API, repository queries, lifecycle events, DTOs, mapper and tests    |
 
 Следующий этап:
 
@@ -887,7 +888,7 @@ JetBrains IDE:
 
 ## Stage 4 completion notes
 
-Stage 4 covers Users, JWT/Auth, Sessions, Guards, Roles and Swagger/OpenAPI. The next implementation track starts with the domain modules, beginning with **Stage 5 — Projects Module**.
+Stage 4 covers Users, JWT/Auth, Sessions, Guards, Roles and Swagger/OpenAPI. Stage 5.1 now provides the ownership-aware Projects foundation; tags and project history are scheduled for Stage 5.2.
 
 Key finalized decisions:
 
@@ -896,6 +897,9 @@ Key finalized decisions:
 - JWT defaults to `HS256`, while config types allow future `RS256`/`ES256` migration;
 - current-user profile updates are exposed through `PATCH /api/v1/auth/me`;
 - critical Stage 4 backend logic is checked by `yarn test:stage4` with coverage thresholds.
+- Projects are exposed through `GET/POST/PATCH/DELETE /api/v1/projects`, with archive support at `POST /api/v1/projects/:id/archive`.
+- Project access is scoped by owner for regular users and unrestricted for ADMIN; project lifecycle events are ready for future subscribers.
+- Stage 5.1 checks run through `yarn test:stage5` and a separate GitHub Actions job.
 
 ---
 

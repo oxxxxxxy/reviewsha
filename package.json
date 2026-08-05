@@ -49,6 +49,7 @@
     "docs:openapi": "yarn workspace @reviewsha/api docs:openapi",
     "ci:openapi": "yarn docs:openapi",
     "test:stage4": "yarn workspace @reviewsha/api test:stage4",
+    "test:stage5": "yarn workspace @reviewsha/api test:stage5",
     "ci:stage4": "yarn test:stage4"
   },
   "devDependencies": {

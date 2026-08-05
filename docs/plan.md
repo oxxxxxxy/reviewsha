@@ -987,3 +987,81 @@ Autoscaling
 ---
 
 Такой порядок хорош тем, что каждый следующий этап опирается на предыдущий: сначала инфраструктура и фундамент (монорепозиторий, БД, авторизация), затем основной функционал (проекты, загрузка, AI), потом интерфейсы (Frontend, Admin), и только после этого — эксплуатационные вещи (тесты, Docker, Kubernetes, Helm, CI/CD, оптимизация и релиз). Это максимально похоже на жизненный цикл реального production-проекта.
+
+НОВЫЙ ПЛАН!!!!
+
+Этап 5. Управление проектами
+5.1 Projects Module ✅ COMPLETE
+5.2 Управление проектами (CRUD, архивирование, теги, история)
+
+Этап 6. Загрузка файлов
+6.1 File Storage (MinIO)
+6.2 Upload Pipeline (Upload API, ZIP Validation, Versioning)
+
+Этап 7. Очереди
+7.1 Queue Infrastructure (Redis + BullMQ)
+7.2 Job Pipeline (Pipeline, Retry, Monitoring)
+
+Этап 8. Worker
+8.1 Worker Infrastructure
+8.2 Processing Jobs (Download, Extract, Parse, Merge, Cleanup)
+
+Этап 9. AI Pipeline
+9.1 AI Processing Pipeline (Parser, Chunk Builder, Prompt Builder)
+9.2 AI Integration (OmniRouter, DeepSeek)
+9.3 Report Generation
+
+Этап 10. Отчёты
+10.1 Reports Module
+10.2 Reports & History (Markdown, PDF, JSON, History, Compare)
+
+Этап 11. AI Chat
+11.1 Chat Module
+11.2 AI Context & Streaming (Context, Memory, History, Streaming)
+
+Этап 12. Frontend
+12.1 Core Application (UI Kit, Auth, Dashboard)
+12.2 User Features (Projects, Upload, Analysis, Reports, Chat, Settings)
+
+Этап 13. Admin Panel
+13.1 Admin Core (Auth, Users, Projects)
+13.2 Administration (Queues, Logs, AI Usage, Statistics)
+
+Этап 14. SDK
+14.1 OpenAPI & SDK
+14.2 Frontend Integration
+
+Этап 15. Логирование
+15.1 Logging & Audit
+
+Этап 16. GitHub
+16.1 Repository Configuration
+
+Этап 17. Docker
+17.1 Development Environment
+17.2 Production Images
+
+Этап 18. Kubernetes
+18.1 Kubernetes Infrastructure
+18.2 Deployments
+18.3 Production Configuration
+
+Этап 19. Helm
+19.1 Helm Chart
+19.2 Templates & Values
+19.3 Production Configuration
+
+Этап 20. Оптимизация
+20.1 Backend & Database
+20.2 AI Pipeline
+20.3 Frontend
+
+Этап 21. Документация
+21.1 Developer Documentation
+21.2 Deployment Documentation
+
+Этап 22. Финальная подготовка
+22.1 Release Preparation
+
+Этап 23. Релиз MVP
+23.1 Финальное тестирование и релиз

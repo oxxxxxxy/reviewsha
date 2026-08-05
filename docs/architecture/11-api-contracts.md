@@ -152,8 +152,6 @@ Response:
 }
 ```
 
----
-
 ## Вход
 
 ```
@@ -275,6 +273,14 @@ PATCH /projects/:id
 
 ```
 DELETE /projects/:id
+```
+
+Фактический Projects API использует envelope-формат `{ data, meta }` для списка и `{ data }` для одной сущности. USER получает только свои активные проекты, ADMIN — любые активные проекты.
+
+## Архивирование проекта
+
+```
+POST /projects/:id/archive
 ```
 
 ---

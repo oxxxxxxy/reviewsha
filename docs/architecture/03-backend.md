@@ -210,6 +210,8 @@ User
 Project
 ```
 
+Реализация модуля находится в `apps/api/src/modules/projects/` и разделена на Controller → Service → Repository. Сервис применяет ownership scope: USER видит и изменяет только свои активные проекты, ADMIN может работать с любыми активными проектами. Жизненный цикл публикует события `project.created`, `project.updated`, `project.archived` и `project.deleted`; подписчики будут добавлены в последующих этапах.
+
 ---
 
 ## 5.4 Files Module

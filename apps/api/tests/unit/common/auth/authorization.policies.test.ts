@@ -10,6 +10,7 @@ import { AuthController } from '../../../../src/modules/auth/controllers/auth.co
 import { SessionsController } from '../../../../src/modules/sessions/controllers/sessions.controller';
 import { UsersController } from '../../../../src/modules/users/controllers/users.controller';
 import { HealthController } from '../../../../src/health/health.controller';
+import { ProjectsController } from '../../../../src/modules/projects/controllers/projects.controller';
 
 type ControllerClass = {
   readonly prototype: object;
@@ -81,5 +82,10 @@ describe('authorization policies', () => {
 
   it('marks users controller as admin-only', () => {
     expect(classMetadata(UsersController, ROLES_KEY)).toEqual([Role.ADMIN]);
+  });
+
+  it('marks project endpoints as authenticated and ownership-aware', () => {
+    expect(classMetadata(ProjectsController, ROLES_KEY)).toEqual([Role.USER, Role.ADMIN]);
+    expect(AUTHORIZATION_POLICIES.projects.manageOwnOrAdmin.ownershipRequired).toBe(true);
   });
 });

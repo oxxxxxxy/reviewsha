@@ -6,14 +6,22 @@ export enum ProjectStatus {
   Deleted = 'DELETED',
 }
 
+export enum Visibility {
+  Private = 'PRIVATE',
+  Organization = 'ORGANIZATION',
+  Public = 'PUBLIC',
+}
+
 export interface Project {
   id: ID;
   ownerId: ID;
   name: string;
   description?: string;
   language?: string;
-  tags: string[];
+  tags?: string[];
   status: ProjectStatus;
+  visibility: Visibility;
+  archivedAt?: ISODateString | null;
   createdAt: ISODateString;
   updatedAt: ISODateString;
 }
