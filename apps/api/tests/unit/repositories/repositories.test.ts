@@ -42,6 +42,8 @@ interface PrismaMock {
   queueJob: DelegateMock;
   chatSession: DelegateMock;
   chatMessage: DelegateMock;
+  projectTag: DelegateMock;
+  projectHistory: DelegateMock;
   $transaction: Mock;
 }
 
@@ -82,6 +84,8 @@ function createPrismaMock(): PrismaMock {
     queueJob: createDelegate(),
     chatSession: createDelegate(),
     chatMessage: createDelegate(),
+    projectTag: createDelegate(),
+    projectHistory: createDelegate(),
     $transaction: vi.fn(),
   } as unknown as PrismaMock;
 }
@@ -240,9 +244,11 @@ describe('ProjectRepository', () => {
 
     expect(prisma.project.findFirst).toHaveBeenNthCalledWith(1, {
       where: { id: 'project-id', deletedAt: null },
+      include: expect.anything(),
     });
     expect(prisma.project.findFirst).toHaveBeenNthCalledWith(2, {
       where: { id: 'project-id', ownerId: 'owner-id', deletedAt: null },
+      include: expect.anything(),
     });
   });
 
@@ -259,6 +265,32 @@ describe('ProjectRepository', () => {
       skip: 0,
       take: 10,
     });
+  });
+
+  it('syncs project tags and loads project history with actor fields', async () => {
+    const prisma = createPrismaMock();
+    prisma.projectHistory.findMany.mockResolvedValue([]);
+    const repository = new ProjectRepository(asPrismaService(prisma));
+
+    await repository.syncTags('project-id', ['backend', 'mvp']);
+    await repository.createHistory('project-id', 'user-id', 'UPDATED', { name: 'New name' });
+    await repository.findHistory('project-id');
+
+    expect(prisma.projectTag.deleteMany).toHaveBeenCalledWith({
+      where: { projectId: 'project-id' },
+    });
+    expect(prisma.projectTag.createMany).toHaveBeenCalledWith({
+      data: [
+        { projectId: 'project-id', name: 'backend' },
+        { projectId: 'project-id', name: 'mvp' },
+      ],
+    });
+    expect(prisma.projectHistory.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ projectId: 'project-id', actorId: 'user-id' }),
+    });
+    expect(prisma.projectHistory.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { projectId: 'project-id' } }),
+    );
   });
 
   it('creates a project', async () => {

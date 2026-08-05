@@ -38,6 +38,11 @@ export const SEED_IDS = {
     reactDashboard: '00000000-0000-4000-8000-000000000102',
     linuxScripts: '00000000-0000-4000-8000-000000000103',
   },
+  projectHistory: {
+    nestCreated: '00000000-0000-4000-8000-000000000501',
+    reactCreated: '00000000-0000-4000-8000-000000000502',
+    scriptsCreated: '00000000-0000-4000-8000-000000000503',
+  },
   scans: {
     nestCompleted: '00000000-0000-4000-8000-000000000201',
     reactRunning: '00000000-0000-4000-8000-000000000202',
@@ -79,6 +84,8 @@ export const seedProjects = [
     name: 'NestJS API',
     description: 'Demo backend service for API, Prisma and worker integration checks.',
     language: 'TypeScript',
+    tags: ['demo', 'backend', 'nestjs'],
+    historyId: SEED_IDS.projectHistory.nestCreated,
   },
   {
     id: SEED_IDS.projects.reactDashboard,
@@ -87,6 +94,8 @@ export const seedProjects = [
     name: 'React Dashboard',
     description: 'Demo frontend dashboard used for UI and report screens.',
     language: 'TypeScript',
+    tags: ['demo', 'frontend', 'react'],
+    historyId: SEED_IDS.projectHistory.reactCreated,
   },
   {
     id: SEED_IDS.projects.linuxScripts,
@@ -95,6 +104,8 @@ export const seedProjects = [
     name: 'Linux Scripts',
     description: 'Demo shell scripts repository with intentionally mixed quality checks.',
     language: 'Shell',
+    tags: ['demo', 'shell', 'scripts'],
+    historyId: SEED_IDS.projectHistory.scriptsCreated,
   },
 ] as const;
 

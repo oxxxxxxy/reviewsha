@@ -6,7 +6,7 @@ NestJS 11 Backend API приложения «Ревьюша».
 
 API отвечает за REST endpoints, Swagger/OpenAPI, конфигурацию, подключение Prisma и будущую бизнес-логику MVP.
 
-На Этапах 3.1–3.5 реализован фундамент базы данных: Prisma schema, миграции, idempotent seed, единый `PrismaService`, `DatabaseModule`, PostgreSQL health check и Repository Layer. Stage 5.1 добавляет ownership-aware Projects API.
+На Этапах 3.1–3.5 реализован фундамент базы данных: Prisma schema, миграции, idempotent seed, единый `PrismaService`, `DatabaseModule`, PostgreSQL health check и Repository Layer. Этапы 5.1–5.2 добавляют ownership-aware Projects API, lifecycle, теги и историю изменений.
 
 ## Запуск
 
@@ -168,9 +168,14 @@ DELETE /api/v1/users/:id
 
 Projects находится в `src/modules/projects` и использует цепочку `ProjectsController → ProjectsService → ProjectRepository`.
 
-Обычный пользователь видит и изменяет только собственные активные проекты. Администратор может работать с любыми активными проектами. Список поддерживает pagination, поиск, фильтры статуса/visibility и сортировку. Ответы соответствуют API envelope `{ data, meta }`.
+Обычный пользователь видит и изменяет только собственные проекты. Администратор может работать с любыми проектами. Список поддерживает pagination, поиск, фильтры статуса/visibility/языка/тегов/дат и сортировку. Удаление — soft delete, архивирование и восстановление меняют lifecycle status. Ответы соответствуют API envelope `{ data, meta }`.
 
-Жизненный цикл публикует события `project.created`, `project.updated`, `project.archived` и `project.deleted`. Теги и история изменений будут добавлены на Stage 5.2.
+Жизненный цикл публикует `project.created`, `project.updated`, `project.archived`, `project.restored`, `project.deleted`, `project.tag.added` и `project.tag.removed`. Теги хранятся в `project_tags`, история — в `project_history`.
+
+```txt
+GET  /api/v1/projects/:id/history
+POST /api/v1/projects/:id/restore
+```
 
 ## Auth Module
 

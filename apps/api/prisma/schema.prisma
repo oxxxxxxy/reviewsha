@@ -24,6 +24,16 @@ enum ProjectStatus {
   DELETED
 }
 
+enum ProjectHistoryAction {
+  CREATED
+  UPDATED
+  ARCHIVED
+  RESTORED
+  DELETED
+  TAG_ADDED
+  TAG_REMOVED
+}
+
 enum Visibility {
   PRIVATE
   ORGANIZATION
@@ -159,15 +169,16 @@ model User {
   aiRequests         AIRequest[]
   chatMessages       ChatMessage[]
   chatSessions       ChatSession[]
-  invitationsSent    Invitation[]    @relation("InvitationInviter")
+  invitationsSent    Invitation[]     @relation("InvitationInviter")
   notifications      Notification[]
-  ownedOrganizations Organization[]  @relation("OrganizationOwner")
-  ownedProjects      Project[]       @relation("ProjectOwner")
+  ownedOrganizations Organization[]   @relation("OrganizationOwner")
+  ownedProjects      Project[]        @relation("ProjectOwner")
   projectMemberships ProjectMember[]
+  projectHistory     ProjectHistory[]
   refreshTokens      RefreshToken[]
-  scans              Scan[]          @relation("ScanCreator")
+  scans              Scan[]           @relation("ScanCreator")
   sessions           Session[]
-  uploadedFiles      UploadedFile[]  @relation("FileUploader")
+  uploadedFiles      UploadedFile[]   @relation("FileUploader")
 
   @@index([role])
   @@index([isActive])
@@ -224,14 +235,16 @@ model Project {
   archivedAt     DateTime?     @map("archived_at") @db.Timestamptz(3)
   deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(3)
 
-  organization  Organization?   @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  owner         User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization  Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  owner         User             @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   chatSessions  ChatSession[]
   members       ProjectMember[]
   queueJobs     QueueJob[]
   reports       Report[]
   scans         Scan[]
   uploadedFiles UploadedFile[]
+  tags          ProjectTag[]
+  history       ProjectHistory[]
 
   @@index([ownerId])
   @@index([organizationId])
@@ -239,6 +252,36 @@ model Project {
   @@index([visibility])
   @@index([deletedAt])
   @@map("projects")
+}
+
+model ProjectTag {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  name      String   @db.VarChar(50)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([projectId, name])
+  @@index([name])
+  @@map("project_tags")
+}
+
+model ProjectHistory {
+  id            String               @id @default(uuid()) @db.Uuid
+  projectId     String               @map("project_id") @db.Uuid
+  actorId       String               @map("actor_id") @db.Uuid
+  action        ProjectHistoryAction
+  changedFields Json?                @map("changed_fields")
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  actor   User    @relation(fields: [actorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([projectId, createdAt])
+  @@index([actorId])
+  @@index([action])
+  @@map("project_history")
 }
 
 model ProjectMember {

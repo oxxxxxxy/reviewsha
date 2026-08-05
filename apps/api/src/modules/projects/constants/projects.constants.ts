@@ -4,3 +4,5 @@ export const PROJECT_MAX_LIMIT = 100;
 export const PROJECT_MAX_NAME_LENGTH = 160;
 export const PROJECT_MAX_DESCRIPTION_LENGTH = 5_000;
 export const PROJECT_MAX_LANGUAGE_LENGTH = 80;
+export const PROJECT_MAX_TAGS = 20;
+export const PROJECT_MAX_TAG_LENGTH = 50;

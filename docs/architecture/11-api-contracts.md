@@ -275,13 +275,23 @@ PATCH /projects/:id
 DELETE /projects/:id
 ```
 
-Фактический Projects API использует envelope-формат `{ data, meta }` для списка и `{ data }` для одной сущности. USER получает только свои активные проекты, ADMIN — любые активные проекты.
+Фактический Projects API использует envelope-формат `{ data, meta }` для списка и `{ data }` для одной сущности. USER получает только свои проекты, ADMIN — любые проекты. Список дополнительно поддерживает `search`, `language`, `tags`, `status`, `visibility`, `createdFrom`, `createdTo`, `sort` и `order`.
 
 ## Архивирование проекта
 
 ```
 POST /projects/:id/archive
 ```
+
+## Восстановление и история проекта
+
+```text
+POST /projects/:id/restore
+GET  /projects/:id/history
+```
+
+Удаление через `DELETE /projects/:id` является soft delete. Ответ проекта содержит
+`tags` и `stats` (`analysesCount`, `uploadsCount`, `lastAnalysisAt`).
 
 ---
 

@@ -6,6 +6,7 @@ export interface CreateProjectRequest {
   readonly description?: string;
   readonly language?: string;
   readonly visibility?: 'PRIVATE' | 'ORGANIZATION' | 'PUBLIC';
+  readonly tags?: readonly string[];
 }
 
 export interface UpdateProjectRequest {
@@ -13,6 +14,7 @@ export interface UpdateProjectRequest {
   readonly description?: string | null;
   readonly language?: string | null;
   readonly visibility?: 'PRIVATE' | 'ORGANIZATION' | 'PUBLIC';
+  readonly tags?: readonly string[];
 }
 
 export interface ProjectEnvelope {
@@ -37,6 +39,23 @@ export interface ProjectListParams {
   readonly visibility?: 'PRIVATE' | 'ORGANIZATION' | 'PUBLIC';
   readonly sort?: 'createdAt' | 'updatedAt' | 'name';
   readonly order?: 'asc' | 'desc';
+  readonly language?: string;
+  readonly tags?: string;
+  readonly createdFrom?: string;
+  readonly createdTo?: string;
+}
+
+export interface ProjectHistoryItem {
+  readonly id: string;
+  readonly action: string;
+  readonly actorId: string;
+  readonly actorEmail: string;
+  readonly changedFields: Record<string, unknown> | null;
+  readonly createdAt: string;
+}
+
+export interface ProjectHistoryResponse {
+  readonly data: readonly ProjectHistoryItem[];
 }
 
 export class ProjectsAPI {
@@ -63,6 +82,14 @@ export class ProjectsAPI {
 
   archive(projectId: string): Promise<ProjectEnvelope> {
     return this.client.post<ProjectEnvelope>(`/projects/${projectId}/archive`);
+  }
+
+  restore(projectId: string): Promise<ProjectEnvelope> {
+    return this.client.post<ProjectEnvelope>(`/projects/${projectId}/restore`);
+  }
+
+  history(projectId: string): Promise<ProjectHistoryResponse> {
+    return this.client.get<ProjectHistoryResponse>(`/projects/${projectId}/history`);
   }
 
   remove(projectId: string): Promise<void> {

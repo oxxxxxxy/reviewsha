@@ -11,7 +11,7 @@
 - Последний известный коммит до начала Stage 5.1: `9c82220 docs: add codex project handoff`.
 - Рабочее дерево должно оставаться чистым после завершения задачи.
 - Docker Compose и локальные сервисы сейчас остановлены.
-- Stage 5.1 Projects Module реализован в `apps/api/src/modules/projects/`; следующий функциональный шаг — Stage 5.2 tags/history.
+- Stage 5.2 Projects Management реализован в `apps/api/src/modules/projects/`; следующий функциональный шаг — Stage 6.1 MinIO file storage.
 
 Этапы 1–4.7 считаются завершёнными. Перед изменением уже реализованного кода нужно сверяться с соответствующим acceptance-документом и архитектурой, а не считать README единственным источником истины.
 
@@ -33,6 +33,10 @@
 14. Acceptance-документ текущего этапа — обязательный список результата.
 
 После каждой фичи синхронно обновлять код, тесты, README, implementation docs, архитектурные документы, OpenAPI и CI, если они затронуты.
+
+Stage 5.2 добавил `ProjectTag`, `ProjectHistory`, migration
+`20260805191056_add_project_tags_and_history`, soft delete, archive/restore,
+filters, statistics and history endpoint.
 
 ## 3. Структура монорепозитория
 

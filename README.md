@@ -26,11 +26,12 @@ AI SaaS platform for automated code review.
 | 4.6 Roles & Authorization          | ✅ COMPLETE | Centralized RBAC role constants, authorization policies, explicit endpoint access rules       |
 | 4.7 Swagger & API Documentation    | ✅ COMPLETE | OpenAPI 3.1, Swagger UI, Bearer auth, DTO/errors/examples and CI contract generation          |
 | 5.1 Projects Module                | ✅ COMPLETE | Ownership-aware Projects API, repository queries, lifecycle events, DTOs, mapper and tests    |
+| 5.2 Управление проектами           | ✅ COMPLETE | CRUD, soft delete, archive/restore, tags, filters, statistics, history and lifecycle events   |
 
 Следующий этап:
 
 ```txt
-Этап 5. Projects Module
+Этап 6.1 File Storage (MinIO)
 ```
 
 ---
@@ -68,6 +69,25 @@ Rew/
 ```
 
 Для передачи контекста следующему Codex или разработчику используйте [`docs/development/codex-handoff.md`](docs/development/codex-handoff.md).
+
+### Projects API
+
+Проекты доступны только владельцу или администратору. Список поддерживает пагинацию,
+поиск, язык, теги, статус, visibility и диапазон дат. Удаление является soft delete.
+
+```text
+GET    /api/v1/projects
+GET    /api/v1/projects/:id
+POST   /api/v1/projects
+PATCH  /api/v1/projects/:id
+DELETE /api/v1/projects/:id
+POST   /api/v1/projects/:id/archive
+POST   /api/v1/projects/:id/restore
+GET    /api/v1/projects/:id/history
+```
+
+Проект содержит нормализованные уникальные теги, агрегированную статистику анализов и
+загрузок, а также историю действий (`ProjectHistory`).
 
 ---
 
@@ -888,7 +908,7 @@ JetBrains IDE:
 
 ## Stage 4 completion notes
 
-Stage 4 covers Users, JWT/Auth, Sessions, Guards, Roles and Swagger/OpenAPI. Stage 5.1 now provides the ownership-aware Projects foundation; tags and project history are scheduled for Stage 5.2.
+Stage 4 covers Users, JWT/Auth, Sessions, Guards, Roles and Swagger/OpenAPI. Stages 5.1–5.2 provide the ownership-aware Projects module, lifecycle management, tags, statistics and project history.
 
 Key finalized decisions:
 
@@ -897,9 +917,9 @@ Key finalized decisions:
 - JWT defaults to `HS256`, while config types allow future `RS256`/`ES256` migration;
 - current-user profile updates are exposed through `PATCH /api/v1/auth/me`;
 - critical Stage 4 backend logic is checked by `yarn test:stage4` with coverage thresholds.
-- Projects are exposed through `GET/POST/PATCH/DELETE /api/v1/projects`, with archive support at `POST /api/v1/projects/:id/archive`.
+- Projects are exposed through `GET/POST/PATCH/DELETE /api/v1/projects`, with archive/restore/history at `POST /api/v1/projects/:id/archive`, `POST /api/v1/projects/:id/restore` and `GET /api/v1/projects/:id/history`.
 - Project access is scoped by owner for regular users and unrestricted for ADMIN; project lifecycle events are ready for future subscribers.
-- Stage 5.1 checks run through `yarn test:stage5` and a separate GitHub Actions job.
+- Stage 5 checks run through `yarn test:stage5` and a separate GitHub Actions job.
 
 ---
 

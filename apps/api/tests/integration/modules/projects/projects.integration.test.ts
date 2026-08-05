@@ -37,12 +37,17 @@ describe('ProjectsModule HTTP integration', () => {
     const project = fixture();
     repository = {
       findMany: vi.fn(async () => ({ items: [project], total: 1 })),
+      findByOwnerAndName: vi.fn(async () => null),
       findActiveById: vi.fn(async () => project),
       findActiveByIdForOwner: vi.fn(async () => project),
       create: vi.fn(async () => project),
       update: vi.fn(async () => project),
       archive: vi.fn(async () => ({ ...project, status: ProjectStatus.ARCHIVED })),
       delete: vi.fn(async () => ({ ...project, status: ProjectStatus.DELETED })),
+      restore: vi.fn(async () => ({ ...project, status: ProjectStatus.ACTIVE })),
+      syncTags: vi.fn(async () => undefined),
+      createHistory: vi.fn(async () => undefined),
+      findHistory: vi.fn(async () => []),
     };
 
     const moduleRef = await Test.createTestingModule({
@@ -96,5 +101,24 @@ describe('ProjectsModule HTTP integration', () => {
   it('rejects an invalid project payload', async () => {
     await request(app.getHttpServer()).post('/api/v1/projects').send({ name: '' }).expect(400);
     expect(repository.create).not.toHaveBeenCalled();
+  });
+
+  it('accepts tags and exposes project lifecycle endpoints', async () => {
+    await request(app.getHttpServer())
+      .post('/api/v1/projects')
+      .send({ name: 'Tagged project', tags: ['backend', 'mvp'] })
+      .expect(201);
+    expect(repository.syncTags).toHaveBeenCalledWith(fixture().id, ['backend', 'mvp']);
+
+    await request(app.getHttpServer()).post(`/api/v1/projects/${fixture().id}/archive`).expect(201);
+    repository.findActiveByIdForOwner!.mockResolvedValue({
+      ...fixture(),
+      status: ProjectStatus.ARCHIVED,
+    });
+    await request(app.getHttpServer()).post(`/api/v1/projects/${fixture().id}/restore`).expect(201);
+    await request(app.getHttpServer())
+      .get(`/api/v1/projects/${fixture().id}/history`)
+      .expect(200)
+      .expect(({ body }) => expect(body).toEqual({ data: [] }));
   });
 });

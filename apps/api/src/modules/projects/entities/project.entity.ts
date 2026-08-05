@@ -13,5 +13,11 @@ export class ProjectEntity {
     readonly archivedAt: Date | null,
     readonly createdAt: Date,
     readonly updatedAt: Date,
+    readonly tags: string[],
+    readonly stats: {
+      analysesCount: number;
+      uploadsCount: number;
+      lastAnalysisAt: Date | null;
+    },
   ) {}
 }

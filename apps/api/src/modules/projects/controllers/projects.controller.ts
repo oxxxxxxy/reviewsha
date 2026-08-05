@@ -30,7 +30,11 @@ import { AUTHORIZATION_POLICIES } from '../../../common/authorization';
 import { ApiStandardErrors } from '../../../common/swagger';
 import { CreateProjectDto } from '../dto/create-project.dto';
 import { ProjectFilterDto } from '../dto/project-filter.dto';
-import { ProjectResponseEnvelopeDto, ProjectsListResponseDto } from '../dto/project-response.dto';
+import {
+  ProjectHistoryListResponseDto,
+  ProjectResponseEnvelopeDto,
+  ProjectsListResponseDto,
+} from '../dto/project-response.dto';
 import { UpdateProjectDto } from '../dto/update-project.dto';
 import { ProjectsService } from '../services/projects.service';
 
@@ -118,6 +122,39 @@ export class ProjectsController {
     @Param('id', new ParseUUIDPipe()) id: string,
   ): Promise<ProjectResponseEnvelopeDto> {
     return this.projectsService.archive(user, id);
+  }
+
+  @Post(':id/restore')
+  @Roles(...AUTHORIZATION_POLICIES.projects.manageOwnOrAdmin.roles)
+  @Ownership('project')
+  @ApiOperation({
+    summary: 'Restore an archived project',
+    description:
+      'Restores an archived project owned by the current user or any project for an ADMIN.',
+  })
+  @ApiParam({ name: 'id', description: 'Project UUID.' })
+  @ApiOkResponse({ type: ProjectResponseEnvelopeDto })
+  restore(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<ProjectResponseEnvelopeDto> {
+    return this.projectsService.restore(user, id);
+  }
+
+  @Get(':id/history')
+  @Ownership('project')
+  @ApiOperation({
+    summary: 'Get project change history',
+    description:
+      'Returns project lifecycle and field-change history for the current user or ADMIN.',
+  })
+  @ApiParam({ name: 'id', description: 'Project UUID.' })
+  @ApiOkResponse({ type: ProjectHistoryListResponseDto })
+  history(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ): Promise<ProjectHistoryListResponseDto> {
+    return this.projectsService.history(user, id);
   }
 
   @Delete(':id')

@@ -4,7 +4,7 @@ Status: COMPLETE
 
 ## Scope
 
-Projects is the first domain module after the authentication foundation. It owns project API contracts, ownership-aware access, lifecycle events and the application-facing service layer. File uploads, scans, reports, tags and project history remain separate follow-up modules.
+Projects is the first domain module after the authentication foundation. It owns project API contracts, ownership-aware access, lifecycle events and the application-facing service layer. File uploads, scans and reports remain separate follow-up modules; tags and project history are implemented in Stage 5.2.
 
 ## Structure
 
@@ -43,8 +43,8 @@ List responses use the API contract envelope `{ data, meta }`. Project responses
 
 - `ProjectRepository` provides filtered/paginated queries, ownership-scoped lookup, create/update/archive and soft delete.
 - `ProjectsService` contains ownership and input business rules; controllers only bind HTTP data.
-- `ProjectEvents` publishes `project.created`, `project.updated`, `project.archived` and `project.deleted` events for future queue, notification and audit subscribers.
-- The current Prisma model stores `language`; the public contract follows the existing architecture/API naming. Tags and history are intentionally deferred to Stage 5.2.
+- `ProjectEvents` publishes the base lifecycle events; Stage 5.2 adds restore, tag-added and tag-removed events.
+- The current Prisma model stores `language`; the public contract follows the existing architecture/API naming. Tags are stored in `ProjectTag`, history in `ProjectHistory`.
 
 ## Tests and CI
 

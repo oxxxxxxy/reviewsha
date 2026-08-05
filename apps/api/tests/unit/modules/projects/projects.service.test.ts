@@ -34,12 +34,22 @@ function project(ownerId = user.id): Project {
   };
 }
 
+function projectDetails(ownerId = user.id) {
+  return {
+    ...project(ownerId),
+    tags: [{ id: 'tag-id', projectId: project().id, name: 'backend', createdAt: new Date() }],
+    _count: { scans: 2, uploadedFiles: 3 },
+    scans: [{ createdAt: new Date('2026-08-04T00:00:00.000Z') }],
+  };
+}
+
 function setup() {
   const repository = {
     findMany: vi.fn(async () => ({ items: [project()], total: 1 })),
-    findActiveById: vi.fn(async () => project()),
+    findByOwnerAndName: vi.fn(async () => null),
+    findActiveById: vi.fn(async () => projectDetails()),
     findActiveByIdForOwner: vi.fn(async (_id: string, ownerId: string) =>
-      ownerId === user.id ? project() : null,
+      ownerId === user.id ? projectDetails() : null,
     ),
     create: vi.fn(async () => project()),
     update: vi.fn(async () => project()),
@@ -53,6 +63,10 @@ function setup() {
       status: ProjectStatus.DELETED,
       deletedAt: new Date(),
     })),
+    restore: vi.fn(async () => ({ ...project(), status: ProjectStatus.ACTIVE })),
+    syncTags: vi.fn(async () => undefined),
+    createHistory: vi.fn(async () => undefined),
+    findHistory: vi.fn(async () => []),
   };
   const events = new ProjectEvents();
   const logger = { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as unknown as ApiLoggerService;
@@ -125,5 +139,42 @@ describe('ProjectsService', () => {
 
     expect(repository.archive).toHaveBeenCalledWith(project().id);
     expect(repository.delete).toHaveBeenCalledWith(project().id);
+  });
+
+  it('normalizes tags and publishes tag events when updating', async () => {
+    const { service, repository, events } = setup();
+    const added = vi.fn();
+    events.on(PROJECT_EVENTS.tagAdded, added);
+
+    await service.update(user, project().id, { tags: [' Backend ', 'frontend', 'frontend'] });
+
+    expect(repository.syncTags).toHaveBeenCalledWith(project().id, ['backend', 'frontend']);
+    expect(added).toHaveBeenCalledWith(expect.objectContaining({ tag: 'frontend' }));
+  });
+
+  it('restores only archived projects and records history', async () => {
+    const { service, repository } = setup();
+    repository.findActiveByIdForOwner.mockResolvedValue({
+      ...projectDetails(),
+      status: ProjectStatus.ARCHIVED,
+    });
+
+    await service.restore(user, project().id);
+
+    expect(repository.restore).toHaveBeenCalledWith(project().id);
+    expect(repository.createHistory).toHaveBeenCalledWith(
+      project().id,
+      user.id,
+      'RESTORED',
+      expect.any(Object),
+    );
+  });
+
+  it('returns project history through the scoped repository query', async () => {
+    const { service, repository } = setup();
+    repository.findHistory.mockResolvedValue([]);
+
+    await expect(service.history(user, project().id)).resolves.toEqual({ data: [] });
+    expect(repository.findHistory).toHaveBeenCalledWith(project().id);
   });
 });

@@ -170,6 +170,22 @@ Organization
 
 ---
 
+# 5.1 Project tags and history
+
+`ProjectTag` хранит нормализованные теги проекта. Уникальность задаётся составным
+ключом `(projectId, name)`, а удаление проекта каскадно удаляет его теги.
+
+`ProjectHistory` фиксирует действия владельца или администратора над проектом:
+`CREATED`, `UPDATED`, `ARCHIVED`, `RESTORED`, `DELETED`, `TAG_ADDED`, `TAG_REMOVED`.
+В `changedFields` хранится JSON с изменёнными значениями, а `actorId` связывает
+запись с пользователем.
+
+```text
+Project 1 ─── N ProjectTag
+Project 1 ─── N ProjectHistory
+User    1 ─── N ProjectHistory
+```
+
 # 5. Session
 
 Хранение пользовательских сессий.
