@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Param,
@@ -17,7 +18,15 @@ import {
   ApiTags,
   ApiBody,
   ApiOkResponse,
+  ApiBadRequestResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiUnprocessableEntityResponse,
+  ApiServiceUnavailableResponse,
 } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
+import { tmpdir } from 'node:os';
+import { randomUUID } from 'node:crypto';
 import { CurrentUser } from '../../../common/auth/decorators/current-user.decorator';
 import { Ownership } from '../../../common/auth/decorators/ownership.decorator';
 import { Roles } from '../../../common/auth/decorators/roles.decorator';
@@ -48,12 +57,26 @@ export class UploadsController {
     },
   })
   @ApiCreatedResponse({ type: UploadResponseDto })
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: UPLOAD_MAX_SIZE_BYTES } }))
+  @ApiBadRequestResponse({ description: 'Missing file or invalid project identifier.' })
+  @ApiForbiddenResponse({ description: 'The current user cannot access this project.' })
+  @ApiNotFoundResponse({ description: 'Project not found.' })
+  @ApiUnprocessableEntityResponse({ description: 'The archive failed validation.' })
+  @ApiServiceUnavailableResponse({ description: 'Object storage is unavailable.' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: tmpdir(),
+        filename: (_request, _file, callback) => callback(null, `${randomUUID()}.zip`),
+      }),
+      limits: { fileSize: UPLOAD_MAX_SIZE_BYTES },
+    }),
+  )
   create(
     @CurrentUser() user: AuthenticatedUser,
     @Param('projectId', new ParseUUIDPipe()) projectId: string,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<UploadResponseDto> {
+    if (!file) throw new BadRequestException('A ZIP file is required');
     return this.service.create(user, projectId, file);
   }
 

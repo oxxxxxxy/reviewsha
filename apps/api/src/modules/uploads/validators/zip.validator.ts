@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { fromBuffer, type Entry, type ZipFile } from 'yauzl';
+import { open as openFile, fromBuffer, type Entry, type ZipFile } from 'yauzl';
 import {
   UPLOAD_ALLOWED_EXTENSION,
   UPLOAD_FORBIDDEN_PATHS,
+  UPLOAD_FORBIDDEN_FILES,
   UPLOAD_MAX_COMPRESSION_RATIO,
   UPLOAD_MAX_ENTRIES,
   UPLOAD_MAX_SIZE_BYTES,
@@ -25,21 +26,43 @@ export interface ZipValidationResult {
 @Injectable()
 export class ZipValidator {
   async validate(fileName: string, mimeType: string, buffer: Buffer): Promise<ZipValidationResult> {
+    return this.validateZip(fileName, mimeType, buffer.length, (callback) =>
+      fromBuffer(buffer, { lazyEntries: true, validateEntrySizes: true }, callback),
+    );
+  }
+
+  async validateFile(
+    fileName: string,
+    mimeType: string,
+    size: number,
+    filePath: string,
+  ): Promise<ZipValidationResult> {
+    return this.validateZip(fileName, mimeType, size, (callback) =>
+      openFile(filePath, { lazyEntries: true, validateEntrySizes: true }, callback),
+    );
+  }
+
+  private validateZip(
+    fileName: string,
+    mimeType: string,
+    size: number,
+    open: (callback: (error: Error | null, zip?: ZipFile) => void) => void,
+  ): Promise<ZipValidationResult> {
     if (
       !fileName.toLowerCase().endsWith(UPLOAD_ALLOWED_EXTENSION) ||
       mimeType !== UPLOAD_MIME_TYPE
     ) {
       throw new InvalidFileTypeException();
     }
-    if (buffer.length < UPLOAD_MIN_SIZE_BYTES) {
+    if (size < UPLOAD_MIN_SIZE_BYTES) {
       throw new InvalidArchiveException('Archive is empty');
     }
-    if (buffer.length > UPLOAD_MAX_SIZE_BYTES) {
+    if (size > UPLOAD_MAX_SIZE_BYTES) {
       throw new FileTooLargeException();
     }
 
     return new Promise((resolve, reject) => {
-      fromBuffer(buffer, { lazyEntries: true, validateEntrySizes: true }, (error, zip) => {
+      open((error, zip) => {
         if (error || !zip) return reject(new InvalidArchiveException());
         this.readEntries(zip, 0, 0, resolve, reject);
       });
@@ -98,9 +121,12 @@ export class ZipValidator {
       throw new ZipBombDetectedException();
     }
     const normalized = entry.fileName.replaceAll('\\', '/');
+    const lowerCasePath = normalized.toLowerCase();
+    const fileName = lowerCasePath.split('/').at(-1) ?? '';
     if (
-      normalized.split('/').includes('..') ||
-      UPLOAD_FORBIDDEN_PATHS.some((path) => normalized.startsWith(path))
+      lowerCasePath.split('/').includes('..') ||
+      UPLOAD_FORBIDDEN_PATHS.some((path) => lowerCasePath.startsWith(path)) ||
+      UPLOAD_FORBIDDEN_FILES.includes(fileName)
     ) {
       throw new InvalidArchiveException('Archive contains a forbidden path');
     }

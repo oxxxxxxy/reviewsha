@@ -1,4 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { createReadStream } from 'node:fs';
+import { rm } from 'node:fs/promises';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Role, UploadStatus } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
@@ -16,7 +18,9 @@ import { UploadListResponseDto, UploadResponseDto } from '../dto/upload-response
 export interface UploadFileInput {
   readonly originalname: string;
   readonly mimetype: string;
-  readonly buffer: Buffer;
+  readonly buffer?: Buffer;
+  readonly path?: string;
+  readonly size?: number;
 }
 
 @Injectable()
@@ -35,6 +39,19 @@ export class UploadsService {
     projectId: string,
     file: UploadFileInput,
   ): Promise<UploadResponseDto> {
+    try {
+      return await this.createUpload(user, projectId, file);
+    } finally {
+      if (file.path) await rm(file.path, { force: true }).catch(() => undefined);
+    }
+  }
+
+  private async createUpload(
+    user: AuthenticatedUser,
+    projectId: string,
+    file: UploadFileInput,
+  ): Promise<UploadResponseDto> {
+    const size = file.size ?? file.buffer?.length ?? 0;
     const project =
       user.role === Role.ADMIN
         ? await this.projects.findActiveById(projectId)
@@ -51,7 +68,7 @@ export class UploadsService {
       objectKey,
       bucket: 'projects',
       filename: file.originalname,
-      size: file.buffer.length,
+      size,
       mimeType: file.mimetype,
       checksum: 'pending',
       status: UploadStatus.PENDING,
@@ -61,15 +78,21 @@ export class UploadsService {
 
     try {
       await this.uploads.updateStatus(id, UploadStatus.VALIDATING);
-      await this.validator.validate(file.originalname, file.mimetype, file.buffer);
+      if (file.path) {
+        await this.validator.validateFile(file.originalname, file.mimetype, size, file.path);
+      } else if (file.buffer) {
+        await this.validator.validate(file.originalname, file.mimetype, file.buffer);
+      } else {
+        throw new UploadFailedException();
+      }
       this.events.publish(UPLOAD_EVENTS.validated, this.event(upload));
       await this.uploads.updateStatus(id, UploadStatus.UPLOADING);
-      const checksum = `sha256:${createHash('sha256').update(file.buffer).digest('hex')}`;
+      const checksum = `sha256:${await this.checksum(file)}`;
       await this.storage.upload({
         bucket: 'projects',
         key: objectKey,
-        body: file.buffer,
-        size: file.buffer.length,
+        body: file.path ? createReadStream(file.path) : file.buffer!,
+        size,
         metadata: {
           contentType: file.mimetype,
           checksum,
@@ -92,6 +115,17 @@ export class UploadsService {
       if (error instanceof Error && error.name.endsWith('Exception')) throw error;
       throw new UploadFailedException();
     }
+  }
+
+  private async checksum(file: UploadFileInput): Promise<string> {
+    const hash = createHash('sha256');
+    const stream = file.path ? createReadStream(file.path) : file.buffer;
+    if (!stream) throw new UploadFailedException();
+    if (Buffer.isBuffer(stream)) hash.update(stream);
+    else {
+      for await (const chunk of stream) hash.update(chunk as Buffer);
+    }
+    return hash.digest('hex');
   }
 
   async list(user: AuthenticatedUser, projectId: string): Promise<UploadListResponseDto> {

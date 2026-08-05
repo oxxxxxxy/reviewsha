@@ -6,3 +6,4 @@ export const UPLOAD_MAX_COMPRESSION_RATIO = 100;
 export const UPLOAD_MIME_TYPE = 'application/zip';
 export const UPLOAD_ALLOWED_EXTENSION = '.zip';
 export const UPLOAD_FORBIDDEN_PATHS = ['.git/', 'node_modules/', 'dist/', 'build/'];
+export const UPLOAD_FORBIDDEN_FILES = ['.env'];

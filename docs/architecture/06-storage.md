@@ -28,6 +28,9 @@ users/{userId}/projects/{projectId}/uploads/{uploadId}.zip
 
 Метаданные загрузки и версия хранятся в PostgreSQL (`uploaded_files`), содержимое —
 в MinIO. Принимаются только ZIP до 100 MB с защитой от path traversal и zip bomb.
+HTTP upload использует временный файл и потоковую передачу в MinIO; архив не
+удерживается целиком в памяти приложения. Временный файл удаляется после
+завершения или ошибки pipeline.
 
 ---
 

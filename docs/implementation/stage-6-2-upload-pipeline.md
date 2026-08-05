@@ -12,7 +12,7 @@
 - SHA-256 checksum, generated storage key and MinIO integration through `StorageService`.
 - `UploadStatus`, sequential version and migration
   `20260805200037_add_upload_status_and_version`.
-- 46 focused unit and HTTP integration tests for validator, upload service,
+- 48 focused unit and HTTP integration tests for validator, upload service,
   repository-facing behavior, mapper/storage integration and API contracts.
 
 ## Проверки
