@@ -997,7 +997,7 @@ Autoscaling
 
 Этап 7. Очереди
 7.1 Queue Infrastructure (Redis + BullMQ) ✅ COMPLETE
-7.2 Job Pipeline (Pipeline, Retry, Monitoring)
+7.2 Job Pipeline (Pipeline, Retry, Monitoring) ✅ COMPLETE
 
 Этап 8. Worker
 8.1 Worker Infrastructure

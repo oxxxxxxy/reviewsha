@@ -27,6 +27,7 @@ export class QueueService implements OnModuleDestroy {
     @InjectQueue(QUEUE_NAMES.ai) ai: Queue<QueueJobData>,
     @InjectQueue(QUEUE_NAMES.report) report: Queue<QueueJobData>,
     @InjectQueue(QUEUE_NAMES.notification) notification: Queue<QueueJobData>,
+    @InjectQueue(QUEUE_NAMES.deadLetter) deadLetter: Queue<QueueJobData>,
     private readonly registry: QueueRegistry,
     private readonly events: QueueEvents,
     private readonly logger: ApiLoggerService,
@@ -38,6 +39,7 @@ export class QueueService implements OnModuleDestroy {
       [QUEUE_NAMES.ai]: ai,
       [QUEUE_NAMES.report]: report,
       [QUEUE_NAMES.notification]: notification,
+      [QUEUE_NAMES.deadLetter]: deadLetter,
     };
   }
 

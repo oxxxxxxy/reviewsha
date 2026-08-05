@@ -1,8 +1,9 @@
 # Архитектура Worker проекта "Ревьюша"
 
 Worker подключается к тем же Redis и именам BullMQ очередей, что и API. Stage 7.1
-фиксирует инфраструктуру и retry policy; конкретный pipeline обработки
-`UploadCompleted` реализуется на Stage 7.2.
+фиксирует инфраструктуру и retry policy. Stage 7.2 создаёт jobs цепочки
+`extract → parse → analyze → merge → report → notify`; Stage 8 добавляет реальные
+processors и вызывает `PipelineService.handleSuccess()`/`handleFailure()`.
 
 ## 1. Назначение документа
 

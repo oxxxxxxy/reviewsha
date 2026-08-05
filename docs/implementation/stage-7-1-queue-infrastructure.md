@@ -6,7 +6,7 @@
 
 - API `QueueModule` на `@nestjs/bullmq` и BullMQ.
 - Централизованный `QueueRegistry` с очередями `scan.queue`, `file.queue`,
-  `ai.queue`, `report.queue`, `notification.queue`.
+  `ai.queue`, `report.queue`, `notification.queue` и `dead-letter.queue`.
 - `QueueService` для создания, поиска, удаления, retry, pause/resume и health check.
 - Единый Job envelope: `id`, `type`, `payload`, `createdAt`.
 - Запрет бинарных данных, секретов и чрезмерно больших payload.
@@ -25,5 +25,6 @@
 yarn ci:local ✅
 ```
 
-Конкретная обработка `UploadCompleted` и последовательность Extract → Parse →
-Analyze → Report реализуются на Stage 7.2.
+Оркестрация `UploadCompleted` и последовательность Extract → Parse → Analyze →
+Merge → Report → Notify реализованы на Stage 7.2; реальные Worker processors
+появятся на Stage 8.

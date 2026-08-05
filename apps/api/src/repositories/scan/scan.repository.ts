@@ -29,6 +29,13 @@ export class ScanRepository extends BaseRepository<Scan> implements IScanReposit
     });
   }
 
+  findBySourceFile(sourceFileId: string, options?: RepositoryOptions): Promise<Scan | null> {
+    return this.getClient(options).scan.findFirst({
+      where: { sourceFileId, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   create(data: Prisma.ScanCreateInput, options?: RepositoryOptions): Promise<Scan> {
     return this.getClient(options).scan.create({ data });
   }

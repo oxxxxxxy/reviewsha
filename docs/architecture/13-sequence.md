@@ -11,10 +11,12 @@
 - зафиксировать порядок вызовов;
 - подготовить основу для UML Sequence Diagram.
 
-## 2.1 UploadCompleted и Queue Infrastructure (Stage 7.1)
+## 2.1 UploadCompleted и Job Pipeline (Stage 7.2)
 
-На Stage 7.1 API регистрирует Job через `QueueService`; конкретная обработка
-события и цепочка Worker будут добавлены на Stage 7.2.
+На Stage 7.2 API принимает `UploadCompleted`, создаёт Scan и регистрирует первый
+Job через `PipelineService`/`QueueService`. Каждый успешный шаг создаёт следующий
+Job; окончательно упавшие jobs отправляются в `dead-letter.queue`. Реальное
+исполнение шагов выполняется Worker на Stage 8.
 
 ```text
 Upload API
@@ -23,13 +25,13 @@ PostgreSQL: UploadedFile COMPLETED
     ↓
 UploadEvents: upload.completed
     ↓
-QueueService.addJob(file.queue / scan.queue, identifiers)
+PipelineService: create Scan and Extract Job
     ↓
-BullMQ
+BullMQ / Redis
     ↓
-Redis
+Worker processors (Stage 8)
     ↓
-Worker (Stage 7.2)
+PipelineService: create next Job or dead-letter Job
 ```
 
 В payload передаются только `uploadId`, `projectId`, `scanId` и другие небольшие

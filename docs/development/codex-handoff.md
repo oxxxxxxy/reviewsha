@@ -47,9 +47,12 @@ Stage 6.2 Upload Pipeline is complete. `UploadsModule` owns multipart ZIP valida
 checksum, ownership, versioning and persistence; keep it dependent on `StorageService`
 rather than importing MinIO. The next planned work is Stage 7.1 Queue Infrastructure.
 
-Stage 7.1 Queue Infrastructure is complete. API `QueueModule` owns BullMQ
-registration and `QueueService`; Worker and API use the same central queue names.
-The next planned work is Stage 7.2 Job Pipeline, including `UploadCompleted` consumers.
+Stage 7.1 Queue Infrastructure and Stage 7.2 Job Pipeline are complete. API
+`QueueModule` owns BullMQ registration and `QueueService`; `PipelineModule`
+consumes `UploadCompleted`, creates the six-step chain (extract, parse, analyze,
+merge, report, notify), persists state in `Scan`, handles retryable versus
+permanent failures, tracks progress and sends exhausted jobs to the central
+`dead-letter.queue`. Stage 8 implements the real Worker processors.
 
 ## 3. Структура монорепозитория
 

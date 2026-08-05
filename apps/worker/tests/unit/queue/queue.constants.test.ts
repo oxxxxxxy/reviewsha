@@ -10,6 +10,7 @@ describe('queue constants', () => {
       ai: 'ai.queue',
       report: 'report.queue',
       notification: 'notification.queue',
+      deadLetter: 'dead-letter.queue',
     });
 
     expect(QUEUE_NAME_LIST).toEqual([
@@ -18,6 +19,7 @@ describe('queue constants', () => {
       'ai.queue',
       'report.queue',
       'notification.queue',
+      'dead-letter.queue',
     ]);
   });
 

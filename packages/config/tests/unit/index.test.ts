@@ -28,6 +28,7 @@ describe('@reviewsha/config public API', () => {
       'ai.queue',
       'report.queue',
       'notification.queue',
+      'dead-letter.queue',
     ]);
   });
 

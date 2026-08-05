@@ -75,6 +75,7 @@ describe('Stage 2 smoke checks', () => {
       'ai.queue',
       'report.queue',
       'notification.queue',
+      'dead-letter.queue',
     ]);
   });
 

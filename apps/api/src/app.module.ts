@@ -15,6 +15,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { UploadsModule } from './modules/uploads/uploads.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { PipelineModule } from './modules/pipeline/pipeline.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { QueueModule } from './modules/queue/queue.module';
     StorageModule,
     UploadsModule,
     QueueModule,
+    PipelineModule,
     HealthModule,
   ],
   providers: [

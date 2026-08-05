@@ -4,6 +4,7 @@ export const QUEUE_NAMES = {
   ai: 'ai.queue',
   report: 'report.queue',
   notification: 'notification.queue',
+  deadLetter: 'dead-letter.queue',
 } as const;
 
 export type QueueKey = keyof typeof QUEUE_NAMES;

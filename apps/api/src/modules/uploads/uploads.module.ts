@@ -12,6 +12,6 @@ import { ZipValidator } from './validators/zip.validator';
   imports: [DatabaseModule, RepositoriesModule, StorageModule],
   controllers: [UploadsController],
   providers: [ApiLoggerService, UploadEvents, UploadsService, ZipValidator],
-  exports: [UploadsService],
+  exports: [UploadsService, UploadEvents],
 })
 export class UploadsModule {}

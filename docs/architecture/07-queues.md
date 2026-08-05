@@ -135,7 +135,9 @@ queues/
 
 ├── report.queue
 
-└── notification.queue
+├── notification.queue
+
+└── dead-letter.queue
 ```
 
 Все Job имеют envelope `{ id, type, payload, createdAt }`. В `payload` разрешены
@@ -156,9 +158,24 @@ pauseQueue(queue)
 resumeQueue(queue)
 ```
 
-Доменный код не создаёт BullMQ Queue напрямую. События
-`queue.job.created`, `queue.job.completed` и `queue.job.failed` подготовлены для
-связки с `UploadCompleted` и конкретным pipeline на Stage 7.2.
+Доменный код не создаёт BullMQ Queue напрямую. События `queue.job.created`,
+`queue.job.completed` и `queue.job.failed` используются pipeline orchestration.
+Окончательно неуспешные задачи попадают в `dead-letter.queue` для диагностики и
+ручного retry.
+
+## 4.1 Job Pipeline (Stage 7.2)
+
+`apps/api/src/modules/pipeline` связывает `upload.completed` с цепочкой:
+
+```text
+UploadCompleted → extract → parse → analyze → merge → report → notify
+```
+
+Каждый переход создаёт отдельный Job с payload `{ pipelineId, projectId, uploadId,
+step }`. Состояние и прогресс сохраняются в `Scan`; повторная доставка события
+идемпотентна по `sourceFileId`. Временные ошибки повторяются до трёх попыток с
+exponential backoff, а постоянные ошибки переводят pipeline в `FAILED` и создают
+dead-letter Job. Реальные processors реализуются Worker на Stage 8.
 
 ---
 
