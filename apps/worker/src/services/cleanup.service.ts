@@ -8,4 +8,8 @@ export class CleanupService {
   cleanup(jobId: string): Promise<void> {
     return this.tempStorage.cleanup(jobId);
   }
+
+  cleanupWorkspace(jobId: string): Promise<void> {
+    return this.cleanup(jobId);
+  }
 }

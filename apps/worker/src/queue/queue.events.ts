@@ -4,6 +4,7 @@ export type QueueJobResult = {
   status: 'completed';
   queue: string;
   jobId?: string;
+  data?: unknown;
 };
 
 export function formatJobReceivedLog(queueName: string, job: Pick<Job, 'id' | 'name'>): string {

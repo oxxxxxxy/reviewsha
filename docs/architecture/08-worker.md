@@ -7,6 +7,20 @@ standalone Nest application context, BullMQ consumers, typed processor registry,
 database/storage adapters, isolated temporary workspaces и graceful shutdown.
 Реальные Download/Extract/Parse/Merge/Cleanup операции выполняются на Stage 8.2.
 
+## Stage 8.2 Processing Jobs
+
+File queue использует отдельные обработчики `download`, `extract`, `parse`,
+`merge` и `cleanup`. `DownloadProcessor` читает объект через
+`WorkerStorageService`, проверяет размер и SHA-256 из `UploadedFile` и сохраняет
+архив в workspace. `ArchiveService` распаковывает ZIP потоково и блокирует Zip
+Slip, превышение количества файлов, глубины и распакованного размера.
+
+`ParserService` индексирует файлы без `.git`, `node_modules`, `dist`, `build` и
+`.env`, определяет MVP-языки и сохраняет размеры, строки и SHA-256. Затем
+`MergeProcessor` формирует `context.json`, а `CleanupProcessor` идемпотентно
+удаляет `/tmp/reviewsha/jobs/{pipelineId}`. Payload очереди содержит только
+идентификаторы; бинарные данные остаются в MinIO и workspace.
+
 ## Stage 8.1 Worker Infrastructure
 
 `apps/worker/src/main.ts` запускает `NestFactory.createApplicationContext` без

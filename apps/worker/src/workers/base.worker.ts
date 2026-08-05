@@ -9,6 +9,7 @@ import {
   type QueueJobResult,
 } from '../queue/queue.events';
 import { QueueService } from '../queue/queue.service';
+import { ProcessorRegistry } from '../processors/processor.registry';
 
 /**
  * Base implementation for one BullMQ worker bound to one queue.
@@ -25,6 +26,7 @@ export abstract class BaseQueueWorker {
     protected readonly logger: WorkerLoggerService,
     private readonly configService: ConfigService,
     private readonly queueService: QueueService,
+    private readonly processors?: ProcessorRegistry,
   ) {}
 
   /** Starts the BullMQ worker when Redis is available. */
@@ -60,6 +62,8 @@ export abstract class BaseQueueWorker {
   /** Minimal stage processor used until domain-specific processors are added. */
   protected async processJob(job: Job): Promise<QueueJobResult> {
     this.logger.log(formatJobReceivedLog(this.queueName, job), this.constructor.name);
+    const handler = this.processors?.get(job.name);
+    if (handler) return handler.execute(job);
     this.logger.log(formatJobCompletedLog(this.queueName, job), this.constructor.name);
 
     return {

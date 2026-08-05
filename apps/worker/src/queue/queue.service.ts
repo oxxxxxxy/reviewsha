@@ -89,6 +89,14 @@ export class QueueService implements OnModuleDestroy {
     return this.enqueue(QUEUE_NAMES.notification, 'notification', payload);
   }
 
+  async enqueueJob(
+    queueName: QueueName,
+    jobName: string,
+    payload: QueuePayload = {},
+  ): Promise<EnqueuedJob> {
+    return this.enqueue(queueName, jobName, payload);
+  }
+
   async onModuleDestroy(): Promise<void> {
     await this.close();
   }

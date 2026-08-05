@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { Job } from 'bullmq';
 import { AnalyzeProcessor } from './analyze.processor';
+import { CleanupProcessor } from './cleanup.processor';
+import { DownloadProcessor } from './download.processor';
 import { ExtractProcessor } from './extract.processor';
 import { MergeProcessor } from './merge.processor';
 import { NotifyProcessor } from './notify.processor';
@@ -14,19 +16,23 @@ export class ProcessorRegistry {
 
   constructor(
     extract: ExtractProcessor,
+    download: DownloadProcessor,
     parse: ParseProcessor,
     analyze: AnalyzeProcessor,
     merge: MergeProcessor,
     report: ReportProcessor,
     notify: NotifyProcessor,
+    cleanup: CleanupProcessor,
   ) {
     this.handlers = new Map<string, JobHandler>([
       [extract.type, extract],
+      [download.type, download],
       [parse.type, parse],
       [analyze.type, analyze],
       [merge.type, merge],
       [report.type, report],
       [notify.type, notify],
+      [cleanup.type, cleanup],
     ]);
   }
 

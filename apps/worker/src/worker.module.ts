@@ -22,6 +22,12 @@ import { ParseProcessor } from './processors/parse.processor';
 import { ProcessorRegistry } from './processors/processor.registry';
 import { ReportProcessor } from './processors/report.processor';
 import { WorkerHealthService } from './health/worker-health.service';
+import { ArchiveService } from './services/archive.service';
+import { WorkspaceService } from './services/workspace.service';
+import { ParserService } from './services/parser.service';
+import { MergeService } from './services/merge.service';
+import { CleanupProcessor } from './processors/cleanup.processor';
+import { DownloadProcessor } from './processors/download.processor';
 
 @Module({
   imports: [WorkerConfigModule, QueueModule],
@@ -33,6 +39,12 @@ import { WorkerHealthService } from './health/worker-health.service';
     TempStorageService,
     CleanupService,
     ProjectReaderService,
+    ArchiveService,
+    WorkspaceService,
+    ParserService,
+    MergeService,
+    DownloadProcessor,
+    CleanupProcessor,
     ExtractProcessor,
     ParseProcessor,
     AnalyzeProcessor,

@@ -13,6 +13,22 @@
 
 ## 2.1 UploadCompleted и Job Pipeline (Stage 7.2)
 
+Перед AI-частью Worker выполняет файловую цепочку Stage 8.2:
+
+```text
+BullMQ file queue
+    ↓
+DownloadProcessor → MinIO → workspace/archive.zip
+    ↓
+ExtractProcessor → safe ZIP extraction
+    ↓
+ParseProcessor → files/languages/statistics
+    ↓
+MergeProcessor → output/context.json
+    ↓
+CleanupProcessor → remove temporary workspace
+```
+
 На Stage 7.2 API принимает `UploadCompleted`, создаёт Scan и регистрирует первый
 Job через `PipelineService`/`QueueService`. Каждый успешный шаг создаёт следующий
 Job; окончательно упавшие jobs отправляются в `dead-letter.queue`. Реальное

@@ -32,11 +32,12 @@ AI SaaS platform for automated code review.
 | 7.1 Queue Infrastructure           | ✅ COMPLETE | Redis/BullMQ queues, job envelope, retry policy, QueueService, health check and CI integration                           |
 | 7.2 Job Pipeline                   | ✅ COMPLETE | UploadCompleted trigger, six-step pipeline orchestration, retries, progress and dead-letter queue                        |
 | 8.1 Worker Infrastructure          | ✅ COMPLETE | Standalone Nest application context, BullMQ consumers, processors, DB/storage adapters, workspaces and graceful shutdown |
+| 8.2 Processing Jobs                | ✅ COMPLETE | Download, safe ZIP extraction, project parsing, context merge and idempotent cleanup                                     |
 
 Следующий этап:
 
 ```txt
-Этап 8.2 Processing Jobs
+Следующий этап: AI Pipeline
 ```
 
 ---

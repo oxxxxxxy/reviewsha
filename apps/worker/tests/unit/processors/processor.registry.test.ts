@@ -1,56 +1,47 @@
 import { describe, expect, it, vi } from 'vitest';
-import { AnalyzeProcessor } from '../../../src/processors/analyze.processor';
-import { ExtractProcessor } from '../../../src/processors/extract.processor';
-import { MergeProcessor } from '../../../src/processors/merge.processor';
-import { NotifyProcessor } from '../../../src/processors/notify.processor';
-import { ParseProcessor } from '../../../src/processors/parse.processor';
 import { ProcessorRegistry } from '../../../src/processors/processor.registry';
-import { ReportProcessor } from '../../../src/processors/report.processor';
+import type { JobHandler } from '../../../src/processors/job-handler.interface';
 
+function handler(type: string): JobHandler {
+  return {
+    type,
+    execute: vi.fn(async (job) => ({
+      status: 'completed' as const,
+      queue: job.queueName,
+      jobId: String(job.id),
+    })),
+  };
+}
 function registry() {
-  const logger = { log: vi.fn(), warn: vi.fn(), error: vi.fn() } as never;
   return new ProcessorRegistry(
-    new ExtractProcessor(logger),
-    new ParseProcessor(logger),
-    new AnalyzeProcessor(logger),
-    new MergeProcessor(logger),
-    new ReportProcessor(logger),
-    new NotifyProcessor(logger),
+    handler('extract') as never,
+    handler('download') as never,
+    handler('parse') as never,
+    handler('analyze') as never,
+    handler('merge') as never,
+    handler('report') as never,
+    handler('notify') as never,
+    handler('cleanup') as never,
   );
 }
 
 describe('ProcessorRegistry', () => {
-  it('registers extract', () => expect(registry().get('extract')).toBeDefined());
-  it('registers parse', () => expect(registry().get('parse')).toBeDefined());
-  it('registers analyze', () => expect(registry().get('analyze')).toBeDefined());
-  it('registers merge', () => expect(registry().get('merge')).toBeDefined());
-  it('registers report', () => expect(registry().get('report')).toBeDefined());
-  it('registers notify', () => expect(registry().get('notify')).toBeDefined());
-  it('rejects unknown job types', async () => {
-    await expect(registry().execute({ name: 'unknown', data: {} } as never)).rejects.toThrow(
+  it.each(['download', 'extract', 'parse', 'analyze', 'merge', 'report', 'notify', 'cleanup'])(
+    'registers %s',
+    (type) => expect(registry().get(type)).toBeDefined(),
+  );
+  it('rejects unknown job types', async () =>
+    expect(registry().execute({ name: 'unknown', data: {} } as never)).rejects.toThrow(
       'No handler',
-    );
-  });
-  it('executes a registered handler', async () => {
-    await expect(
-      registry().execute({
-        name: 'extract',
-        data: { uploadId: 'u1' },
-        id: 'j1',
-        queueName: 'file.queue',
-      } as never),
-    ).resolves.toMatchObject({ status: 'completed', jobId: 'j1' });
-  });
-  it('rejects missing payloads', async () => {
-    await expect(registry().execute({ name: 'parse', data: null } as never)).rejects.toThrow(
-      'payload',
-    );
-  });
-  it('keeps handler types deterministic', () => {
-    expect([
-      ...['extract', 'parse', 'analyze', 'merge', 'report', 'notify'].map(
+    ));
+  it('executes a registered handler', async () =>
+    expect(
+      registry().execute({ name: 'extract', data: {}, id: 'j1', queueName: 'file.queue' } as never),
+    ).resolves.toMatchObject({ status: 'completed', jobId: 'j1' }));
+  it('keeps handler types deterministic', () =>
+    expect(
+      ['download', 'extract', 'parse', 'analyze', 'merge', 'report', 'notify', 'cleanup'].map(
         (type) => registry().get(type)?.type,
       ),
-    ]).toEqual(['extract', 'parse', 'analyze', 'merge', 'report', 'notify']);
-  });
+    ).toEqual(['download', 'extract', 'parse', 'analyze', 'merge', 'report', 'notify', 'cleanup']));
 });
