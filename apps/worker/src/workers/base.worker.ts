@@ -26,7 +26,7 @@ export abstract class BaseQueueWorker {
     protected readonly logger: WorkerLoggerService,
     private readonly configService: ConfigService,
     private readonly queueService: QueueService,
-    private readonly processors?: ProcessorRegistry,
+    protected readonly processors?: ProcessorRegistry,
   ) {}
 
   /** Starts the BullMQ worker when Redis is available. */

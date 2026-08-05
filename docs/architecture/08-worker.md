@@ -26,6 +26,12 @@ context → prompts`) и provider abstraction для OmniRouter. Ответы п
 JSON validation и reporting layer (aggregation, deduplication, score, Markdown
 и JSON builders).
 
+Для обратной совместимости с Stage 7 исторический `extract` job расширяется на
+границе `FileWorker`: сначала выполняется зарегистрированный `DownloadProcessor`,
+затем `ExtractProcessor`. Поэтому фактический runtime flow остаётся
+`Download → Extract → Parse → Merge → Cleanup`, а изменение API queue contract
+не требуется. После cleanup создаётся AI `analyze` job.
+
 ## Stage 8.1 Worker Infrastructure
 
 `apps/worker/src/main.ts` запускает `NestFactory.createApplicationContext` без

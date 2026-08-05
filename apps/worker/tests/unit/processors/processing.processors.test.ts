@@ -137,7 +137,11 @@ describe('processing processors', () => {
 
   it('cleans a pipeline workspace idempotently', async () => {
     const cleanup = { cleanupWorkspace: vi.fn().mockResolvedValue(undefined) };
-    const processor = new CleanupProcessor(cleanup as never, logger);
+    const processor = new CleanupProcessor(
+      cleanup as never,
+      { enqueueJob: vi.fn() } as never,
+      logger,
+    );
     await processor.execute(job('cleanup'));
     await processor.execute(job('cleanup'));
     expect(cleanup.cleanupWorkspace).toHaveBeenCalledTimes(2);

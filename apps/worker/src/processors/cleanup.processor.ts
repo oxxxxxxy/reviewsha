@@ -5,17 +5,21 @@ import { WorkerLoggerService } from '../common/logger/worker-logger.service';
 import type { JobHandler } from './job-handler.interface';
 import type { QueueJobResult } from '../queue/queue.events';
 import { payloadOf } from './processing.helpers';
+import { QueueService } from '../queue/queue.service';
+import { QUEUE_NAMES } from '../queue/queue.constants';
 
 @Injectable()
 export class CleanupProcessor implements JobHandler {
   readonly type = 'cleanup';
   constructor(
     private readonly cleanup: CleanupService,
+    private readonly queue: QueueService,
     private readonly logger: WorkerLoggerService,
   ) {}
   async execute(job: Job): Promise<QueueJobResult> {
     const payload = payloadOf(job);
     await this.cleanup.cleanupWorkspace(payload.pipelineId!);
+    await this.queue.enqueueJob(QUEUE_NAMES.ai, 'analyze', payload);
     this.logger.log(`Cleanup completed pipelineId=${payload.pipelineId}`, 'CleanupProcessor');
     return {
       status: 'completed',

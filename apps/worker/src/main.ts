@@ -8,6 +8,7 @@ import { ShutdownService } from './common/shutdown/shutdown.service';
 import type { WorkerConfig } from './config/worker.config';
 import { QueueService } from './queue/queue.service';
 import { WorkerModule } from './worker.module';
+import { WorkerHealthService } from './health/worker-health.service';
 
 export async function bootstrap(): Promise<void> {
   const app = await NestFactory.createApplicationContext(WorkerModule);
@@ -16,12 +17,15 @@ export async function bootstrap(): Promise<void> {
   const configService = app.get(ConfigService);
   const queueService = app.get(QueueService);
   const shutdownService = app.get(ShutdownService);
+  const health = app.get(WorkerHealthService);
   const workerConfig = configService.getOrThrow<WorkerConfig>('worker');
 
   shutdownService.bind(app);
 
   logger.log('Worker started', workerConfig.workerName);
   await queueService.initialize();
+  await health.check();
+  logger.log('Worker dependencies healthy: PostgreSQL, Redis, MinIO', 'Bootstrap');
   logger.log(`Registered queues: ${queueService.getQueueNames().join(', ')}`, 'Bootstrap');
   logger.log('Waiting for jobs...', 'Bootstrap');
 
