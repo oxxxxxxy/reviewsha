@@ -42,11 +42,11 @@ export type AIChunk = {
   tokens: number;
   filePaths: string[];
 };
-export type AITask = 'architecture' | 'bugs' | 'security' | 'quality' | 'performance';
+export type AITask = 'architecture' | 'bugs' | 'security' | 'quality' | 'performance' | 'chat';
 export type LLMRequest = {
   system: string;
   prompt: string;
-  outputFormat: 'json';
+  outputFormat: 'json' | 'text';
   chunks: AIChunk[];
   task: AITask;
 };
@@ -56,6 +56,8 @@ export type AIReviewIssue = {
   line?: number;
   problem: string;
   recommendation: string;
+  category?:
+    'SECURITY' | 'BUG' | 'ARCHITECTURE' | 'PERFORMANCE' | 'QUALITY' | 'STYLE' | 'DOCUMENTATION';
 };
 export type AIReviewResult = {
   issues: AIReviewIssue[];

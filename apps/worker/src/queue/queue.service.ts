@@ -186,7 +186,19 @@ export class QueueService implements OnModuleDestroy {
       return { queue: queueName, jobName, disabled: true };
     }
 
-    const job = await queue.add(jobName, payload, DEFAULT_JOB_OPTIONS);
+    const pipelineId =
+      typeof payload.pipelineId === 'string'
+        ? payload.pipelineId
+        : payload.payload &&
+            typeof payload.payload === 'object' &&
+            'pipelineId' in payload.payload &&
+            typeof payload.payload.pipelineId === 'string'
+          ? payload.payload.pipelineId
+          : undefined;
+    const job = await queue.add(jobName, payload, {
+      ...DEFAULT_JOB_OPTIONS,
+      ...(pipelineId ? { jobId: `${pipelineId}-${jobName}` } : {}),
+    });
 
     return { queue: queueName, jobName, jobId: String(job.id), disabled: false };
   }

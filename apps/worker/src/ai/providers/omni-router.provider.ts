@@ -29,7 +29,9 @@ export class OmniRouterProvider implements AIProvider {
               { role: 'system', content: request.system },
               { role: 'user', content: request.prompt },
             ],
-            response_format: { type: 'json_object' },
+            ...(request.outputFormat === 'json'
+              ? { response_format: { type: 'json_object' } }
+              : {}),
           }),
         },
       );

@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { rm } from 'node:fs/promises';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { Role, UploadStatus } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
 import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
@@ -52,16 +52,15 @@ export class UploadsService {
     file: UploadFileInput,
   ): Promise<UploadResponseDto> {
     const size = file.size ?? file.buffer?.length ?? 0;
-    const project =
-      user.role === Role.ADMIN
-        ? await this.projects.findActiveById(projectId)
-        : await this.projects.findActiveByIdForOwner(projectId, user.id);
+    const project = await this.projects.findActiveById(projectId);
     if (!project) throw new NotFoundException('Project not found');
+    if (user.role !== Role.ADMIN && user.role !== Role.SUPER_ADMIN && project.ownerId !== user.id) {
+      throw new ForbiddenException('You cannot upload to this project');
+    }
 
     const id = randomUUID();
-    const version = await this.uploads.getNextVersion(projectId);
     const objectKey = `users/${user.id}/projects/${projectId}/uploads/${id}.zip`;
-    const upload = await this.uploads.create({
+    const upload = await this.uploads.createNextVersion(projectId, {
       id,
       project: { connect: { id: projectId } },
       uploadedBy: { connect: { id: user.id } },
@@ -72,10 +71,11 @@ export class UploadsService {
       mimeType: file.mimetype,
       checksum: 'pending',
       status: UploadStatus.PENDING,
-      version,
     });
+    const version = upload.version;
     this.events.publish(UPLOAD_EVENTS.created, this.event(upload));
 
+    let objectStored = false;
     try {
       await this.uploads.updateStatus(id, UploadStatus.VALIDATING);
       if (file.path) {
@@ -101,11 +101,15 @@ export class UploadsService {
           uploadId: id,
         },
       });
+      objectStored = true;
       const completed = await this.uploads.update(id, { checksum, status: UploadStatus.COMPLETED });
       this.events.publish(UPLOAD_EVENTS.completed, this.event(completed));
       this.logger.log(`Upload completed: ${id} version=${version}`, 'UploadsService');
       return UploadMapper.toResponse(completed);
     } catch (error) {
+      if (objectStored) {
+        await this.storage.delete('projects', objectKey).catch(() => undefined);
+      }
       await this.uploads.updateStatus(id, UploadStatus.FAILED).catch(() => undefined);
       this.events.publish(UPLOAD_EVENTS.failed, {
         ...this.event(upload),
@@ -129,11 +133,11 @@ export class UploadsService {
   }
 
   async list(user: AuthenticatedUser, projectId: string): Promise<UploadListResponseDto> {
-    const project =
-      user.role === Role.ADMIN
-        ? await this.projects.findActiveById(projectId)
-        : await this.projects.findActiveByIdForOwner(projectId, user.id);
+    const project = await this.projects.findActiveById(projectId);
     if (!project) throw new NotFoundException('Project not found');
+    if (user.role !== Role.ADMIN && user.role !== Role.SUPER_ADMIN && project.ownerId !== user.id) {
+      throw new ForbiddenException('You cannot access uploads for this project');
+    }
     return UploadMapper.toListResponse(await this.uploads.findByProject(projectId));
   }
 

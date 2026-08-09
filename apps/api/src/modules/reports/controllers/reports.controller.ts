@@ -23,6 +23,7 @@ import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
 import { ReportsListDto, ReportResponseDto } from '../dto/report-response.dto';
 import { ReportsService } from '../services/reports.service';
 import type { Response } from 'express';
+import { ParseIntPipe } from '@nestjs/common';
 
 @ApiTags('Reports')
 @ApiBearerAuth('bearer')
@@ -51,8 +52,13 @@ export class ReportsController {
   @ApiOperation({ summary: 'List project reports' })
   @ApiParam({ name: 'id' })
   @ApiOkResponse({ type: ReportsListDto })
-  findByProject(@CurrentUser() user: AuthenticatedUser, @Param('id', ParseUUIDPipe) id: string) {
-    return this.service.findByProject(user, id);
+  findByProject(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('page', new ParseIntPipe({ optional: true })) page = 1,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit = 50,
+  ) {
+    return this.service.findByProject(user, id, page, limit);
   }
   @Get('reports/:id/status')
   @ApiOperation({ summary: 'Get report generation status' })
@@ -72,7 +78,7 @@ export class ReportsController {
   }
 
   @Get('reports/:id/export/:format')
-  @ApiOperation({ summary: 'Export a report as Markdown or JSON' })
+  @ApiOperation({ summary: 'Export and persist a report as Markdown, JSON, or PDF' })
   async export(
     @CurrentUser() user: AuthenticatedUser,
     @Param('id', ParseUUIDPipe) id: string,

@@ -103,6 +103,41 @@ a {
   color: var(--color-muted);
 }
 
+.app-user {
+  margin-left: auto;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.project-list {
+  display: grid;
+  gap: var(--space-4);
+}
+.quick-actions {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+@media (max-width: 800px) {
+  .app-sidebar {
+    position: fixed;
+    z-index: 10;
+    height: 100vh;
+    transform: translateX(-100%);
+  }
+  .app-sidebar[data-open='true'] {
+    transform: translateX(0);
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+  .app-content {
+    padding: var(--space-4);
+  }
+}
+
 .ghost-button {
   border: 1px solid var(--color-border);
   background: var(--color-surface);

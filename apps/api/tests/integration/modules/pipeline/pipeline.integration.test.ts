@@ -97,20 +97,20 @@ describe('pipeline orchestration integration', () => {
     expect(x.queues.addJob.mock.calls[0]?.[0]).toBe('file.queue');
     expect(x.queues.addJob.mock.calls[0]?.[1]).toBe('parse');
   });
-  it('advances parse to analyze', async () => {
+  it('advances parse to merge', async () => {
     const x = service();
     await x.api.handleSuccess('scan-1', 'parse');
-    expect(x.queues.addJob.mock.calls[0]?.[0]).toBe('ai.queue');
+    expect(x.queues.addJob.mock.calls[0]?.[0]).toBe('file.queue');
   });
-  it('advances analyze to merge', async () => {
+  it('advances analyze to report', async () => {
     const x = service();
     await x.api.handleSuccess('scan-1', 'analyze');
-    expect(x.queues.addJob.mock.calls[0]?.[1]).toBe('merge');
+    expect(x.queues.addJob.mock.calls[0]?.[1]).toBe('report');
   });
-  it('advances merge to report', async () => {
+  it('advances merge to analyze', async () => {
     const x = service();
     await x.api.handleSuccess('scan-1', 'merge');
-    expect(x.queues.addJob.mock.calls[0]?.[0]).toBe('report.queue');
+    expect(x.queues.addJob.mock.calls[0]?.[0]).toBe('ai.queue');
   });
   it('advances report to notify', async () => {
     const x = service();

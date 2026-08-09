@@ -14,8 +14,8 @@ export type PipelineStep = (typeof PIPELINE_STEPS)[keyof typeof PIPELINE_STEPS];
 export const PIPELINE_PROGRESS: Record<PipelineStep, number> = {
   extract: 20,
   parse: 40,
-  analyze: 70,
-  merge: 85,
+  merge: 55,
+  analyze: 80,
   report: 95,
   notify: 100,
 };
@@ -24,7 +24,7 @@ export const PIPELINE_QUEUE: Record<PipelineStep, QueueName> = {
   extract: QUEUE_NAMES.file,
   parse: QUEUE_NAMES.file,
   analyze: QUEUE_NAMES.ai,
-  merge: QUEUE_NAMES.ai,
+  merge: QUEUE_NAMES.file,
   report: QUEUE_NAMES.report,
   notify: QUEUE_NAMES.notification,
 };
@@ -41,8 +41,8 @@ export const RETRYABLE_ERROR_CODES = new Set([
 export const PIPELINE_STEP_ORDER: readonly PipelineStep[] = [
   PIPELINE_STEPS.extract,
   PIPELINE_STEPS.parse,
-  PIPELINE_STEPS.analyze,
   PIPELINE_STEPS.merge,
+  PIPELINE_STEPS.analyze,
   PIPELINE_STEPS.report,
   PIPELINE_STEPS.notify,
 ];

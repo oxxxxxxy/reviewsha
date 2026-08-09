@@ -7,6 +7,9 @@ import { AIResponseValidator } from './services/ai-response.validator';
 import { AIService } from './services/ai.service';
 import { OmniRouterProvider } from './providers/omni-router.provider';
 import type { AIProvider } from './providers/ai-provider.interface';
+import { ConfigService } from '@nestjs/config';
+import { MockAIProvider } from './providers/mock-ai.provider';
+import { SecretRedactorService } from './services/secret-redactor.service';
 
 @Module({
   providers: [
@@ -15,12 +18,23 @@ import type { AIProvider } from './providers/ai-provider.interface';
     ContextBuilderService,
     PromptBuilderService,
     AIResponseValidator,
-    { provide: 'AI_PROVIDER', useClass: OmniRouterProvider },
+    SecretRedactorService,
+    OmniRouterProvider,
+    MockAIProvider,
+    {
+      provide: 'AI_PROVIDER',
+      useFactory: (
+        config: ConfigService,
+        omniRouter: OmniRouterProvider,
+        mock: MockAIProvider,
+      ): AIProvider => (config.get<string>('worker.aiProvider') === 'mock' ? mock : omniRouter),
+      inject: [ConfigService, OmniRouterProvider, MockAIProvider],
+    },
     {
       provide: AIService,
-      useFactory: (provider: AIProvider, validator: AIResponseValidator) =>
-        new AIService(provider, validator),
-      inject: ['AI_PROVIDER', AIResponseValidator],
+      useFactory: (provider: AIProvider, validator: AIResponseValidator, config: ConfigService) =>
+        new AIService(provider, validator, config),
+      inject: ['AI_PROVIDER', AIResponseValidator, ConfigService],
     },
   ],
   exports: [
@@ -30,6 +44,7 @@ import type { AIProvider } from './providers/ai-provider.interface';
     PromptBuilderService,
     AIResponseValidator,
     AIService,
+    SecretRedactorService,
   ],
 })
 export class AIModule {}

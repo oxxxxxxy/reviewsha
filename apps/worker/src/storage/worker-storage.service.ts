@@ -13,10 +13,17 @@ export class WorkerStorageService {
     @Inject(ConfigService) config: ConfigService,
     @Inject(WorkerLoggerService) private readonly logger: WorkerLoggerService,
   ) {
+    const configuredEndpoint = config.getOrThrow<string>('worker.minioEndpoint');
+    const endpointUrl = /^https?:\/\//u.test(configuredEndpoint)
+      ? new URL(configuredEndpoint)
+      : undefined;
     this.client = new Client({
-      endPoint: new URL(config.getOrThrow<string>('worker.minioEndpoint')).hostname,
-      port: config.getOrThrow<number>('worker.minioPort'),
-      useSSL: config.getOrThrow<boolean>('worker.minioUseSSL'),
+      endPoint: endpointUrl?.hostname ?? configuredEndpoint,
+      port: endpointUrl?.port
+        ? Number(endpointUrl.port)
+        : config.getOrThrow<number>('worker.minioPort'),
+      useSSL:
+        endpointUrl?.protocol === 'https:' || config.getOrThrow<boolean>('worker.minioUseSSL'),
       accessKey: config.getOrThrow<string>('worker.minioAccessKey'),
       secretKey: config.getOrThrow<string>('worker.minioSecretKey'),
     });

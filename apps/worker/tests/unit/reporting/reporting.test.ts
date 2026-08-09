@@ -57,11 +57,11 @@ describe('reporting pipeline', () => {
     expect(service.aggregate([]).issues).toEqual([]);
   });
   it.each([
-    ['CRITICAL', 75],
-    ['HIGH', 85],
-    ['MEDIUM', 93],
-    ['LOW', 97],
-    ['INFO', 99],
+    ['CRITICAL', 80],
+    ['HIGH', 90],
+    ['MEDIUM', 95],
+    ['LOW', 98],
+    ['INFO', 100],
   ] as const)('calculates %s score', (severity, score) =>
     expect(
       new ReportGeneratorService({
@@ -84,13 +84,33 @@ describe('reporting pipeline', () => {
     expect(
       new ReportGeneratorService({
         aggregate: () => ({
-          issues: Array.from({ length: 10 }, () => ({ severity: 'CRITICAL' })),
+          issues: ['SECURITY', 'ARCHITECTURE', 'BUG', 'QUALITY'].map((category) => ({
+            severity: 'CRITICAL',
+            category,
+          })),
           strengths: [],
           weaknesses: [],
           summary: '',
         }),
       } as never).generate([]).score,
     ).toBe(0));
+  it.each([
+    ['SECURITY', 70],
+    ['ARCHITECTURE', 75],
+    ['BUG', 75],
+    ['QUALITY', 80],
+  ])('applies the documented %s category weight', (category, expected) =>
+    expect(
+      new ReportGeneratorService({
+        aggregate: () => ({
+          issues: [{ severity: 'CRITICAL', category }],
+          strengths: [],
+          weaknesses: [],
+          summary: '',
+        }),
+      } as never).generate([]).score,
+    ).toBe(expected),
+  );
   it('builds markdown', () => {
     const report = new ReportGeneratorService(
       new ResultAggregatorService(new IssueNormalizerService(), new IssueDeduplicatorService()),

@@ -1,0 +1,46 @@
+import { Inject, Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
+import { ChatRepository } from '../repositories/chat.repository';
+import { ConversationSummaryService } from './conversation-summary.service';
+
+type ChatMemory = {
+  files: string[];
+  issues: string[];
+  recommendations: string[];
+  topic: string;
+};
+
+@Injectable()
+export class ChatMemoryService {
+  constructor(
+    @Inject(ChatRepository) private readonly repository: ChatRepository,
+    @Inject(ConversationSummaryService) private readonly summaries: ConversationSummaryService,
+  ) {}
+
+  async update(sessionId: string, question: string, answer: string): Promise<ChatMemory> {
+    const messages = await this.repository.messagesForMemory(sessionId, 100);
+    const combined = `${question}\n${answer}`;
+    const files = [...new Set(combined.match(/[\w./-]+\.[a-z0-9]{1,10}\b/giu) ?? [])].slice(0, 30);
+    const issues = [
+      ...new Set(
+        combined.match(
+          /(?:\b(?:critical|high|medium|low|bug|issue|vulnerability)\b|ошиб[\p{L}]*|уязвим[\p{L}]*)/giu,
+        ) ?? [],
+      ),
+    ].slice(0, 30);
+    const recommendations = answer
+      .split(/\n|(?<=[.!?])\s+/u)
+      .filter((line) => /recommend|should|fix|исправ|рекоменду/iu.test(line))
+      .slice(0, 20);
+    const topic = question.replace(/\s+/gu, ' ').trim().slice(0, 255);
+    const memory: ChatMemory = { files, issues, recommendations, topic };
+    const older = messages.slice(20);
+    await this.repository.updateMemory(sessionId, {
+      memory: memory as unknown as Prisma.InputJsonValue,
+      activeTopic: topic,
+      summary: older.length ? this.summaries.summarize(older) : undefined,
+      summaryThrough: older[0]?.createdAt,
+    });
+    return memory;
+  }
+}

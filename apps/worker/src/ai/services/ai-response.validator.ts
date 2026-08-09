@@ -19,11 +19,21 @@ export class AIResponseValidator {
     const issues = (value as { issues: unknown[] }).issues.map((issue) => {
       if (!issue || typeof issue !== 'object') throw new Error('AI issue has invalid shape');
       const item = issue as Record<string, unknown>;
+      const categories = [
+        'SECURITY',
+        'BUG',
+        'ARCHITECTURE',
+        'PERFORMANCE',
+        'QUALITY',
+        'STYLE',
+        'DOCUMENTATION',
+      ];
       if (
         !['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].includes(String(item.severity)) ||
         typeof item.file !== 'string' ||
         typeof item.problem !== 'string' ||
-        typeof item.recommendation !== 'string'
+        typeof item.recommendation !== 'string' ||
+        (item.category !== undefined && !categories.includes(String(item.category)))
       )
         throw new Error('AI issue has invalid fields');
       return item as unknown as AIReviewResult['issues'][number];

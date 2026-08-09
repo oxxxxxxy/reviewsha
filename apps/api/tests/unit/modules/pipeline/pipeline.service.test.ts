@@ -120,23 +120,23 @@ describe('PipelineService', () => {
     expect(scans.updateStatus).toHaveBeenCalledWith('scan-1', ScanStatus.PARSING);
   });
 
-  it('maps parse success to analyze', async () => {
+  it('maps parse success to merge', async () => {
     const { service, queues } = setup();
     await service.handleSuccess('scan-1', PIPELINE_STEPS.parse);
-    expect(queues.addJob).toHaveBeenCalledWith('ai.queue', 'analyze', expect.anything());
+    expect(queues.addJob).toHaveBeenCalledWith('file.queue', 'merge', expect.anything());
   });
 
-  it('maps analyze success to merge', async () => {
+  it('maps analyze success to report', async () => {
     const { service, queues, scans } = setup();
     await service.handleSuccess('scan-1', PIPELINE_STEPS.analyze);
-    expect(queues.addJob).toHaveBeenCalledWith('ai.queue', 'merge', expect.anything());
-    expect(scans.updateStatus).toHaveBeenCalledWith('scan-1', ScanStatus.AGGREGATING);
+    expect(queues.addJob).toHaveBeenCalledWith('report.queue', 'report', expect.anything());
+    expect(scans.updateStatus).toHaveBeenCalledWith('scan-1', ScanStatus.REPORTING);
   });
 
-  it('maps merge success to report', async () => {
+  it('maps merge success to analyze', async () => {
     const { service, queues } = setup();
     await service.handleSuccess('scan-1', PIPELINE_STEPS.merge);
-    expect(queues.addJob).toHaveBeenCalledWith('report.queue', 'report', expect.anything());
+    expect(queues.addJob).toHaveBeenCalledWith('ai.queue', 'analyze', expect.anything());
   });
 
   it('maps report success to notify', async () => {

@@ -1,6 +1,8 @@
 import { NavLink, Outlet } from 'react-router-dom';
 
 import { useUiStore } from '../stores/ui.store';
+import { useAuthStore } from '../stores/auth.store';
+import { useNavigate } from 'react-router-dom';
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
@@ -10,6 +12,9 @@ const navItems = [
 ];
 
 export function AppLayout() {
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
   const isSidebarOpen = useUiStore((state) => state.isSidebarOpen);
   const toggleSidebar = useUiStore((state) => state.toggleSidebar);
 
@@ -32,6 +37,10 @@ export function AppLayout() {
             Toggle sidebar
           </button>
           <span className="app-header-title">AI Code Review Platform</span>
+          <span className="app-user">{user?.email}</span>
+          <button type="button" onClick={() => void logout().then(() => navigate('/login'))}>
+            Logout
+          </button>
         </header>
 
         <main className="app-content">

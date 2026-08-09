@@ -2,6 +2,7 @@ export type WorkerConfig = {
   nodeEnv: string;
   workerName: string;
   redisRequired: boolean;
+  concurrency: number;
   redisUrl: string;
   databaseUrl: string;
   minioEndpoint: string;
@@ -16,6 +17,11 @@ export type WorkerConfig = {
   aiMaxTokens: number;
   aiTemperature: number;
   aiTimeoutMs: number;
+  aiRetryAttempts: number;
+  aiRetryDelayMs: number;
+  aiMaxConcurrency: number;
+  aiDailyRequestLimit: number;
+  aiInputMaxTokens: number;
 };
 
 export default (): { worker: WorkerConfig } => ({
@@ -23,6 +29,7 @@ export default (): { worker: WorkerConfig } => ({
     nodeEnv: process.env.NODE_ENV ?? 'development',
     workerName: process.env.WORKER_NAME ?? 'reviewsha-worker',
     redisRequired: process.env.WORKER_REDIS_REQUIRED === 'true',
+    concurrency: Number(process.env.WORKER_CONCURRENCY ?? 3),
     redisUrl: process.env.REDIS_URL ?? 'redis://localhost:6379',
     databaseUrl:
       process.env.DATABASE_URL ??
@@ -39,5 +46,10 @@ export default (): { worker: WorkerConfig } => ({
     aiMaxTokens: Number(process.env.AI_MAX_TOKENS ?? 4000),
     aiTemperature: Number(process.env.AI_TEMPERATURE ?? 0.2),
     aiTimeoutMs: Number(process.env.AI_TIMEOUT_MS ?? 60000),
+    aiRetryAttempts: Number(process.env.AI_RETRY_ATTEMPTS ?? 3),
+    aiRetryDelayMs: Number(process.env.AI_RETRY_DELAY_MS ?? 1000),
+    aiMaxConcurrency: Number(process.env.AI_MAX_CONCURRENCY ?? 3),
+    aiDailyRequestLimit: Number(process.env.AI_DAILY_REQUEST_LIMIT ?? 500),
+    aiInputMaxTokens: Number(process.env.AI_INPUT_MAX_TOKENS ?? 12000),
   },
 });

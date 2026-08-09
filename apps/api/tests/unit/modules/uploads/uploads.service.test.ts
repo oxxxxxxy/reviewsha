@@ -45,8 +45,11 @@ const upload = {
 
 function setup() {
   const repository = {
-    getNextVersion: vi.fn(async () => 1),
-    create: vi.fn(async () => ({ ...upload, status: UploadStatus.PENDING, checksum: 'pending' })),
+    createNextVersion: vi.fn(async () => ({
+      ...upload,
+      status: UploadStatus.PENDING,
+      checksum: 'pending',
+    })),
     updateStatus: vi.fn(async (_id: string, status: UploadStatus) => ({ ...upload, status })),
     update: vi.fn(async () => upload),
     findByProject: vi.fn(async () => [upload]),
@@ -55,7 +58,10 @@ function setup() {
     findActiveByIdForOwner: vi.fn(async () => project),
     findActiveById: vi.fn(async () => project),
   };
-  const storage = { upload: vi.fn(async () => ({ bucket: 'projects', key: upload.objectKey })) };
+  const storage = {
+    upload: vi.fn(async () => ({ bucket: 'projects', key: upload.objectKey })),
+    delete: vi.fn(async () => undefined),
+  };
   const validator = { validate: vi.fn(async () => ({ entries: 1, uncompressedSize: 10 })) };
   const events = new UploadEvents();
   const logger = { log: vi.fn() };
@@ -107,8 +113,7 @@ describe('UploadsService', () => {
 
   it('increments versions using repository state', async () => {
     const { service, repository } = setup();
-    repository.getNextVersion.mockResolvedValue(4);
-    repository.create.mockResolvedValue({
+    repository.createNextVersion.mockResolvedValue({
       ...upload,
       version: 4,
       status: UploadStatus.PENDING,
@@ -139,14 +144,14 @@ describe('UploadsService', () => {
 
   it('rejects projects outside the user scope', async () => {
     const { service, projects } = setup();
-    projects.findActiveByIdForOwner.mockImplementation(async () => null as never);
+    projects.findActiveById.mockResolvedValue({ ...project, ownerId: 'another-user' });
     await expect(
       service.create(user, project.id, {
         originalname: 'project.zip',
         mimetype: 'application/zip',
         buffer: Buffer.alloc(30),
       }),
-    ).rejects.toMatchObject({ status: 404 });
+    ).rejects.toMatchObject({ status: 403 });
   });
 
   it('allows administrators to upload to any project', async () => {
@@ -168,8 +173,8 @@ describe('UploadsService', () => {
 
   it('does not list uploads for an inaccessible project', async () => {
     const { service, projects } = setup();
-    projects.findActiveByIdForOwner.mockImplementation(async () => null as never);
-    await expect(service.list(user, project.id)).rejects.toMatchObject({ status: 404 });
+    projects.findActiveById.mockResolvedValue({ ...project, ownerId: 'another-user' });
+    await expect(service.list(user, project.id)).rejects.toMatchObject({ status: 403 });
   });
 
   it('uses generated storage keys instead of the original filename', async () => {
@@ -179,7 +184,8 @@ describe('UploadsService', () => {
       mimetype: 'application/zip',
       buffer: Buffer.alloc(30),
     });
-    expect(repository.create).toHaveBeenCalledWith(
+    expect(repository.createNextVersion).toHaveBeenCalledWith(
+      project.id,
       expect.objectContaining({
         objectKey: expect.stringMatching(/^users\/.*\/uploads\/.*\.zip$/),
       }),

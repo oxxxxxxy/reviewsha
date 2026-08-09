@@ -1,7 +1,7 @@
 # AI Pipeline проекта "Ревьюша"
 
 Подготовка контекста начинается в Worker Stage 8.2: `Download → Extract → Parse
-→ Merge → Cleanup`. Результат `Merge` (`context.json`) является входом для
+→ Merge`. Результат `Merge` (`context.json`) является входом для
 следующих этапов AI Pipeline и не содержит сам ZIP или секреты.
 
 ## Реализация Stage 9
@@ -18,9 +18,11 @@ AI Provider изолирован интерфейсом `AIProvider`; `OmniRoute
 OpenAI-compatible `/chat/completions`, конфигурация берётся из ENV. Ответ
 проверяется `AIResponseValidator` до передачи в reporting layer.
 
-Reporting layer нормализует и дедуплицирует issues, рассчитывает score, создаёт
-JSON и Markdown отчёты. API `ReportsModule` предоставляет чтение, историю
-проекта, удаление, Markdown/JSON export и compare endpoint с проверкой владельца.
+AnalyzeProcessor сохраняет `AnalysisContext`, `AIRequest`, `AIResponse` и
+`AIUsage`; запросы выполняются с quota, timeout, retry и concurrency limit.
+Reporting layer нормализует и дедуплицирует issues, рассчитывает weighted score,
+создаёт JSON и Markdown. API `ReportsModule` предоставляет чтение, историю,
+soft delete, Markdown/JSON/PDF export и compare с проверкой владельца.
 
 ## 1. Назначение документа
 

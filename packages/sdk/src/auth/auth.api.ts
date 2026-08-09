@@ -1,4 +1,4 @@
-import type { AuthTokens, User } from '@reviewsha/types';
+import type { User } from '@reviewsha/types';
 import type { ApiClient } from '../client/api-client.js';
 
 export interface LoginRequest {
@@ -8,7 +8,12 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   readonly user: User;
-  readonly tokens: AuthTokens;
+  readonly accessToken: string;
+  readonly refreshToken: string;
+}
+
+export interface RegisterRequest extends LoginRequest {
+  readonly displayName: string;
 }
 
 export class AuthAPI {
@@ -18,11 +23,21 @@ export class AuthAPI {
     return this.client.post<LoginResponse, LoginRequest>('/auth/login', payload);
   }
 
+  register(payload: RegisterRequest): Promise<LoginResponse> {
+    return this.client.post<LoginResponse, RegisterRequest>('/auth/register', payload);
+  }
+
+  refresh(refreshToken: string): Promise<LoginResponse> {
+    return this.client.post<LoginResponse, { refreshToken: string }>('/auth/refresh', {
+      refreshToken,
+    });
+  }
+
   me(): Promise<User> {
     return this.client.get<User>('/auth/me');
   }
 
-  logout(): Promise<void> {
-    return this.client.post<void>('/auth/logout');
+  logout(refreshToken: string): Promise<void> {
+    return this.client.post<void, { refreshToken: string }>('/auth/logout', { refreshToken });
   }
 }

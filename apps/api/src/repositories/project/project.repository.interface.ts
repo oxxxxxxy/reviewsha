@@ -21,7 +21,7 @@ export interface FindProjectsParams extends FindManyOptions {
   readonly language?: string;
   readonly createdFrom?: Date;
   readonly createdTo?: Date;
-  readonly sort?: 'createdAt' | 'updatedAt' | 'name';
+  readonly sort?: 'createdAt' | 'updatedAt' | 'name' | 'lastAnalysisAt' | 'analysesCount';
   readonly order?: 'asc' | 'desc';
 }
 

@@ -35,6 +35,7 @@ describe('processing processors', () => {
         uploadedFile: {
           findUnique: vi.fn().mockResolvedValue({
             id: 'u1',
+            projectId: 'p1',
             bucket: 'uploads',
             objectKey: 'k',
             size: BigInt(bytes.length),
@@ -42,6 +43,7 @@ describe('processing processors', () => {
             deletedAt: null,
           }),
         },
+        scan: { update: vi.fn().mockResolvedValue({}) },
       } as never,
       { getObject: vi.fn().mockResolvedValue(Readable.from(bytes)) } as never,
       { create: vi.fn().mockResolvedValue(workspace) } as never,

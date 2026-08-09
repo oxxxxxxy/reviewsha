@@ -45,7 +45,7 @@ export class UploadsController {
 
   @Post()
   @Roles(...AUTHORIZATION_POLICIES.projects.create.roles)
-  @Ownership('project')
+  @Ownership('project', 'projectId')
   @ApiOperation({ summary: 'Upload a ZIP archive for a project' })
   @ApiParam({ name: 'projectId', description: 'Project UUID.' })
   @ApiConsumes('multipart/form-data')
@@ -81,7 +81,7 @@ export class UploadsController {
   }
 
   @Get()
-  @Ownership('project')
+  @Ownership('project', 'projectId')
   @ApiOperation({ summary: 'List project upload versions' })
   @ApiOkResponse({ type: UploadListResponseDto })
   list(

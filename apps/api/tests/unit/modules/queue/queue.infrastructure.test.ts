@@ -18,7 +18,15 @@ function setup() {
     getJobCounts: vi.fn(async () => ({ waiting: 0 })),
     close: vi.fn(async () => undefined),
   });
-  const queues = [makeQueue(), makeQueue(), makeQueue(), makeQueue(), makeQueue(), makeQueue()];
+  const queues = [
+    makeQueue(),
+    makeQueue(),
+    makeQueue(),
+    makeQueue(),
+    makeQueue(),
+    makeQueue(),
+    makeQueue(),
+  ];
   const logger = { log: vi.fn() };
   const config = { getOrThrow: vi.fn(() => 'redis://localhost:6379') };
   const service = new QueueService(
@@ -28,6 +36,7 @@ function setup() {
     queues[3] as never,
     queues[4] as never,
     queues[5] as never,
+    queues[6] as never,
     new QueueRegistry(),
     new QueueEvents(),
     logger as never,
@@ -42,6 +51,7 @@ describe('Queue infrastructure', () => {
       'scan.queue',
       'file.queue',
       'ai.queue',
+      'chat.queue',
       'report.queue',
       'notification.queue',
       'dead-letter.queue',

@@ -30,6 +30,7 @@ function project(ownerId = user.id): Project {
     createdAt: now,
     updatedAt: now,
     archivedAt: null,
+    lastAnalysisAt: null,
     deletedAt: null,
   };
 }

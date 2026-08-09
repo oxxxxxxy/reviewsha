@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 
 import { JwtAuthGuard } from './common/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './common/auth/guards/roles.guard';
+import { OwnershipGuard } from './common/auth/guards/ownership.guard';
 import { ApiLoggerService } from './common/logger/api-logger.service';
 import { AppConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
@@ -17,6 +18,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { QueueModule } from './modules/queue/queue.module';
 import { PipelineModule } from './modules/pipeline/pipeline.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -32,12 +34,14 @@ import { ReportsModule } from './modules/reports/reports.module';
     QueueModule,
     PipelineModule,
     ReportsModule,
+    ChatModule,
     HealthModule,
   ],
   providers: [
     ApiLoggerService,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: OwnershipGuard },
   ],
 })
 export class AppModule {}

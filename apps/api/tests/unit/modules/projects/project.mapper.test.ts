@@ -17,6 +17,7 @@ describe('ProjectMapper', () => {
       createdAt: now,
       updatedAt: now,
       archivedAt: null,
+      lastAnalysisAt: null,
       deletedAt: null,
     };
 

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { API_BASE_PATH } from '@reviewsha/config';
 
-export const envSchema = z.object({
+const apiEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   API_HOST: z.string().default('0.0.0.0'),
   API_PORT: z.coerce.number().int().positive().default(3000),
@@ -33,6 +33,33 @@ export const envSchema = z.object({
   MINIO_BUCKET_REPORTS: z.string().default('reports'),
   MINIO_BUCKET_TEMP: z.string().default('temp'),
   MINIO_USE_SSL: z.coerce.boolean().default(false),
+  CHAT_MESSAGE_MAX_LENGTH: z.coerce.number().int().positive().default(4000),
+  CHAT_CONTEXT_MAX_TOKENS: z.coerce.number().int().positive().default(8000),
+  CHAT_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
+  CHAT_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(100),
+  CHAT_CONTEXT_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+});
+
+const unsafeProductionDefaults: Partial<Record<keyof z.infer<typeof apiEnvSchema>, unknown>> = {
+  DATABASE_URL: 'postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public',
+  JWT_SECRET: 'reviewsha-access-secret-change-me',
+  JWT_REFRESH_SECRET: 'reviewsha-refresh-secret-change-me',
+  INTERNAL_API_KEY: 'reviewsha-internal-api-key-change-me',
+  MINIO_ACCESS_KEY: 'reviewsha',
+  MINIO_SECRET_KEY: 'reviewsha-password',
+};
+
+export const envSchema = apiEnvSchema.superRefine((value, context) => {
+  if (value.NODE_ENV !== 'production') return;
+  for (const [field, unsafeValue] of Object.entries(unsafeProductionDefaults)) {
+    if (value[field as keyof typeof value] === unsafeValue) {
+      context.addIssue({
+        code: 'custom',
+        path: [field],
+        message: `${field} must be explicitly configured for production`,
+      });
+    }
+  }
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

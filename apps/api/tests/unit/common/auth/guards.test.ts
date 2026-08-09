@@ -157,19 +157,36 @@ describe('common auth guards', () => {
     });
   });
 
-  it('denies ownership when checker is not configured', () => {
+  it('denies ownership when the project does not belong to the user', async () => {
     const guard = new OwnershipGuard(
       {
         getAllAndOverride: vi.fn(() => ({ resource: 'project', paramName: 'projectId' })),
       } as never,
       logger(),
+      { findByIdForOwnerIncludingDeleted: vi.fn().mockResolvedValue(null) } as never,
     );
 
-    expect(() =>
+    await expect(
       guard.canActivate(
         httpContext({ user: { id: '1', role: Role.USER }, params: { projectId: '2' } }) as never,
       ),
-    ).toThrow(ForbiddenException);
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('allows a project owner', async () => {
+    const guard = new OwnershipGuard(
+      {
+        getAllAndOverride: vi.fn(() => ({ resource: 'project', paramName: 'projectId' })),
+      } as never,
+      logger(),
+      { findByIdForOwnerIncludingDeleted: vi.fn().mockResolvedValue({ id: '2' }) } as never,
+    );
+
+    await expect(
+      guard.canActivate(
+        httpContext({ user: { id: '1', role: Role.USER }, params: { projectId: '2' } }) as never,
+      ),
+    ).resolves.toBe(true);
   });
 
   it('authenticates internal API key', () => {

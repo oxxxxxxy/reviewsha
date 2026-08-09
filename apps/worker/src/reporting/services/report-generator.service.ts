@@ -18,14 +18,34 @@ export class ReportGeneratorService {
       weaknesses: aggregate.weaknesses,
     };
   }
-  score(issues: Array<{ severity: string }>): number {
-    const penalties = { CRITICAL: 25, HIGH: 15, MEDIUM: 7, LOW: 3, INFO: 1 } as Record<
+  score(issues: Array<{ severity: string; category?: string }>): number {
+    const severityPenalty = { CRITICAL: 100, HIGH: 50, MEDIUM: 25, LOW: 10, INFO: 2 } as Record<
       string,
       number
     >;
-    return Math.max(
-      0,
-      Math.min(100, 100 - issues.reduce((sum, issue) => sum + (penalties[issue.severity] ?? 0), 0)),
-    );
+    const groups = {
+      security: { weight: 0.3, categories: ['SECURITY'] },
+      architecture: { weight: 0.25, categories: ['ARCHITECTURE'] },
+      bugs: { weight: 0.25, categories: ['BUG'] },
+      quality: {
+        weight: 0.2,
+        categories: [
+          'PERFORMANCE',
+          'QUALITY',
+          'STYLE',
+          'DOCUMENTATION',
+          'MAINTAINABILITY',
+          'TESTING',
+        ],
+      },
+    };
+    let score = 100;
+    for (const group of Object.values(groups)) {
+      const groupPenalty = issues
+        .filter((issue) => group.categories.includes(issue.category ?? 'QUALITY'))
+        .reduce((sum, issue) => sum + (severityPenalty[issue.severity] ?? 0), 0);
+      score -= Math.min(100, groupPenalty) * group.weight;
+    }
+    return Math.round(Math.max(0, Math.min(100, score)));
   }
 }

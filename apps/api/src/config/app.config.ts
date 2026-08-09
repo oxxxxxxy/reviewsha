@@ -41,6 +41,13 @@ export default (): {
     useSSL: boolean;
     buckets: { projects: string; reports: string; temp: string };
   };
+  chat: {
+    messageMaxLength: number;
+    contextMaxTokens: number;
+    requestTimeoutMs: number;
+    pollIntervalMs: number;
+    contextCacheTtlSeconds: number;
+  };
 } => ({
   app: {
     nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -82,5 +89,12 @@ export default (): {
       reports: process.env.MINIO_BUCKET_REPORTS ?? 'reports',
       temp: process.env.MINIO_BUCKET_TEMP ?? 'temp',
     },
+  },
+  chat: {
+    messageMaxLength: Number(process.env.CHAT_MESSAGE_MAX_LENGTH ?? 4000),
+    contextMaxTokens: Number(process.env.CHAT_CONTEXT_MAX_TOKENS ?? 8000),
+    requestTimeoutMs: Number(process.env.CHAT_REQUEST_TIMEOUT_MS ?? 60000),
+    pollIntervalMs: Number(process.env.CHAT_POLL_INTERVAL_MS ?? 100),
+    contextCacheTtlSeconds: Number(process.env.CHAT_CONTEXT_CACHE_TTL_SECONDS ?? 900),
   },
 });

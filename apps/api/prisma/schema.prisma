@@ -103,6 +103,8 @@ enum FindingCategory {
   STYLE
   MAINTAINABILITY
   TESTING
+  QUALITY
+  DOCUMENTATION
 }
 
 enum FindingStatus {
@@ -115,6 +117,12 @@ enum ReportFormat {
   MD
   PDF
   JSON
+}
+
+enum ReportStatus {
+  GENERATING
+  READY
+  FAILED
 }
 
 enum AIRequestStatus {
@@ -193,6 +201,7 @@ model User {
   deletedAt    DateTime? @map("deleted_at") @db.Timestamptz(3)
 
   aiRequests         AIRequest[]
+  aiUsage            AIUsage[]
   chatMessages       ChatMessage[]
   chatSessions       ChatSession[]
   invitationsSent    Invitation[]     @relation("InvitationInviter")
@@ -259,24 +268,28 @@ model Project {
   createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
   archivedAt     DateTime?     @map("archived_at") @db.Timestamptz(3)
+  lastAnalysisAt DateTime?     @map("last_analysis_at") @db.Timestamptz(3)
   deletedAt      DateTime?     @map("deleted_at") @db.Timestamptz(3)
 
-  organization  Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  owner         User             @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  chatSessions  ChatSession[]
-  members       ProjectMember[]
-  queueJobs     QueueJob[]
-  reports       Report[]
-  scans         Scan[]
-  uploadedFiles UploadedFile[]
-  tags          ProjectTag[]
-  history       ProjectHistory[]
+  organization     Organization?     @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  owner            User              @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  chatSessions     ChatSession[]
+  members          ProjectMember[]
+  queueJobs        QueueJob[]
+  reports          Report[]
+  scans            Scan[]
+  uploadedFiles    UploadedFile[]
+  tags             ProjectTag[]
+  history          ProjectHistory[]
+  analysisContexts AnalysisContext[]
+  aiUsage          AIUsage[]
 
   @@index([ownerId])
   @@index([organizationId])
   @@index([status])
   @@index([visibility])
   @@index([deletedAt])
+  @@index([lastAnalysisAt])
   @@map("projects")
 }
 
@@ -378,14 +391,16 @@ model Scan {
   pipelineFinishedAt   DateTime?       @map("pipeline_finished_at") @db.Timestamptz(3)
   pipelineErrorAt      DateTime?       @map("pipeline_error_at") @db.Timestamptz(3)
 
-  createdBy  User?         @relation("ScanCreator", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  project    Project       @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  sourceFile UploadedFile? @relation(fields: [sourceFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  aiRequests AIRequest[]
-  findings   Finding[]
-  queueJobs  QueueJob[]
-  report     Report?
-  steps      ScanStep[]
+  createdBy       User?            @relation("ScanCreator", fields: [createdById], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  sourceFile      UploadedFile?    @relation(fields: [sourceFileId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  aiRequests      AIRequest[]
+  findings        Finding[]
+  queueJobs       QueueJob[]
+  report          Report?
+  steps           ScanStep[]
+  analysisContext AnalysisContext?
+  aiUsage         AIUsage[]
 
   @@index([projectId])
   @@index([sourceFileId])
@@ -421,20 +436,41 @@ model Report {
   score      Int?
   filePath   String?      @map("file_path") @db.Text
   format     ReportFormat @default(MD)
+  status     ReportStatus @default(GENERATING)
   tokensUsed Int          @default(0) @map("tokens_used")
   cost       Decimal      @default(0) @db.Decimal(12, 6)
   createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
   deletedAt  DateTime?    @map("deleted_at") @db.Timestamptz(3)
 
-  project      Project       @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  scan         Scan          @relation(fields: [scanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  scan         Scan           @relation(fields: [scanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   chatSessions ChatSession[]
   findings     Finding[]
+  exports      ReportExport[]
 
   @@index([scanId])
   @@index([projectId])
   @@index([deletedAt])
   @@map("reports")
+}
+
+model ReportExport {
+  id        String       @id @default(uuid()) @db.Uuid
+  reportId  String       @map("report_id") @db.Uuid
+  format    ReportFormat
+  bucket    String       @db.VarChar(80)
+  objectKey String       @map("object_key") @db.Text
+  mimeType  String       @map("mime_type") @db.VarChar(160)
+  size      BigInt
+  checksum  String       @db.VarChar(128)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([reportId, format])
+  @@unique([bucket, objectKey])
+  @@index([reportId])
+  @@map("report_exports")
 }
 
 model Finding {
@@ -476,6 +512,8 @@ model AIRequest {
   userId           String?         @map("user_id") @db.Uuid
   provider         String          @db.VarChar(80)
   model            String          @db.VarChar(120)
+  chunkId          String?         @map("chunk_id") @db.VarChar(180)
+  prompt           String?         @db.Text
   promptTokens     Int             @default(0) @map("prompt_tokens")
   completionTokens Int             @default(0) @map("completion_tokens")
   totalTokens      Int             @default(0) @map("total_tokens")
@@ -485,9 +523,10 @@ model AIRequest {
   createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   completedAt      DateTime?       @map("completed_at") @db.Timestamptz(3)
 
-  finding Finding? @relation(fields: [findingId], references: [id], onDelete: SetNull, onUpdate: Cascade)
-  scan    Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  finding  Finding?    @relation(fields: [findingId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  scan     Scan        @relation(fields: [scanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user     User?       @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  response AIResponse?
 
   @@index([scanId])
   @@index([findingId])
@@ -496,19 +535,79 @@ model AIRequest {
   @@map("ai_requests")
 }
 
-model ChatSession {
+model AnalysisContext {
   id        String   @id @default(uuid()) @db.Uuid
   projectId String   @map("project_id") @db.Uuid
-  reportId  String?  @map("report_id") @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  title     String?  @db.VarChar(180)
+  scanId    String   @unique @map("scan_id") @db.Uuid
+  cacheKey  String   @map("cache_key") @db.VarChar(128)
+  chunks    Json
+  metadata  Json
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  scan    Scan    @relation(fields: [scanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([projectId])
+  @@index([cacheKey])
+  @@map("analysis_contexts")
+}
+
+model AIResponse {
+  id               String   @id @default(uuid()) @db.Uuid
+  requestId        String   @unique @map("request_id") @db.Uuid
+  content          String   @db.Text
+  result           Json?
+  promptTokens     Int      @default(0) @map("prompt_tokens")
+  completionTokens Int      @default(0) @map("completion_tokens")
+  totalTokens      Int      @default(0) @map("total_tokens")
+  durationMs       Int      @default(0) @map("duration_ms")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  request AIRequest @relation(fields: [requestId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("ai_responses")
+}
+
+model AIUsage {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String?  @map("user_id") @db.Uuid
+  projectId    String   @map("project_id") @db.Uuid
+  scanId       String   @map("scan_id") @db.Uuid
+  model        String   @db.VarChar(120)
+  tokensUsed   Int      @default(0) @map("tokens_used")
+  requestCount Int      @default(0) @map("request_count")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  scan    Scan    @relation(fields: [scanId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([scanId, model])
+  @@index([userId])
+  @@index([projectId])
+  @@map("ai_usage")
+}
+
+model ChatSession {
+  id             String    @id @default(uuid()) @db.Uuid
+  projectId      String    @map("project_id") @db.Uuid
+  reportId       String?   @map("report_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  title          String    @default("New Chat") @db.VarChar(180)
+  memory         Json?
+  summary        String?   @db.Text
+  activeTopic    String?   @map("active_topic") @db.VarChar(255)
+  summaryThrough DateTime? @map("summary_through") @db.Timestamptz(3)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   project  Project       @relation(fields: [projectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   report   Report?       @relation(fields: [reportId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   user     User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   messages ChatMessage[]
+  usage    ChatUsage[]
 
   @@index([projectId])
   @@index([reportId])
@@ -522,15 +621,39 @@ model ChatMessage {
   userId    String?     @map("user_id") @db.Uuid
   role      MessageRole
   content   String      @db.Text
+  tokens    Int         @default(0)
+  requestId String?     @unique @map("request_id") @db.Uuid
   createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
 
   session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   user    User?       @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  usage   ChatUsage[]
 
   @@index([sessionId])
   @@index([userId])
   @@index([role])
+  @@index([requestId])
   @@map("chat_messages")
+}
+
+model ChatUsage {
+  id                 String   @id @default(uuid()) @db.Uuid
+  sessionId          String   @map("session_id") @db.Uuid
+  assistantMessageId String   @unique @map("assistant_message_id") @db.Uuid
+  model              String   @db.VarChar(120)
+  inputTokens        Int      @default(0) @map("input_tokens")
+  outputTokens       Int      @default(0) @map("output_tokens")
+  totalTokens        Int      @default(0) @map("total_tokens")
+  estimatedCost      Decimal  @default(0) @map("estimated_cost") @db.Decimal(14, 8)
+  durationMs         Int      @default(0) @map("duration_ms")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  session          ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  assistantMessage ChatMessage @relation(fields: [assistantMessageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([model])
+  @@map("chat_usage")
 }
 
 model Notification {

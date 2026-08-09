@@ -37,6 +37,8 @@ describe('api env schema', () => {
       JWT_AUDIENCE: 'audience',
       MAX_SESSIONS_PER_USER: '5',
       INTERNAL_API_KEY: 'internal',
+      MINIO_ACCESS_KEY: 'access',
+      MINIO_SECRET_KEY: 'secret',
     });
 
     expect(result.success).toBe(true);
@@ -47,6 +49,10 @@ describe('api env schema', () => {
       expect(result.data.MAX_SESSIONS_PER_USER).toBe(5);
       expect(result.data.INTERNAL_API_KEY).toBe('internal');
     }
+  });
+
+  it('rejects unsafe default credentials in production', () => {
+    expect(envSchema.safeParse({ NODE_ENV: 'production' }).success).toBe(false);
   });
 
   it('rejects invalid API_PORT', () => {

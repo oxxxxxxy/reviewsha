@@ -33,7 +33,7 @@ describe('queue factory helpers', () => {
     expect(queue.name).toBe(QUEUE_NAMES.scan);
     expect(DEFAULT_JOB_OPTIONS).toMatchObject({
       attempts: 3,
-      removeOnComplete: true,
+      removeOnComplete: { age: 86_400, count: 10_000 },
       removeOnFail: false,
     });
 

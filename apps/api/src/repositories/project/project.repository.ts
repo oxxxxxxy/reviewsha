@@ -60,6 +60,7 @@ export class ProjectRepository extends BaseRepository<Project> implements IProje
               { name: { contains: params.search, mode: 'insensitive' } },
               { description: { contains: params.search, mode: 'insensitive' } },
               { language: { contains: params.search, mode: 'insensitive' } },
+              { tags: { some: { name: { contains: params.search, mode: 'insensitive' } } } },
             ],
           }
         : {}),
@@ -76,9 +77,10 @@ export class ProjectRepository extends BaseRepository<Project> implements IProje
           }
         : {}),
     };
-    const orderBy = {
-      [params.sort ?? 'createdAt']: params.order ?? 'desc',
-    } as Prisma.ProjectOrderByWithRelationInput;
+    const orderBy: Prisma.ProjectOrderByWithRelationInput =
+      params.sort === 'analysesCount'
+        ? { scans: { _count: params.order ?? 'desc' } }
+        : { [params.sort ?? 'createdAt']: params.order ?? 'desc' };
     const client = this.getClient(params);
     const [items, total] = await Promise.all([
       client.project.findMany({

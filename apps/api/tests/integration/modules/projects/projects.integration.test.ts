@@ -25,6 +25,7 @@ function fixture(): Project {
     createdAt: now,
     updatedAt: now,
     archivedAt: null,
+    lastAnalysisAt: null,
     deletedAt: null,
   };
 }

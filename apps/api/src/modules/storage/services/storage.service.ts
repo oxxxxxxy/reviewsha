@@ -24,7 +24,13 @@ export class StorageService {
   }
 
   upload(input: StorageUpload): Promise<StorageMetadata> {
-    return this.measure('upload', input.bucket, input.key, () => this.provider.upload(input));
+    return this.measure(
+      'upload',
+      input.bucket,
+      input.key,
+      () => this.provider.upload(input),
+      input.size,
+    );
   }
 
   download(bucket: StorageBucket, key: string): Promise<StorageObject> {
@@ -78,13 +84,14 @@ export class StorageService {
     bucket: StorageBucket,
     key: string,
     callback: () => Promise<T>,
+    size?: number,
   ): Promise<T> {
     const startedAt = Date.now();
     try {
       return await callback();
     } finally {
       this.logger?.log(
-        `Storage ${operation} bucket=${bucket} key=${key} durationMs=${Date.now() - startedAt}`,
+        `Storage ${operation} bucket=${bucket}${size === undefined ? '' : ` size=${size}`} durationMs=${Date.now() - startedAt}`,
         'StorageService',
       );
     }

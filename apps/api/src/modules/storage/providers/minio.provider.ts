@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Client, CopyConditions } from 'minio';
 import type { MinioConfig } from '../../../config/app.config';
 import {
   InvalidBucketException,
+  DownloadFailedException,
   ObjectNotFoundException,
   StorageUnavailableException,
+  UploadFailedException,
 } from '../exceptions/storage.exceptions';
 import type {
   StorageMetadata,
@@ -20,7 +22,7 @@ export class MinioProvider implements StorageProvider {
   private readonly client: Client;
   private readonly buckets: Record<StorageBucket, string>;
 
-  constructor(config: ConfigService) {
+  constructor(@Inject(ConfigService) config: ConfigService) {
     const minio = config.getOrThrow<MinioConfig>('minio');
     const endpointUrl = /^https?:\/\//u.test(minio.endpoint) ? new URL(minio.endpoint) : undefined;
     const endpoint = endpointUrl?.hostname ?? minio.endpoint.replace(/\/$/u, '');
@@ -62,7 +64,8 @@ export class MinioProvider implements StorageProvider {
       );
       return this.getMetadata(input.bucket, input.key);
     } catch (error) {
-      this.throwMapped(error);
+      if (this.isNotFound(error)) throw new ObjectNotFoundException();
+      throw new UploadFailedException(error instanceof Error ? error.message : undefined);
     }
   }
 
@@ -72,7 +75,8 @@ export class MinioProvider implements StorageProvider {
       const metadata = await this.getMetadata(bucket, key);
       return { bucket, key, body, metadata };
     } catch (error) {
-      this.throwMapped(error);
+      if (this.isNotFound(error)) throw new ObjectNotFoundException();
+      throw new DownloadFailedException(error instanceof Error ? error.message : undefined);
     }
   }
 

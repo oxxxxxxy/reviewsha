@@ -5,6 +5,7 @@ import { WorkerDatabaseService } from './database/worker-database.service';
 import { WorkerConfigModule } from './config/config.module';
 import { QueueModule } from './queue/queue.module';
 import { AIWorker } from './workers/ai.worker';
+import { ChatWorker } from './workers/chat.worker';
 import { FileWorker } from './workers/file.worker';
 import { NotificationWorker } from './workers/notification.worker';
 import { ReportWorker } from './workers/report.worker';
@@ -30,6 +31,8 @@ import { ParserService } from './services/parser.service';
 import { MergeService } from './services/merge.service';
 import { CleanupProcessor } from './processors/cleanup.processor';
 import { DownloadProcessor } from './processors/download.processor';
+import { PipelineStateService } from './services/pipeline-state.service';
+import { ChatProcessor } from './processors/chat.processor';
 
 @Module({
   imports: [WorkerConfigModule, QueueModule, AIModule, ReportingModule],
@@ -45,6 +48,7 @@ import { DownloadProcessor } from './processors/download.processor';
     WorkspaceService,
     ParserService,
     MergeService,
+    PipelineStateService,
     DownloadProcessor,
     CleanupProcessor,
     ExtractProcessor,
@@ -53,11 +57,13 @@ import { DownloadProcessor } from './processors/download.processor';
     MergeProcessor,
     ReportProcessor,
     NotifyProcessor,
+    ChatProcessor,
     ProcessorRegistry,
     WorkerHealthService,
     ScanWorker,
     FileWorker,
     AIWorker,
+    ChatWorker,
     ReportWorker,
     NotificationWorker,
   ],

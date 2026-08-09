@@ -22,14 +22,22 @@ function registry() {
     handler('report') as never,
     handler('notify') as never,
     handler('cleanup') as never,
+    handler('chat.generate') as never,
   );
 }
 
 describe('ProcessorRegistry', () => {
-  it.each(['download', 'extract', 'parse', 'analyze', 'merge', 'report', 'notify', 'cleanup'])(
-    'registers %s',
-    (type) => expect(registry().get(type)).toBeDefined(),
-  );
+  it.each([
+    'download',
+    'extract',
+    'parse',
+    'analyze',
+    'merge',
+    'report',
+    'notify',
+    'cleanup',
+    'chat.generate',
+  ])('registers %s', (type) => expect(registry().get(type)).toBeDefined());
   it('rejects unknown job types', async () =>
     expect(registry().execute({ name: 'unknown', data: {} } as never)).rejects.toThrow(
       'No handler',

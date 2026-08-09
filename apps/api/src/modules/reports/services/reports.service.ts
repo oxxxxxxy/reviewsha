@@ -1,89 +1,253 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { Role, type Report } from '@prisma/client';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { ReportFormat, Role } from '@prisma/client';
+import { createHash } from 'node:crypto';
+import PDFDocument from 'pdfkit';
 import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
 import { ProjectRepository } from '../../../repositories/project/project.repository';
-import { ReportRepository } from '../../../repositories/report/report.repository';
+import { StorageService } from '../../storage/services/storage.service';
 import type { ReportResponseDto, ReportsListDto } from '../dto/report-response.dto';
-import PDFDocument from 'pdfkit';
+import { ReportsRepository, type DetailedReport } from '../repositories/reports.repository';
+
+type ExportFormat = 'json' | 'md' | 'pdf';
 
 @Injectable()
 export class ReportsService {
   constructor(
-    private readonly reports: ReportRepository,
+    private readonly reports: ReportsRepository,
     private readonly projects: ProjectRepository,
+    private readonly storage: StorageService,
   ) {}
 
   async findById(user: AuthenticatedUser, id: string): Promise<ReportResponseDto> {
-    const report =
-      user.role === Role.ADMIN ? await this.reports.findById(id) : await this.reports.findById(id);
-    if (!report || report.deletedAt) throw new NotFoundException('Report not found');
-    const project = await this.projects.findByIdForOwnerIncludingDeleted(
-      report.projectId,
-      user.role === Role.ADMIN ? undefined : user.id,
-    );
-    if (!project) throw new ForbiddenException('You cannot access this report');
+    const report = await this.getOwned(user, id);
     return this.toResponse(report);
   }
 
-  async findByProject(user: AuthenticatedUser, projectId: string): Promise<ReportsListDto> {
-    const project = await this.projects.findByIdForOwnerIncludingDeleted(
-      projectId,
-      user.role === Role.ADMIN ? undefined : user.id,
-    );
-    if (!project) throw new ForbiddenException('You cannot access this project');
+  async findByProject(
+    user: AuthenticatedUser,
+    projectId: string,
+    page = 1,
+    limit = 50,
+  ): Promise<ReportsListDto> {
+    await this.assertProject(user, projectId);
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(100, Math.max(1, limit));
+    const [reports, total] = await Promise.all([
+      this.reports.findByProject(projectId, (safePage - 1) * safeLimit, safeLimit),
+      this.reports.countByProject(projectId),
+    ]);
     return {
-      data: (await this.reports.findByProject(projectId)).map((report) => this.toResponse(report)),
+      data: reports.map((report) => this.toResponse(report)),
+      meta: { page: safePage, limit: safeLimit, total, totalPages: Math.ceil(total / safeLimit) },
     };
   }
 
   async remove(user: AuthenticatedUser, id: string): Promise<void> {
-    const report = await this.findById(user, id);
-    await this.reports.delete(report.id);
+    const report = await this.getOwned(user, id);
+    await Promise.all(
+      report.exports.map((item) =>
+        this.storage.delete(item.bucket as 'reports', item.objectKey).catch(() => undefined),
+      ),
+    );
+    await this.reports.softDelete(report.id);
   }
 
-  async export(user: AuthenticatedUser, id: string, format: 'json' | 'md' | 'pdf') {
-    const report = await this.findById(user, id);
-    if (format === 'pdf') {
-      const document = new PDFDocument();
-      const chunks: Buffer[] = [];
-      document.on('data', (chunk: Buffer) => chunks.push(chunk));
-      const finished = new Promise<Buffer>((resolve) =>
-        document.on('end', () => resolve(Buffer.concat(chunks))),
-      );
-      document.fontSize(22).text('Reviewsha Report').moveDown();
-      document
-        .fontSize(16)
-        .text(`Score: ${report.score ?? 'N/A'}/100`)
-        .moveDown();
-      document.fontSize(12).text(report.summary ?? 'Report is still generating.');
-      document.end();
-      return { body: await finished, contentType: 'application/pdf', filename: `report-${id}.pdf` };
-    }
-    const body =
-      format === 'json'
-        ? JSON.stringify({ version: '1.0', report }, null, 2)
-        : `# Reviewsha Report\n\n## Score\n\n${report.score ?? 'N/A'}/100\n\n## Summary\n\n${report.summary ?? 'Report is still generating.'}\n`;
-    return {
-      body,
-      contentType: format === 'json' ? 'application/json' : 'text/markdown',
-      filename: `report-${id}.${format}`,
-    };
+  async export(user: AuthenticatedUser, id: string, format: ExportFormat) {
+    const report = await this.getOwned(user, id);
+    const generated = await this.buildExport(report, format);
+    const checksum = `sha256:${createHash('sha256').update(generated.body).digest('hex')}`;
+    const objectKey = `reports/${report.id}/${report.id}.${format}`;
+    await this.storage.upload({
+      bucket: 'reports',
+      key: objectKey,
+      body: generated.body,
+      size: generated.body.length,
+      metadata: {
+        contentType: generated.contentType,
+        checksum,
+        projectId: report.projectId,
+        reportId: report.id,
+      },
+    });
+    await this.reports.saveExport({
+      reportId: report.id,
+      format: this.reportFormat(format),
+      bucket: 'reports',
+      objectKey,
+      mimeType: generated.contentType,
+      size: generated.body.length,
+      checksum,
+    });
+    return { ...generated, filename: `report-${id}.${format}` };
   }
 
   async compare(user: AuthenticatedUser, oldId: string, newId: string) {
     const [oldReport, newReport] = await Promise.all([
-      this.findById(user, oldId),
-      this.findById(user, newId),
+      this.getOwned(user, oldId),
+      this.getOwned(user, newId),
     ]);
+    if (oldReport.projectId !== newReport.projectId) {
+      throw new BadRequestException('Reports must belong to the same project');
+    }
+    const oldIssues = new Map(oldReport.findings.map((item) => [this.fingerprint(item), item]));
+    const newIssues = new Map(newReport.findings.map((item) => [this.fingerprint(item), item]));
+    const added = [...newIssues].filter(([key]) => !oldIssues.has(key)).map(([, item]) => item);
+    const resolved = [...oldIssues].filter(([key]) => !newIssues.has(key)).map(([, item]) => item);
     return {
       oldReportId: oldId,
       newReportId: newId,
       scoreDiff: (newReport.score ?? 0) - (oldReport.score ?? 0),
-      summaryChanged: oldReport.summary !== newReport.summary,
+      newIssues: added.length,
+      resolvedIssues: resolved.length,
+      severityDiff: this.severityCounts(newReport.findings, oldReport.findings),
+      recommendationsAdded: [
+        ...new Set(added.flatMap((item) => (item.recommendation ? [item.recommendation] : []))),
+      ],
+      added: added.map((item) => ({ id: item.id, severity: item.severity, title: item.title })),
+      resolved: resolved.map((item) => ({
+        id: item.id,
+        severity: item.severity,
+        title: item.title,
+      })),
     };
   }
 
-  private toResponse(report: Report): ReportResponseDto {
-    return { ...report, status: report.summary ? 'READY' : 'GENERATING' };
+  private async getOwned(user: AuthenticatedUser, id: string): Promise<DetailedReport> {
+    const report = await this.reports.findById(id);
+    if (!report) throw new NotFoundException('Report not found');
+    await this.assertProject(user, report.projectId);
+    return report;
+  }
+
+  private async assertProject(user: AuthenticatedUser, projectId: string): Promise<void> {
+    const project = await this.projects.findByIdForOwnerIncludingDeleted(
+      projectId,
+      user.role === Role.ADMIN || user.role === Role.SUPER_ADMIN ? undefined : user.id,
+    );
+    if (!project) throw new ForbiddenException('You cannot access this project');
+  }
+
+  private toResponse(report: DetailedReport): ReportResponseDto {
+    return {
+      id: report.id,
+      scanId: report.scanId,
+      projectId: report.projectId,
+      status: report.status,
+      score: report.score,
+      summary: report.summary,
+      format: report.format,
+      tokensUsed: report.tokensUsed,
+      createdAt: report.createdAt,
+      issues: report.findings.map((item) => ({
+        id: item.id,
+        severity: item.severity,
+        category: item.category,
+        title: item.title,
+        description: item.description,
+        filePath: item.filePath,
+        line: item.line,
+        recommendation: item.recommendation,
+      })),
+      recommendations: [
+        ...new Set(
+          report.findings.flatMap((item) => (item.recommendation ? [item.recommendation] : [])),
+        ),
+      ],
+      exports: report.exports.map((item) => ({
+        format: item.format,
+        size: Number(item.size),
+        createdAt: item.createdAt,
+      })),
+    };
+  }
+
+  private async buildExport(report: DetailedReport, format: ExportFormat) {
+    if (format === 'pdf') {
+      return { body: await this.pdf(report), contentType: 'application/pdf' };
+    }
+    if (format === 'json') {
+      return {
+        body: Buffer.from(
+          JSON.stringify({ version: '1.0', report: this.toResponse(report) }, null, 2),
+        ),
+        contentType: 'application/json',
+      };
+    }
+    const issues = report.findings.length
+      ? report.findings
+          .map(
+            (item, index) =>
+              `${index + 1}. **${item.severity}** \`${item.filePath}\`${item.line ? `:${item.line}` : ''} — ${item.title}\n   - ${item.description}\n   - Recommendation: ${item.recommendation ?? 'None'}`,
+          )
+          .join('\n')
+      : 'No issues found.';
+    return {
+      body: Buffer.from(
+        `# Reviewsha Report\n\n## Score\n\n${report.score ?? 'N/A'}/100\n\n## Summary\n\n${report.summary ?? 'Report is still generating.'}\n\n## Issues\n\n${issues}\n`,
+      ),
+      contentType: 'text/markdown',
+    };
+  }
+
+  private pdf(report: DetailedReport): Promise<Buffer> {
+    const document = new PDFDocument({ autoFirstPage: true, margin: 50 });
+    const chunks: Buffer[] = [];
+    document.on('data', (chunk: Buffer) => chunks.push(chunk));
+    const finished = new Promise<Buffer>((resolve, reject) => {
+      document.on('end', () => resolve(Buffer.concat(chunks)));
+      document.on('error', reject);
+    });
+    document.fontSize(24).text('Reviewsha Code Review Report').moveDown();
+    document
+      .fontSize(16)
+      .text(`Score: ${report.score ?? 'N/A'}/100`)
+      .moveDown();
+    document
+      .fontSize(14)
+      .text('Summary')
+      .fontSize(11)
+      .text(report.summary ?? 'Not available.')
+      .moveDown();
+    document.fontSize(14).text('Issues').moveDown(0.5);
+    if (!report.findings.length) document.fontSize(11).text('No issues found.');
+    for (const [index, issue] of report.findings.entries()) {
+      document
+        .fontSize(11)
+        .text(`${index + 1}. [${issue.severity}] ${issue.title}`, { continued: false })
+        .fontSize(9)
+        .text(`${issue.filePath}${issue.line ? `:${issue.line}` : ''}`)
+        .text(issue.description)
+        .text(`Recommendation: ${issue.recommendation ?? 'None'}`)
+        .moveDown();
+    }
+    document.end();
+    return finished;
+  }
+
+  private reportFormat(format: ExportFormat): ReportFormat {
+    return { md: ReportFormat.MD, json: ReportFormat.JSON, pdf: ReportFormat.PDF }[format];
+  }
+
+  private fingerprint(issue: { filePath: string; category: string; title: string }): string {
+    return `${issue.filePath.toLowerCase()}|${issue.category}|${issue.title.toLowerCase()}`;
+  }
+
+  private severityCounts(
+    current: Array<{ severity: string }>,
+    previous: Array<{ severity: string }>,
+  ): Record<string, number> {
+    const values = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'];
+    return Object.fromEntries(
+      values.map((severity) => [
+        severity,
+        current.filter((item) => item.severity === severity).length -
+          previous.filter((item) => item.severity === severity).length,
+      ]),
+    );
   }
 }

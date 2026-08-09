@@ -1,8 +1,8 @@
 # Архитектура Worker проекта "Ревьюша"
 
 Worker подключается к тем же Redis и именам BullMQ очередей, что и API. Stage 7.1
-фиксирует инфраструктуру и retry policy. Stage 7.2 создаёт jobs цепочки
-`extract → parse → analyze → merge → report → notify`. Stage 8.1 добавляет
+фиксирует инфраструктуру и retry policy. Фактическая цепочка jobs:
+`download → extract → parse → merge → analyze → report → notify → cleanup`. Stage 8.1 добавляет
 standalone Nest application context, BullMQ consumers, typed processor registry,
 database/storage adapters, isolated temporary workspaces и graceful shutdown.
 Реальные Download/Extract/Parse/Merge/Cleanup операции выполняются на Stage 8.2.
@@ -17,8 +17,9 @@ Slip, превышение количества файлов, глубины и 
 
 `ParserService` индексирует файлы без `.git`, `node_modules`, `dist`, `build` и
 `.env`, определяет MVP-языки и сохраняет размеры, строки и SHA-256. Затем
-`MergeProcessor` формирует `context.json`, а `CleanupProcessor` идемпотентно
-удаляет `/tmp/reviewsha/jobs/{pipelineId}`. Payload очереди содержит только
+`MergeProcessor` формирует `context.json` и запускает AI. После report/notify
+`CleanupProcessor` идемпотентно удаляет `/tmp/reviewsha/jobs/{pipelineId}`.
+Terminal failure также ставит cleanup. Payload очереди содержит только
 идентификаторы; бинарные данные остаются в MinIO и workspace.
 
 После подготовки контекста Worker использует AI layer (`parser → chunks →
@@ -26,11 +27,9 @@ context → prompts`) и provider abstraction для OmniRouter. Ответы п
 JSON validation и reporting layer (aggregation, deduplication, score, Markdown
 и JSON builders).
 
-Для обратной совместимости с Stage 7 исторический `extract` job расширяется на
-границе `FileWorker`: сначала выполняется зарегистрированный `DownloadProcessor`,
-затем `ExtractProcessor`. Поэтому фактический runtime flow остаётся
-`Download → Extract → Parse → Merge → Cleanup`, а изменение API queue contract
-не требуется. После cleanup создаётся AI `analyze` job.
+Для обратной совместимости API-enveloped начальный `extract` job преобразуется
+в `download` только на границе `FileWorker`. Каждый следующий job имеет
+детерминированный id, поэтому повторная доставка не создаёт второй отчёт.
 
 ## Stage 8.1 Worker Infrastructure
 

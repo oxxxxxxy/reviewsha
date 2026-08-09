@@ -22,30 +22,29 @@ DownloadProcessor → MinIO → workspace/archive.zip
     ↓
 ExtractProcessor → safe ZIP extraction
     ↓
-ParseProcessor → files/languages/statistics
+    ParseProcessor → files/languages/statistics
     ↓
-MergeProcessor → output/context.json
-    ↓
-CleanupProcessor → remove temporary workspace
-```
-
-После очистки контекст передаётся в AI/reporting pipeline:
-
-```text
-Merged context
+    MergeProcessor → output/context.json
     ↓
 AI parser → chunks → prompt builder
     ↓
 AIProvider / OmniRouter / DeepSeek
     ↓
-response validator → issue aggregator → report builders
+response validator → persist request/response/usage
+    ↓
+issue aggregator → Report + Findings
+    ↓
+NotifyProcessor → project timestamp + notification
+    ↓
+CleanupProcessor → remove temporary workspace
     ↓
 Reports API → frontend
 ```
 
 На Stage 7.2 API принимает `UploadCompleted`, создаёт Scan и регистрирует первый
 Job через `PipelineService`/`QueueService`. Каждый успешный шаг создаёт следующий
-Job; окончательно упавшие jobs отправляются в `dead-letter.queue`. Реальное
+Job; окончательно упавшие jobs сохраняют FAILED state, отправляются в
+`dead-letter.queue` и запускают cleanup. Реальное
 исполнение шагов выполняется Worker на Stage 8.
 
 ```text
@@ -751,11 +750,11 @@ Frontend
 
 ↓
 
-Chat API
+Chat API (JWT + ownership)
 
 ↓
 
-ChatService
+ChatService → Context Builder
 
 ↓
 
@@ -763,15 +762,23 @@ Context Builder
 
 ↓
 
-AI Service
+BullMQ chat.queue
 
 ↓
 
-DeepSeek
+Worker ChatProcessor
 
 ↓
 
-Response
+Existing AIService / OmniRouter / DeepSeek
+
+↓
+
+ChatMessage (PostgreSQL)
+
+↓
+
+Response polling with timeout
 
 ↓
 

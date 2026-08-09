@@ -1,31 +1,39 @@
-import type { File } from '@reviewsha/types';
 import type { ApiClient } from '../client/api-client.js';
 
-export interface CreateArchiveUploadRequest {
-  readonly fileName: string;
-  readonly contentType: string;
+export interface UploadResponse {
+  readonly id: string;
+  readonly status: string;
+  readonly version: number;
   readonly size: number;
+  readonly checksum: string;
+  readonly createdAt: string;
 }
-
-export interface CreateArchiveUploadResponse {
-  readonly file: File;
-  readonly uploadUrl: string;
+export interface UploadListResponse {
+  readonly data: readonly UploadResponse[];
 }
 
 export class UploadsAPI {
   constructor(private readonly client: ApiClient) {}
 
-  createArchive(
+  upload(
     projectId: string,
-    payload: CreateArchiveUploadRequest,
-  ): Promise<CreateArchiveUploadResponse> {
-    return this.client.post<CreateArchiveUploadResponse, CreateArchiveUploadRequest>(
-      `/projects/${projectId}/files/archive`,
-      payload,
-    );
+    file: globalThis.File,
+    onProgress?: (percent: number) => void,
+    signal?: AbortSignal,
+  ): Promise<UploadResponse> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.client.http
+      .post<UploadResponse>(`/projects/${projectId}/uploads`, form, {
+        signal,
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (event) =>
+          onProgress?.(event.total ? Math.round((event.loaded / event.total) * 100) : 0),
+      })
+      .then((response) => response.data);
   }
 
-  list(projectId: string): Promise<readonly File[]> {
-    return this.client.get<readonly File[]>(`/projects/${projectId}/files`);
+  list(projectId: string): Promise<UploadListResponse> {
+    return this.client.get<UploadListResponse>(`/projects/${projectId}/uploads`);
   }
 }

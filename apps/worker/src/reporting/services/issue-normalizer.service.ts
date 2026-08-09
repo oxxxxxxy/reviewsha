@@ -15,12 +15,21 @@ export class IssueNormalizerService {
       filePath: issue.file,
     }));
   }
-  private category(issue: AIReviewIssue): string {
+  private category(issue: AIReviewIssue): NonNullable<AIReviewIssue['category']> {
+    if (issue.category) return issue.category;
     const text = `${issue.problem} ${issue.recommendation}`.toLowerCase();
     return text.includes('security') || text.includes('token') || text.includes('injection')
       ? 'SECURITY'
       : text.includes('performance')
         ? 'PERFORMANCE'
-        : 'QUALITY';
+        : text.includes('bug') || text.includes('error')
+          ? 'BUG'
+          : text.includes('architecture') || text.includes('dependency')
+            ? 'ARCHITECTURE'
+            : text.includes('documentation') || text.includes('readme')
+              ? 'DOCUMENTATION'
+              : text.includes('style') || text.includes('format')
+                ? 'STYLE'
+                : 'QUALITY';
   }
 }

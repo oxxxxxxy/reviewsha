@@ -5,6 +5,7 @@ import { createWriteStream, createReadStream } from 'node:fs';
 import { mkdir, stat } from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';
 import { WorkerDatabaseService } from '../database/worker-database.service';
+import { ScanStatus } from '@prisma/client';
 import { WorkerLoggerService } from '../common/logger/worker-logger.service';
 import { WorkerStorageService } from '../storage/worker-storage.service';
 import { WorkspaceService } from '../services/workspace.service';
@@ -31,6 +32,12 @@ export class DownloadProcessor implements JobHandler {
     const paths = await this.workspace.create(pipelineId);
     const upload = await this.db.uploadedFile.findUnique({ where: { id: payload.uploadId } });
     if (!upload || upload.deletedAt) throw new Error(`Upload not found: ${payload.uploadId}`);
+    if (upload.projectId !== payload.projectId)
+      throw new Error('Upload does not belong to project');
+    await this.db.scan.update({
+      where: { id: pipelineId },
+      data: { status: ScanStatus.EXTRACTING, progress: 5, startedAt: new Date() },
+    });
     const archivePath = `${paths.source}/archive.zip`;
     await mkdir(paths.source, { recursive: true });
     const stream = await this.storage.getObject(upload.bucket, upload.objectKey);

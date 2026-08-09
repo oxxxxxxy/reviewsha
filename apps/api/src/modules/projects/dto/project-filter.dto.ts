@@ -72,10 +72,13 @@ export class ProjectFilterDto {
   @IsEnum(Visibility)
   visibility?: Visibility;
 
-  @ApiPropertyOptional({ enum: ['createdAt', 'updatedAt', 'name'], default: 'createdAt' })
+  @ApiPropertyOptional({
+    enum: ['createdAt', 'updatedAt', 'name', 'lastAnalysisAt', 'analysesCount'],
+    default: 'createdAt',
+  })
   @IsOptional()
-  @IsIn(['createdAt', 'updatedAt', 'name'])
-  sort: 'createdAt' | 'updatedAt' | 'name' = 'createdAt';
+  @IsIn(['createdAt', 'updatedAt', 'name', 'lastAnalysisAt', 'analysesCount'])
+  sort: 'createdAt' | 'updatedAt' | 'name' | 'lastAnalysisAt' | 'analysesCount' = 'createdAt';
 
   @ApiPropertyOptional({ enum: ['asc', 'desc'], default: 'desc' })
   @IsOptional()

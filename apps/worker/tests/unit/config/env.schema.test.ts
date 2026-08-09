@@ -14,12 +14,17 @@ describe('workerEnvSchema', () => {
       MINIO_ACCESS_KEY: 'access',
       MINIO_SECRET_KEY: 'secret',
       AI_PROVIDER: 'deepseek',
+      OMNIROUTER_API_KEY: 'omnirouter-key',
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.WORKER_REDIS_REQUIRED).toBe(true);
     }
+  });
+
+  it('requires explicit storage and AI credentials in production', () => {
+    expect(workerEnvSchema.safeParse({ NODE_ENV: 'production' }).success).toBe(false);
   });
 
   it('provides safe development defaults for skeleton startup', () => {

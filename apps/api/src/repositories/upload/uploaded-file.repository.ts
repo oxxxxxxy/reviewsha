@@ -27,6 +27,34 @@ export class UploadedFileRepository
     return this.getClient(options).uploadedFile.create({ data });
   }
 
+  async createNextVersion(
+    projectId: string,
+    data: Omit<Prisma.UploadedFileCreateInput, 'version'>,
+  ): Promise<UploadedFile> {
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        return await this.prisma.$transaction(
+          async (tx) => {
+            const latest = await tx.uploadedFile.findFirst({
+              where: { projectId },
+              orderBy: { version: 'desc' },
+              select: { version: true },
+            });
+            return tx.uploadedFile.create({
+              data: { ...data, version: (latest?.version ?? 0) + 1 },
+            });
+          },
+          { isolationLevel: 'Serializable' },
+        );
+      } catch (error) {
+        const code =
+          error && typeof error === 'object' && 'code' in error ? String(error.code) : undefined;
+        if (attempt === 3 || (code !== 'P2002' && code !== 'P2034')) throw error;
+      }
+    }
+    throw new Error('Unable to allocate upload version');
+  }
+
   findByProject(projectId: string, options?: FindManyOptions): Promise<UploadedFile[]> {
     return this.getClient(options).uploadedFile.findMany({
       where: { projectId, deletedAt: null },

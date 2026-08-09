@@ -10,6 +10,7 @@ import {
 } from '../queue/queue.events';
 import { QueueService } from '../queue/queue.service';
 import { ProcessorRegistry } from '../processors/processor.registry';
+import { PipelineStateService } from '../services/pipeline-state.service';
 
 /**
  * Base implementation for one BullMQ worker bound to one queue.
@@ -27,6 +28,7 @@ export abstract class BaseQueueWorker {
     private readonly configService: ConfigService,
     private readonly queueService: QueueService,
     protected readonly processors?: ProcessorRegistry,
+    private readonly pipelineState?: PipelineStateService,
   ) {}
 
   /** Starts the BullMQ worker when Redis is available. */
@@ -48,7 +50,13 @@ export abstract class BaseQueueWorker {
     const redisUrl = this.configService.getOrThrow<string>('worker.redisUrl');
     const connection = createRedisConnection(redisUrl);
 
-    this.bullWorker = new Worker(this.queueName, (job) => this.processJob(job), { connection });
+    this.bullWorker = new Worker(this.queueName, (job) => this.processJob(job), {
+      connection,
+      concurrency: this.configService.get<number>('worker.concurrency', 3),
+    });
+    this.bullWorker.on('failed', (job, error) => {
+      if (job) void this.pipelineState?.fail(job, error);
+    });
     this.queueService.registerWorker(this.bullWorker);
     this.logger.log(`${this.constructor.name} started`, this.constructor.name);
   }

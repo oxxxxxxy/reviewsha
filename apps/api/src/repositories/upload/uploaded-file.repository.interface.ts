@@ -3,6 +3,10 @@ import type { IRepository, RepositoryOptions } from '../base/repository.interfac
 import type { FindManyOptions } from '../project/project.repository.interface';
 
 export interface IUploadedFileRepository extends IRepository<UploadedFile> {
+  createNextVersion(
+    projectId: string,
+    data: Omit<Prisma.UploadedFileCreateInput, 'version'>,
+  ): Promise<UploadedFile>;
   create(data: Prisma.UploadedFileCreateInput, options?: RepositoryOptions): Promise<UploadedFile>;
   findByProject(projectId: string, options?: FindManyOptions): Promise<UploadedFile[]>;
   findLatestByProject(projectId: string, options?: RepositoryOptions): Promise<UploadedFile | null>;

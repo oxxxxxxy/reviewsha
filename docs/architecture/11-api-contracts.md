@@ -1,5 +1,24 @@
 # API Contracts проекта "Ревьюша"
 
+## Reports API (Stage 10)
+
+Все маршруты используют base path `/api/v1`, Bearer JWT и ownership проекта.
+
+| Method | Route | Result |
+| --- | --- | --- |
+| GET | `/reports/:id` | Report, summary, score, findings, recommendations, exports |
+| GET | `/reports/:id/status` | `GENERATING`, `READY` или `FAILED` |
+| DELETE | `/reports/:id` | Soft delete и очистка export objects |
+| GET | `/reports/:id/export/md` | Persistent Markdown attachment |
+| GET | `/reports/:id/export/json` | Versioned JSON attachment |
+| GET | `/reports/:id/export/pdf` | PDF attachment |
+| GET | `/projects/:id/reports?page=1&limit=50` | Пагинированная история |
+| GET | `/reports/compare?oldReportId=…&newReportId=…` | Score/issues/severity/recommendation diff |
+
+`400` возвращается для неверного UUID, формата или cross-project compare;
+`401` без JWT, `403` для чужого проекта, `404` для отсутствующего/удалённого
+отчёта. Storage keys и MinIO credentials никогда не входят в API response.
+
 ## 1. Назначение документа
 
 Этот документ описывает контракт взаимодействия между:
@@ -495,12 +514,15 @@ Response:
 
 ---
 
-# 12. AI Chat API
+# 12. AI Chat API (11.1)
+
+Все endpoint защищены JWT. Доступ к проекту и `ChatSession` ограничен владельцем; `ADMIN` и
+`SUPER_ADMIN` используют серверную RBAC-политику. Базовый путь приложения: `/api/v1`.
 
 ## Создать чат
 
 ```
-POST /projects/:id/chats
+POST /projects/:id/chat
 ```
 
 ---
@@ -509,23 +531,46 @@ Response:
 
 ```json
 {
- "chatId": "123"
+  "id": "uuid",
+  "title": "New Chat",
+  "updatedAt": "2026-08-08T00:00:00.000Z",
+  "messagesCount": 0
 }
 ```
+
+---
+
+## Список чатов проекта
+
+```
+GET /projects/:id/chat?page=1&limit=50
+```
+
+Ответ содержит `data` и `meta { page, limit, total }`.
+
+---
+
+## История сообщений
+
+```
+GET /chat/:sessionId/messages?page=1&limit=50
+```
+
+Сообщения возвращаются по возрастанию времени; `SYSTEM`-сообщения наружу не выдаются.
 
 ---
 
 ## Отправить сообщение
 
 ```
-POST /chats/:id/messages
+POST /chat/:sessionId/messages
 ```
 
 Request:
 
 ```json
 {
- "message": "Почему эта ошибка?"
+  "message": "Почему AI отметил JWT?"
 }
 ```
 
@@ -535,9 +580,21 @@ Response:
 
 ```json
 {
- "answer": "Проблема возникает потому..."
+  "id": "uuid",
+  "role": "ASSISTANT",
+  "content": "Проблема возникает потому...",
+  "tokens": 42,
+  "createdAt": "2026-08-08T00:00:00.000Z"
 }
 ```
+
+Ошибки: `400` — невалидное сообщение, `403` — чужая сессия, `404` — сессия/проект не найден,
+`412` — нет завершённого анализа, `503` — AI Provider недоступен, `504` — timeout.
+
+## Streaming (11.2)
+
+`POST /chat/:sessionId/stream`, response `text/event-stream`; события `token`, `complete`, `error`.
+История дополнительно принимает `search`, `before`, `after`, `sort=asc|desc`.
 
 ---
 
