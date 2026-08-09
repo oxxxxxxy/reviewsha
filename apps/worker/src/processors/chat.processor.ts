@@ -17,6 +17,9 @@ type ChatPayload = {
   system: string;
   context: string;
   history: ChatHistoryItem[];
+  memory: unknown;
+  summary: string | null;
+  activeTopic: string | null;
   message: string;
 };
 
@@ -133,6 +136,9 @@ export class ChatProcessor implements JobHandler {
       throw new Error('CHAT_PAYLOAD_INVALID');
     }
     if (!Array.isArray(payload.history)) throw new Error('CHAT_HISTORY_INVALID');
+    if (!('memory' in payload)) payload.memory = null;
+    if (!('summary' in payload)) payload.summary = null;
+    if (!('activeTopic' in payload)) payload.activeTopic = null;
     return payload as ChatPayload;
   }
 
@@ -145,6 +151,12 @@ export class ChatProcessor implements JobHandler {
       payload.context,
       'CONVERSATION HISTORY',
       history || '[no previous messages]',
+      'LONG-TERM MEMORY',
+      JSON.stringify(payload.memory ?? {}),
+      'CONVERSATION SUMMARY',
+      payload.summary || '[no summary]',
+      'ACTIVE TOPIC',
+      payload.activeTopic || '[unknown]',
       'CURRENT QUESTION',
       payload.message,
     ].join('\n\n');

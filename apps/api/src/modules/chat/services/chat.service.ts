@@ -85,6 +85,9 @@ export class ChatService {
         role,
         content: this.secrets.redact(content),
       })),
+      memory: session.memory ?? null,
+      summary: session.summary ?? null,
+      activeTopic: session.activeTopic ?? null,
       message: this.secrets.redact(message),
     });
     this.logger.log(
