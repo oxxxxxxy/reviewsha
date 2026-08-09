@@ -1,5 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { Button } from '@reviewsha/ui';
 
+import { useAdminAuthStore } from '../stores/auth.store';
 import { useAdminUiStore } from '../stores/ui.store';
 
 export const adminNavItems = [
@@ -15,6 +17,8 @@ export const adminNavItems = [
 export function AdminLayout() {
   const isSidebarOpen = useAdminUiStore((state) => state.isSidebarOpen);
   const toggleSidebar = useAdminUiStore((state) => state.toggleSidebar);
+  const user = useAdminAuthStore((state) => state.user);
+  const logout = useAdminAuthStore((state) => state.logout);
 
   return (
     <div className="admin-shell">
@@ -35,6 +39,10 @@ export function AdminLayout() {
             Toggle sidebar
           </button>
           <span className="admin-header-title">System administration console</span>
+          <span aria-label="Current admin">{user?.email ?? 'Admin'}</span>
+          <Button type="button" onClick={() => void logout()}>
+            Logout
+          </Button>
         </header>
 
         <main className="admin-content">

@@ -813,3 +813,10 @@ and a `text/event-stream` response. Clients consume it through `ChatAPI.stream`,
 not by duplicating SSE transport in pages. Pipeline status is available through
 `GET /pipelines/:id`; `resume` and `cancel` are POST operations using the same
 identifier.
+
+## Admin client boundary
+
+The admin application uses the same SDK client and auth/refresh mechanism as the
+web application. Admin user/project reads are routed through the existing
+authenticated API resources; the backend remains the RBAC boundary. The admin
+frontend never accesses Redis, PostgreSQL or storage directly.

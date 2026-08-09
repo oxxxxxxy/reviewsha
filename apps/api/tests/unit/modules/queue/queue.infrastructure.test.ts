@@ -150,13 +150,13 @@ describe('Queue infrastructure', () => {
   it('pauses a queue', async () => {
     const { service, queues } = setup();
     await service.pauseQueue(QUEUE_NAMES.report);
-    expect(queues[3]!.pause).toHaveBeenCalledOnce();
+    expect(queues[4]!.pause).toHaveBeenCalledOnce();
   });
 
   it('resumes a queue', async () => {
     const { service, queues } = setup();
     await service.resumeQueue(QUEUE_NAMES.report);
-    expect(queues[3]!.resume).toHaveBeenCalledOnce();
+    expect(queues[4]!.resume).toHaveBeenCalledOnce();
   });
 
   it('checks every queue health', async () => {

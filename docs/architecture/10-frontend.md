@@ -1069,3 +1069,10 @@ implementing transport in React. The shared transport parses `text/event-stream`
 supports `AbortController` cancellation and applies the same bearer/refresh
 policy as regular requests. Backend remains responsible for context, memory,
 authorization and persistence.
+
+Admin authentication is isolated in `apps/admin`: `AdminProtectedRoute` restores
+the shared JWT session, requires `ADMIN`/`SUPER_ADMIN`, and redirects anonymous or
+forbidden users to the admin login. Admin users/projects tables use the SDK and
+TanStack Query with server-side pagination parameters and explicit loading,
+empty and error states. Logout clears the SDK token, refresh handler and admin
+cache state.

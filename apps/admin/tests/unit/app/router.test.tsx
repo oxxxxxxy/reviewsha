@@ -1,8 +1,10 @@
 import { screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { Role } from '@reviewsha/types';
 
 import { AdminRouter, adminRoutes } from '../../../src/app/router';
 import { renderWithAdminProviders } from '../../../src/test/render';
+import { useAdminAuthStore } from '../../../src/stores/auth.store';
 
 const routeCases = [
   { route: '/dashboard', heading: 'Dashboard' },
@@ -16,6 +18,20 @@ const routeCases = [
 ] as const;
 
 describe('AdminRouter', () => {
+  beforeEach(() => {
+    useAdminAuthStore.setState({
+      user: {
+        id: 'admin',
+        email: 'admin@example.com',
+        role: Role.Admin,
+        createdAt: '',
+        updatedAt: '',
+      },
+      accessToken: null,
+      refreshToken: null,
+      isLoading: false,
+    });
+  });
   it('declares the expected MVP routes', () => {
     expect(adminRoutes).toEqual([
       '/login',

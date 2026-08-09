@@ -1,11 +1,22 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Role } from '@reviewsha/types';
 
 import { LoginPage } from '../../../../src/pages/Login/LoginPage';
 import { renderWithAdminProviders } from '../../../../src/test/render';
+import { adminSdk } from '../../../../src/api/client';
+import { useAdminAuthStore } from '../../../../src/stores/auth.store';
 
 describe('LoginPage', () => {
+  beforeEach(() => {
+    useAdminAuthStore.setState({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      isLoading: false,
+    });
+  });
   it('renders admin login form controls', () => {
     renderWithAdminProviders(<LoginPage />, { route: '/login' });
 
@@ -24,8 +35,18 @@ describe('LoginPage', () => {
     expect(await screen.findByText('Минимум 8 символов')).toBeInTheDocument();
   });
 
-  it('submits valid form values without API call', async () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  it('submits valid form values through the SDK', async () => {
+    const login = vi.spyOn(adminSdk.auth, 'login').mockResolvedValue({
+      user: {
+        id: 'admin',
+        email: 'admin@example.com',
+        role: Role.Admin,
+        createdAt: '',
+        updatedAt: '',
+      },
+      accessToken: 'access',
+      refreshToken: 'refresh',
+    });
     const user = userEvent.setup();
 
     renderWithAdminProviders(<LoginPage />, { route: '/login' });
@@ -34,13 +55,11 @@ describe('LoginPage', () => {
     await user.type(screen.getByLabelText('Password'), 'strong-password');
     await user.click(screen.getByRole('button', { name: 'Sign in as admin' }));
 
-    await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Admin login form submitted', {
+    await waitFor(() =>
+      expect(login).toHaveBeenCalledWith({
         email: 'admin@example.com',
         password: 'strong-password',
-      });
-    });
-
-    consoleSpy.mockRestore();
+      }),
+    );
   });
 });

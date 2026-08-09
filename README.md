@@ -1020,6 +1020,13 @@ yarn ci:unit
 yarn ci:smoke
 yarn ci:prisma
 yarn ci:stage4
+yarn ci:stage5
+yarn ci:stage6
+yarn ci:stage7
+yarn ci:stage8
+yarn ci:stage9
+yarn ci:stage10
+yarn ci:stage11
 yarn ci:e2e
 yarn ci:docker
 ```
@@ -1057,6 +1064,13 @@ yarn test
 yarn test:stage2
 yarn test:stage3
 yarn test:stage4
+yarn test:stage5
+yarn test:stage6
+yarn test:stage7
+yarn test:stage8
+yarn test:stage9
+yarn test:stage10
+yarn test:stage11
 yarn test:e2e
 docker compose config
 ```

@@ -73,6 +73,7 @@ describe('Stage 2 smoke checks', () => {
       'scan.queue',
       'file.queue',
       'ai.queue',
+      'chat.queue',
       'report.queue',
       'notification.queue',
       'dead-letter.queue',

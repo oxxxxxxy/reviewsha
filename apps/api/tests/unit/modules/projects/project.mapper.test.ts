@@ -33,7 +33,7 @@ describe('ProjectMapper', () => {
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
       tags: [],
-      stats: { analysesCount: 0, uploadsCount: 0, lastAnalysisAt: null },
+      stats: { analysesCount: 0, uploadsCount: 0, reportsCount: 0, lastAnalysisAt: null },
     });
   });
 });

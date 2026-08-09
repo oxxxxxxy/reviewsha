@@ -1,7 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useState } from 'react';
 
 import { adminLoginSchema, type AdminLoginFormValues } from './login.schema';
+import { useAdminAuthStore } from '../../stores/auth.store';
+import { useNavigate } from 'react-router-dom';
 
 export function LoginPage() {
   const {
@@ -15,9 +18,23 @@ export function LoginPage() {
       password: '',
     },
   });
+  const login = useAdminAuthStore((state) => state.login);
+  const isLoading = useAdminAuthStore((state) => state.isLoading);
+  const navigate = useNavigate();
+  const [error, setError] = useState<string>();
 
-  function onSubmit(values: AdminLoginFormValues) {
-    console.log('Admin login form submitted', values);
+  async function onSubmit(values: AdminLoginFormValues) {
+    setError(undefined);
+    try {
+      await login(values.email, values.password);
+      navigate('/dashboard', { replace: true });
+    } catch (cause) {
+      setError(
+        cause instanceof Error && cause.message === 'ADMIN_REQUIRED'
+          ? "You don't have permission to access the admin panel."
+          : 'Invalid credentials',
+      );
+    }
   }
 
   return (
@@ -46,7 +63,8 @@ export function LoginPage() {
           {errors.password ? <small className="form-error">{errors.password.message}</small> : null}
         </label>
 
-        <button type="submit" disabled={isSubmitting}>
+        {error ? <p role="alert">{error}</p> : null}
+        <button type="submit" disabled={isSubmitting || isLoading}>
           Sign in as admin
         </button>
       </form>

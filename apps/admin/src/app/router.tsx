@@ -11,6 +11,7 @@ import { ProjectsPage } from '../pages/Projects/ProjectsPage';
 import { QueuesPage } from '../pages/Queues/QueuesPage';
 import { SettingsPage } from '../pages/Settings/SettingsPage';
 import { UsersPage } from '../pages/Users/UsersPage';
+import { AdminProtectedRoute } from './AdminProtectedRoute';
 
 export const adminRoutes = [
   '/login',
@@ -30,15 +31,17 @@ export function AdminRouter() {
         <Route path="/login" element={<LoginPage />} />
       </Route>
 
-      <Route element={<AdminLayout />}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/users" element={<UsersPage />} />
-        <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/queues" element={<QueuesPage />} />
-        <Route path="/ai" element={<AIPage />} />
-        <Route path="/logs" element={<LogsPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+      <Route element={<AdminProtectedRoute />}>
+        <Route element={<AdminLayout />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/users" element={<UsersPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/queues" element={<QueuesPage />} />
+          <Route path="/ai" element={<AIPage />} />
+          <Route path="/logs" element={<LogsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

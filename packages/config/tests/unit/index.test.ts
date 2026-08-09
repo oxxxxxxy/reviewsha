@@ -26,6 +26,7 @@ describe('@reviewsha/config public API', () => {
       'scan.queue',
       'file.queue',
       'ai.queue',
+      'chat.queue',
       'report.queue',
       'notification.queue',
       'dead-letter.queue',

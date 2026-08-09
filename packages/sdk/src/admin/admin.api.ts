@@ -4,12 +4,21 @@ import type { ApiClient } from '../client/api-client.js';
 export class AdminAPI {
   constructor(private readonly client: ApiClient) {}
 
-  users(): Promise<PaginatedResponse<User>> {
-    return this.client.get<PaginatedResponse<User>>('/admin/users');
+  users(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<PaginatedResponse<User>> {
+    return this.client.get<PaginatedResponse<User>>('/users', { params });
   }
 
-  projects(): Promise<PaginatedResponse<Project>> {
-    return this.client.get<PaginatedResponse<Project>>('/admin/projects');
+  projects(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+  }): Promise<PaginatedResponse<Project>> {
+    return this.client.get<PaginatedResponse<Project>>('/projects', { params });
   }
 
   queues(): Promise<QueueJob[]> {
