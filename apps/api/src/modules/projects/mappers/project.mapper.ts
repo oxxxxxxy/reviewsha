@@ -24,6 +24,7 @@ export class ProjectMapper {
       {
         analysesCount: details._count?.scans ?? 0,
         uploadsCount: details._count?.uploadedFiles ?? 0,
+        reportsCount: details._count?.reports ?? 0,
         lastAnalysisAt: details.scans?.[0]?.createdAt ?? null,
       },
     );
@@ -45,6 +46,7 @@ export class ProjectMapper {
       stats: {
         analysesCount: project.stats.analysesCount,
         uploadsCount: project.stats.uploadsCount,
+        reportsCount: project.stats.reportsCount ?? 0,
         lastAnalysisAt: project.stats.lastAnalysisAt?.toISOString() ?? null,
       },
     };

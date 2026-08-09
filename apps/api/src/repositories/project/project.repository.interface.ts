@@ -27,7 +27,7 @@ export interface FindProjectsParams extends FindManyOptions {
 
 export type ProjectDetails = Project & {
   tags: ProjectTag[];
-  _count: { scans: number; uploadedFiles: number };
+  _count: { scans: number; uploadedFiles: number; reports: number };
   scans: Array<{ createdAt: Date }>;
 };
 

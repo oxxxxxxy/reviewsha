@@ -1,11 +1,16 @@
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LoginPage } from '../../../../src/pages/Login/LoginPage';
 import { renderWithWebProviders } from '../../../../src/test/render';
+import { reviewshaSdk } from '../../../../src/api/client';
+import { useAuthStore } from '../../../../src/stores/auth.store';
 
 describe('LoginPage', () => {
+  beforeEach(() => {
+    useAuthStore.setState({ user: null, accessToken: null, refreshToken: null, isLoading: false });
+  });
   it('renders login form', () => {
     renderWithWebProviders(<LoginPage />, { route: '/login' });
     expect(screen.getByRole('heading', { name: 'Login' })).toBeInTheDocument();
@@ -21,16 +26,19 @@ describe('LoginPage', () => {
   });
 
   it('submits valid form locally', async () => {
-    const spy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    vi.spyOn(reviewshaSdk.auth, 'login').mockResolvedValue({
+      user: { id: 'u1', email: 'user@example.com', displayName: 'User', role: 'USER' } as never,
+      accessToken: 'access-token',
+      refreshToken: 'refresh-token',
+    });
     const user = userEvent.setup();
     renderWithWebProviders(<LoginPage />, { route: '/login' });
     await user.type(screen.getByLabelText('Email'), 'user@example.com');
     await user.type(screen.getByLabelText('Password'), 'strong-password');
     await user.click(screen.getByRole('button', { name: 'Sign in' }));
-    expect(spy).toHaveBeenCalledWith('Login form submitted', {
+    expect(reviewshaSdk.auth.login).toHaveBeenCalledWith({
       email: 'user@example.com',
       password: 'strong-password',
     });
-    spy.mockRestore();
   });
 });

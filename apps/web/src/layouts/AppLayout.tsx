@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { Avatar, Button, IconButton } from '@reviewsha/ui';
 
 import { useUiStore } from '../stores/ui.store';
 import { useAuthStore } from '../stores/auth.store';
@@ -33,14 +34,19 @@ export function AppLayout() {
 
       <div className="app-main">
         <header className="app-header">
-          <button className="ghost-button" type="button" onClick={toggleSidebar}>
-            Toggle sidebar
-          </button>
+          <IconButton className="ghost-button" label="Toggle sidebar" onClick={toggleSidebar}>
+            ☰
+          </IconButton>
           <span className="app-header-title">AI Code Review Platform</span>
           <span className="app-user">{user?.email}</span>
-          <button type="button" onClick={() => void logout().then(() => navigate('/login'))}>
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() => void logout().then(() => navigate('/login'))}
+          >
             Logout
-          </button>
+          </Button>
+          <Avatar name={user?.email ?? 'User'} />
         </header>
 
         <main className="app-content">

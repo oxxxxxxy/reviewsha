@@ -73,6 +73,23 @@ Frontend НЕ отвечает за:
 - права доступа;
 - расчёт результатов.
 
+## Актуальная реализация Stage 12.1
+
+Пользовательское приложение использует общий UI Kit из `packages/ui` и единый
+SDK из `packages/sdk`. UI primitives (`Container`, `Stack`, `Grid`, `Page`,
+`Heading`, `Text`, `Label`, `Alert`, `Skeleton`, `IconButton`, `Switch`,
+`Toast`, `Dropdown`) не содержат доменной логики. Данные Dashboard загружаются
+через TanStack Query из `projects.list`, а статистика строится только из
+ответа Backend (без production mock values).
+
+Auth state хранится в Zustand, server state — в TanStack Query. SDK централизует
+Bearer header и single-flight refresh: параллельные `401` ждут один refresh и
+повторяют исходные запросы; при неудаче сессия очищается.
+
+Основные маршруты Web: `/login`, `/register`, `/dashboard`, `/projects`,
+`/reports`, `/chat`, `/settings`. Защищённые маршруты проходят через
+`ProtectedRoute`, а API URL задаётся через `VITE_API_URL`.
+
 ---
 
 # 4. Архитектура приложения

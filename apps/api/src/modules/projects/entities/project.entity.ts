@@ -17,6 +17,7 @@ export class ProjectEntity {
     readonly stats: {
       analysesCount: number;
       uploadsCount: number;
+      reportsCount?: number;
       lastAnalysisAt: Date | null;
     },
   ) {}

@@ -17,7 +17,7 @@ import type {
 
 const projectDetailsInclude = {
   tags: { orderBy: { name: 'asc' as const } },
-  _count: { select: { scans: true, uploadedFiles: true } },
+  _count: { select: { scans: true, uploadedFiles: true, reports: true } },
   scans: { select: { createdAt: true }, orderBy: { createdAt: 'desc' as const }, take: 1 },
 } as const;
 

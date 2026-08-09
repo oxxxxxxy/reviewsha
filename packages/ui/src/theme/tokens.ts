@@ -7,6 +7,10 @@ export const colors = {
   background: '#f8fafc',
   surface: '#ffffff',
   text: '#0f172a',
+  muted: '#64748b',
+  surfaceMuted: '#f1f5f9',
+  error: '#dc2626',
+  border: '#e2e8f0',
 } as const;
 
 export const spacing = {

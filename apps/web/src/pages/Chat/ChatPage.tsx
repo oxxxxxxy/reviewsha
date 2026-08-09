@@ -38,6 +38,7 @@ export function ChatPage() {
   if (!projectId)
     return (
       <section className="page">
+        <h1>Chat</h1>
         <EmptyState title="Choose a project" description="Open chat from a project page." />
       </section>
     );

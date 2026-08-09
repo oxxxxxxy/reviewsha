@@ -38,6 +38,76 @@ button:hover {
   background: var(--color-primary-hover);
 }
 
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 55%, white);
+  outline-offset: 2px;
+}
+
+.ui-container {
+  width: min(100% - 2rem, 1200px);
+  margin-inline: auto;
+}
+.ui-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ui-grid {
+  display: grid;
+  gap: var(--space-4);
+}
+.ui-page {
+  width: 100%;
+}
+.ui-heading,
+.ui-text,
+.ui-label {
+  margin-block: 0;
+}
+.ui-label {
+  display: block;
+  font-weight: 600;
+}
+.ui-alert {
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  color: var(--color-error);
+}
+.ui-skeleton {
+  min-height: 1rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-muted),
+    var(--color-border),
+    var(--color-surface-muted)
+  );
+  background-size: 200% 100%;
+  animation: ui-skeleton 1.4s infinite;
+}
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  background: var(--color-primary);
+  color: white;
+  text-decoration: none;
+}
+.action-button:hover {
+  background: var(--color-primary-hover);
+}
+@keyframes ui-skeleton {
+  to {
+    background-position: -200% 0;
+  }
+}
+
 a {
   color: inherit;
 }
@@ -135,6 +205,12 @@ a {
   }
   .app-content {
     padding: var(--space-4);
+  }
+}
+
+@media (min-width: 801px) {
+  .ui-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

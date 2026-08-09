@@ -3,6 +3,7 @@ import { DEFAULT_API_TIMEOUT_MS, DEFAULT_URLS } from '@reviewsha/config';
 
 /** Supplies an access token for SDK requests at call time. */
 export type AccessTokenProvider = () => string | null | undefined;
+export type RefreshTokenHandler = () => Promise<string | null>;
 
 /** Runtime options used to configure the shared Axios-backed API client. */
 export interface ApiClientOptions {
@@ -23,6 +24,8 @@ export class ApiClient {
   readonly http: AxiosInstance;
   private accessToken?: string;
   private readonly getAccessToken?: AccessTokenProvider;
+  private refreshHandler?: RefreshTokenHandler;
+  private refreshing?: Promise<string | null>;
 
   constructor(options: ApiClientOptions = {}) {
     this.accessToken = options.accessToken;
@@ -47,6 +50,26 @@ export class ApiClient {
 
       return config;
     });
+    this.http.interceptors.response.use(undefined, async (error: unknown) => {
+      if (
+        !axios.isAxiosError(error) ||
+        error.response?.status !== 401 ||
+        !this.refreshHandler ||
+        error.config?.url?.includes('/auth/refresh')
+      ) {
+        throw error;
+      }
+      const config = error.config;
+      if (!config || (config as AxiosRequestConfig & { _retry?: boolean })._retry) throw error;
+      (config as AxiosRequestConfig & { _retry?: boolean })._retry = true;
+      this.refreshing ??= this.refreshHandler().finally(() => {
+        this.refreshing = undefined;
+      });
+      const token = await this.refreshing;
+      if (!token) throw error;
+      this.setAccessToken(token);
+      return this.http.request(config);
+    });
   }
 
   /** Stores a bearer token for subsequent SDK requests. */
@@ -57,6 +80,10 @@ export class ApiClient {
   /** Removes the stored bearer token from subsequent SDK requests. */
   clearAccessToken(): void {
     this.accessToken = undefined;
+  }
+
+  setRefreshTokenHandler(handler?: RefreshTokenHandler): void {
+    this.refreshHandler = handler;
   }
 
   async get<TResponse>(url: string, config?: AxiosRequestConfig): Promise<TResponse> {

@@ -24,6 +24,12 @@ export interface Project {
   archivedAt?: ISODateString | null;
   createdAt: ISODateString;
   updatedAt: ISODateString;
+  stats?: {
+    analysesCount: number;
+    uploadsCount: number;
+    reportsCount?: number;
+    lastAnalysisAt: ISODateString | null;
+  };
 }
 
 export interface File {

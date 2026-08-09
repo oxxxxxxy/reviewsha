@@ -9,6 +9,9 @@ export class ProjectStatsDto {
   @ApiProperty({ example: 2 })
   uploadsCount!: number;
 
+  @ApiProperty({ example: 2 })
+  reportsCount!: number;
+
   @ApiPropertyOptional({ example: '2026-08-05T12:00:00.000Z', nullable: true })
   lastAnalysisAt!: string | null;
 }

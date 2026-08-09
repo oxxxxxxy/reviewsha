@@ -1,4 +1,4 @@
-import { Card, EmptyState, Loader } from '@reviewsha/ui';
+import { Badge, Card, EmptyState, Grid, Loader, Page, Stack, Text } from '@reviewsha/ui';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { reviewshaSdk } from '../../api/client';
@@ -21,9 +21,10 @@ export function DashboardPage() {
     );
   const items = projects.data?.data ?? [];
   return (
-    <section className="page">
-      <h1>Welcome, {user?.email}</h1>
-      <div className="dashboard-grid">
+    <Page className="page">
+      <h1>Dashboard</h1>
+      <p className="page-subtitle">Welcome, {user?.email}</p>
+      <Grid className="dashboard-grid">
         <Card>
           <h2>Projects</h2>
           <strong>{projects.data?.meta.total ?? 0}</strong>
@@ -34,20 +35,27 @@ export function DashboardPage() {
         </Card>
         <Card>
           <h2>Analyses</h2>
-          <span>Available in project reports</span>
+          <strong>
+            {items.reduce((total, item) => total + (item.stats?.reportsCount ?? 0), 0)}
+          </strong>
         </Card>
         <Card>
           <h2>Reports</h2>
-          <span>Open a project to view</span>
+          <strong>
+            {items.reduce((total, item) => total + (item.stats?.analysesCount ?? 0), 0)}
+          </strong>
         </Card>
-      </div>
+      </Grid>
       <h2>Recent projects</h2>
       {items.length ? (
         <div className="project-list">
           {items.map((project) => (
             <Card key={project.id}>
               <h3>{project.name}</h3>
-              <p>{project.description || 'No description'}</p>
+              <Text>{project.description || 'No description'}</Text>
+              <Badge tone={project.status === 'ACTIVE' ? 'success' : 'warning'}>
+                {project.status}
+              </Badge>
               <Link to={`/projects/${project.id}`}>View project</Link>
             </Card>
           ))}
@@ -58,10 +66,14 @@ export function DashboardPage() {
           description="Create your first project to begin a review."
         />
       )}
-      <div className="quick-actions">
-        <Link to="/projects">New Project</Link>
-        <Link to="/projects">Upload Project</Link>
-      </div>
-    </section>
+      <Stack className="quick-actions">
+        <Link className="action-button" to="/projects">
+          New Project
+        </Link>
+        <Link className="action-button" to="/projects">
+          Upload Project
+        </Link>
+      </Stack>
+    </Page>
   );
 }

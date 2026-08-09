@@ -1,5 +1,13 @@
 # API Contracts проекта "Ревьюша"
 
+## Client contract
+
+Web и Admin используют `@reviewsha/sdk` как единую точку API-доступа. Auth,
+Projects, Reports и Chat не создают собственные transport-клиенты. При
+изменении Backend сначала обновляются Swagger/OpenAPI и SDK, затем consumers.
+Dashboard использует пагинированный `GET /projects`; статистика проектов
+включает `stats.reportsCount`, возвращаемый Backend.
+
 ## Reports API (Stage 10)
 
 Все маршруты используют base path `/api/v1`, Bearer JWT и ownership проекта.

@@ -19,6 +19,8 @@ export * from './components/Spinner.js';
 export * from './components/Table.js';
 export * from './components/Textarea.js';
 export * from './components/Tooltip.js';
+export * from './components/Primitives.js';
+export * from './components/Additional.js';
 export * from './hooks/useDebounce.js';
 export * from './hooks/useModal.js';
 export * from './hooks/usePagination.js';
