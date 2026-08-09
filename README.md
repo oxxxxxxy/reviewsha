@@ -1171,3 +1171,10 @@ yarn docs:api
 - env examples;
 - shared packages;
 - архитектурные документы при изменении архитектуры.
+
+### Frontend API и streaming
+
+Web использует `@reviewsha/sdk` и `VITE_API_URL`. Обычные запросы и Chat SSE
+проходят через общий `ApiClient`; `ChatAPI.stream()` поддерживает потоковые
+события и отмену через `AbortController`. После изменения Backend сначала
+обновляйте OpenAPI/SDK-контракт, затем приложения.

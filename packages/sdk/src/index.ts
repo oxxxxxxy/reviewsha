@@ -10,6 +10,7 @@ export * from './chat/chat.api.js';
 export * from './client/api-client.js';
 export * from './interceptors/auth.interceptor.js';
 export * from './projects/projects.api.js';
+export * from './pipelines/pipelines.api.js';
 export * from './reports/reports.api.js';
 export * from './uploads/uploads.api.js';
 
@@ -18,6 +19,7 @@ import { AuthAPI } from './auth/auth.api.js';
 import { ChatAPI } from './chat/chat.api.js';
 import { ApiClient, type ApiClientOptions } from './client/api-client.js';
 import { ProjectsAPI } from './projects/projects.api.js';
+import { PipelinesAPI } from './pipelines/pipelines.api.js';
 import { ReportsAPI } from './reports/reports.api.js';
 import { UploadsAPI } from './uploads/uploads.api.js';
 
@@ -28,6 +30,7 @@ export function createReviewshaSDK(options?: ApiClientOptions) {
     client,
     auth: new AuthAPI(client),
     projects: new ProjectsAPI(client),
+    pipelines: new PipelinesAPI(client),
     uploads: new UploadsAPI(client),
     reports: new ReportsAPI(client),
     chat: new ChatAPI(client),

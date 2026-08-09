@@ -25,7 +25,7 @@ function configureRefresh(get: () => AuthState): void {
       setAuthTokens(get, result);
       return result.accessToken;
     } catch {
-      get().logout();
+      await get().logout();
       return null;
     }
   });

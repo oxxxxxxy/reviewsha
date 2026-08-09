@@ -805,3 +805,11 @@ Database / Queue / Storage
 Главный принцип:
 
 > API контракт является единой точкой согласования между frontend и backend и должен изменяться только осознанно.
+
+## Chat and pipeline client contracts
+
+Chat streaming uses `POST /chat/:sessionId/stream` with JSON body `{message}`
+and a `text/event-stream` response. Clients consume it through `ChatAPI.stream`,
+not by duplicating SSE transport in pages. Pipeline status is available through
+`GET /pipelines/:id`; `resume` and `cancel` are POST operations using the same
+identifier.

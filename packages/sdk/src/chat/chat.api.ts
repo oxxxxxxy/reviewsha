@@ -47,4 +47,13 @@ export class ChatAPI {
       payload,
     );
   }
+
+  stream(
+    sessionId: string,
+    payload: ChatMessageRequest,
+    onEvent: (event: { event: string; data: unknown }) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    return this.client.stream(`/chat/${sessionId}/stream`, payload, onEvent, signal);
+  }
 }

@@ -1,6 +1,6 @@
 import { Button, Card, EmptyState, Input, Loader } from '@reviewsha/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { reviewshaSdk } from '../../api/client';
 
@@ -8,6 +8,9 @@ export function ChatPage() {
   const { id: projectId } = useParams();
   const [active, setActive] = useState<string>();
   const [message, setMessage] = useState('');
+  const [streaming, setStreaming] = useState(false);
+  const [streamText, setStreamText] = useState('');
+  const streamAbort = useRef<AbortController | undefined>(undefined);
   const client = useQueryClient();
   const sessions = useQuery({
     enabled: Boolean(projectId),
@@ -35,6 +38,34 @@ export function ChatPage() {
       void client.invalidateQueries({ queryKey: ['chat-sessions', projectId] });
     },
   });
+  const stream = async () => {
+    if (!sessionId || !message.trim() || streaming) return;
+    const prompt = message.trim();
+    setMessage('');
+    setStreamText('');
+    setStreaming(true);
+    streamAbort.current = new AbortController();
+    try {
+      await reviewshaSdk.chat.stream(
+        sessionId,
+        { message: prompt },
+        ({ event, data }) => {
+          if (event === 'token') {
+            const token =
+              typeof data === 'object' && data !== null && 'token' in data
+                ? String(data.token)
+                : String(data);
+            setStreamText((current) => current + token);
+          }
+        },
+        streamAbort.current.signal,
+      );
+      void client.invalidateQueries({ queryKey: ['chat-messages', sessionId] });
+    } finally {
+      setStreaming(false);
+      streamAbort.current = undefined;
+    }
+  };
   if (!projectId)
     return (
       <section className="page">
@@ -68,12 +99,18 @@ export function ChatPage() {
               </Card>
             ))
           )}
+          {streaming || streamText ? (
+            <Card>
+              <strong>ASSISTANT</strong>
+              <p>{streamText || 'AI is typing…'}</p>
+            </Card>
+          ) : null}
           {sessionId ? (
             <form
               className="form"
               onSubmit={(event) => {
                 event.preventDefault();
-                if (message.trim()) send.mutate();
+                if (message.trim()) void stream();
               }}
             >
               <Input
@@ -82,9 +119,18 @@ export function ChatPage() {
                 placeholder="Ask about this project"
                 aria-label="Chat message"
               />
-              <Button type="submit" isLoading={send.isPending}>
-                Send
+              <Button type="submit" isLoading={streaming || send.isPending}>
+                {streaming ? 'AI is typing…' : 'Send'}
               </Button>
+              {streaming ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => streamAbort.current?.abort()}
+                >
+                  Cancel
+                </Button>
+              ) : null}
               {send.isError ? <p role="alert">AI is unavailable. Try again.</p> : null}
             </form>
           ) : (

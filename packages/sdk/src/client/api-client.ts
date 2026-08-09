@@ -26,13 +26,15 @@ export class ApiClient {
   private readonly getAccessToken?: AccessTokenProvider;
   private refreshHandler?: RefreshTokenHandler;
   private refreshing?: Promise<string | null>;
+  private readonly baseURL: string;
 
   constructor(options: ApiClientOptions = {}) {
     this.accessToken = options.accessToken;
     this.getAccessToken = options.getAccessToken;
 
+    this.baseURL = options.baseURL ?? DEFAULT_URLS.api;
     this.http = axios.create({
-      baseURL: options.baseURL ?? DEFAULT_URLS.api,
+      baseURL: this.baseURL,
       timeout: options.timeout ?? DEFAULT_API_TIMEOUT_MS,
       headers: {
         Accept: 'application/json',
@@ -84,6 +86,62 @@ export class ApiClient {
 
   setRefreshTokenHandler(handler?: RefreshTokenHandler): void {
     this.refreshHandler = handler;
+  }
+
+  /** Streams an SSE response while preserving the shared auth/refresh policy. */
+  async stream(
+    url: string,
+    body: unknown,
+    onEvent: (event: { event: string; data: unknown }) => void,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const request = async (retry = false): Promise<Response> => {
+      const token = this.getAccessToken?.() ?? this.accessToken;
+      const streamUrl = `${this.baseURL.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
+      const response = await fetch(streamUrl, {
+        method: 'POST',
+        headers: {
+          Accept: 'text/event-stream',
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
+        signal,
+      });
+      if (response.status === 401 && !retry && this.refreshHandler) {
+        const refreshed = await this.refreshHandler();
+        if (refreshed) {
+          this.setAccessToken(refreshed);
+          return request(true);
+        }
+      }
+      if (!response.ok) throw new Error(`Streaming request failed with status ${response.status}`);
+      return response;
+    };
+
+    const response = await request();
+    if (!response.body) throw new Error('Streaming response has no body');
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const chunk = await reader.read();
+      buffer += decoder.decode(chunk.value ?? new Uint8Array(), { stream: !chunk.done });
+      const events = buffer.split('\n\n');
+      buffer = events.pop() ?? '';
+      for (const raw of events) {
+        const event = raw.match(/^event:\s*(.+)$/m)?.[1] ?? 'message';
+        const data = raw.match(/^data:\s*(.+)$/m)?.[1];
+        if (data !== undefined) {
+          try {
+            onEvent({ event, data: JSON.parse(data) });
+          } catch {
+            onEvent({ event, data });
+          }
+        }
+      }
+      if (chunk.done) break;
+    }
   }
 
   async get<TResponse>(url: string, config?: AxiosRequestConfig): Promise<TResponse> {

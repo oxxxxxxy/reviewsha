@@ -1056,3 +1056,16 @@ Report
   ↓
 Issues / Export / AI Chat
 ```
+
+## Stage 12.2 progress
+
+Project UI uses the real Projects, Uploads and Reports SDK services. Project
+details support editing name/description/tags, archive state, ZIP client
+validation, upload version history and project change history. Uploads remain
+server-validated and are sent through `UploadsAPI` with progress callbacks.
+
+The chat screen uses the SDK SSE abstraction (`ChatAPI.stream`) rather than
+implementing transport in React. The shared transport parses `text/event-stream`,
+supports `AbortController` cancellation and applies the same bearer/refresh
+policy as regular requests. Backend remains responsible for context, memory,
+authorization and persistence.
