@@ -1,4 +1,5 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppRouter } from '../../../src/app/router';
@@ -67,5 +68,19 @@ describe('AppRouter', () => {
   it('renders not found route', () => {
     renderWithWebProviders(<AppRouter />, { route: '/missing' });
     expect(screen.getByRole('heading', { name: '404' })).toBeInTheDocument();
+  });
+
+  it('uses an accessible confirmation modal before archiving a project', async () => {
+    const archive = vi.spyOn(reviewshaSdk.projects, 'archive').mockResolvedValue({} as never);
+    const user = userEvent.setup();
+    renderWithWebProviders(<AppRouter />, { route: '/projects/123' });
+
+    await user.click(await screen.findByRole('button', { name: 'Archive project' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await user.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Archive project' }),
+    );
+
+    expect(archive).toHaveBeenCalledWith('123');
   });
 });
