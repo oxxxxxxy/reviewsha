@@ -50,7 +50,7 @@ AI SaaS platform for automated code review.
 Текущий статус:
 
 ```txt
-Текущие этапы: 12.2 User Features, 13 Admin Panel, 14 OpenAPI & SDK
+Текущие этапы: 11.1–11.2 Chat, 12 Frontend, 13 Admin Panel и 14.1–14.2 SDK/Frontend Integration
 ```
 
 ---
