@@ -50,8 +50,9 @@ GitHub Actions для `30cb570` завершился успешно:
    create, list, get, send, history, delete/archive, ownership и malformed history.
 2. Добавить backend security tests для каждого endpoint с чужими `userId`,
    `conversationId` и `projectId`, включая IDOR-проверки через HTTP. HTTP
-   project ownership checks for create/list are now covered with the real
-   `OwnershipGuard`; conversation-level database-backed IDOR remains.
+   project ownership checks for create/list and database-backed session
+   ownership for history are now covered; full production database matrix
+   remains.
 3. Реализовать idempotency key и backend deduplication для повторной отправки
    одного сообщения; API принимает `idempotencyKey`, а Queue job получает
    детерминированный ID.
