@@ -74,6 +74,18 @@ describe('@reviewsha/ui components', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('closes an open modal with Escape and focuses its close control', async () => {
+    const onClose = vi.fn();
+    render(
+      <Modal isOpen title="Confirm" onClose={onClose}>
+        Body
+      </Modal>,
+    );
+    expect(screen.getAllByRole('button', { name: 'Close modal' }).at(-1)).toHaveFocus();
+    await userEvent.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it('renders card, badge, avatar, tooltip and empty state', () => {
     render(
       <>

@@ -1,4 +1,4 @@
-import { Button, EmptyState, Loader, Select, Table } from '@reviewsha/ui';
+import { Button, EmptyState, Loader, Modal, Select, Table } from '@reviewsha/ui';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
@@ -8,6 +8,7 @@ export function QueueDetailsPage() {
   const { queueName } = useParams();
   const [page, setPage] = useState(1);
   const [state, setState] = useState('');
+  const [removeJobId, setRemoveJobId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const jobs = useQuery({
     enabled: Boolean(queueName),
@@ -36,9 +37,9 @@ export function QueueDetailsPage() {
     await queryClient.invalidateQueries({ queryKey: ['admin', 'queue-jobs', queueName] });
   };
   const remove = async (jobId: string) => {
-    if (!window.confirm('Remove this job?')) return;
     await adminSdk.admin.removeJob(queueName!, jobId);
     await queryClient.invalidateQueries({ queryKey: ['admin', 'queue-jobs', queueName] });
+    setRemoveJobId(null);
   };
   return (
     <section className="page">
@@ -77,7 +78,7 @@ export function QueueDetailsPage() {
                   <Button variant="secondary" onClick={() => void retry(job.id)}>
                     Retry
                   </Button>{' '}
-                  <Button variant="secondary" onClick={() => void remove(job.id)}>
+                  <Button variant="secondary" onClick={() => setRemoveJobId(job.id)}>
                     Remove
                   </Button>
                 </>
@@ -109,6 +110,17 @@ export function QueueDetailsPage() {
           </Button>
         </nav>
       ) : null}
+      <Modal
+        isOpen={Boolean(removeJobId)}
+        title="Remove queue job?"
+        onClose={() => setRemoveJobId(null)}
+      >
+        <p>This action cannot be undone.</p>
+        <Button variant="secondary" onClick={() => setRemoveJobId(null)}>
+          Cancel
+        </Button>{' '}
+        <Button onClick={() => (removeJobId ? void remove(removeJobId) : undefined)}>Remove</Button>
+      </Modal>
     </section>
   );
 }

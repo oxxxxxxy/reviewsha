@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 
 export interface ModalProps {
@@ -8,15 +9,25 @@ export interface ModalProps {
 }
 
 export function Modal({ isOpen, title, children, onClose }: ModalProps) {
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    closeButton.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
   if (!isOpen) {
     return null;
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label={title}>
+    <div role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <header>
-        <h2>{title}</h2>
-        <button type="button" onClick={onClose} aria-label="Close modal">
+        <h2 id="modal-title">{title}</h2>
+        <button ref={closeButton} type="button" onClick={onClose} aria-label="Close modal">
           ×
         </button>
       </header>

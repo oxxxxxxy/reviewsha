@@ -82,6 +82,8 @@
   empty и error states.
 - Settings profile/security/preferences реализованы.
 - ErrorBoundary и базовые responsive/accessibility состояния присутствуют.
+- Shared `Modal` manages initial focus and Escape-to-close; Admin destructive
+  queue removal uses it instead of `window.confirm`.
 
 ### Что доработать
 
