@@ -1,4 +1,4 @@
-import { Injectable, Optional, ServiceUnavailableException } from '@nestjs/common';
+import { Inject, Injectable, Optional, ServiceUnavailableException } from '@nestjs/common';
 
 import { PrismaService } from '../database/prisma.service';
 import { QueueService } from '../modules/queue/queue.service';
@@ -14,7 +14,7 @@ export interface HealthResponse {
 @Injectable()
 export class HealthService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
     @Optional() private readonly queue?: QueueService,
     @Optional() private readonly storage?: StorageService,
   ) {}

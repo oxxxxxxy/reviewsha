@@ -1,10 +1,10 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class AnalysisResponseDto {
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ type: String, format: 'uuid' })
   id!: string;
 
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({ type: String, format: 'uuid' })
   projectId!: string;
 
   @ApiPropertyOptional({ type: String, format: 'uuid', nullable: true })
@@ -19,7 +19,7 @@ export class AnalysisResponseDto {
   @ApiPropertyOptional({ type: String, nullable: true })
   currentStep!: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ type: Number })
   progress!: number;
 
   @ApiPropertyOptional({ type: String, nullable: true })
@@ -36,6 +36,6 @@ export class AnalysesListResponseDto {
   @ApiProperty({ type: [AnalysisResponseDto] })
   data!: AnalysisResponseDto[];
 
-  @ApiProperty()
+  @ApiProperty({ type: Object })
   meta!: { page: number; limit: number; total: number; totalPages: number };
 }

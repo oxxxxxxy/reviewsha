@@ -16,8 +16,8 @@ export class AdminOverviewResponseDto {
 }
 
 export class AdminUserDetailsResponseDto {
-  @ApiProperty({ type: UserResponseDto }) user!: UserResponseDto;
-  @ApiProperty({ type: [ProjectResponseDto] }) projects!: ProjectResponseDto[];
+  @ApiProperty({ type: () => UserResponseDto }) user!: UserResponseDto;
+  @ApiProperty({ type: () => [ProjectResponseDto] }) projects!: ProjectResponseDto[];
   @ApiProperty({ type: [Object] }) activity!: Array<Record<string, unknown>>;
 }
 
@@ -25,20 +25,20 @@ export class AdminProjectVersionDto {
   @ApiProperty({ type: Number, example: 3 }) version!: number;
   @ApiProperty({ type: Number, example: 1048576 }) size!: number;
   @ApiProperty({ type: String, example: 'READY' }) status!: string;
-  @ApiProperty({ format: 'date-time' }) createdAt!: string;
+  @ApiProperty({ type: String, format: 'date-time' }) createdAt!: string;
 }
 
 export class AdminProjectAnalysisDto {
-  @ApiProperty({ format: 'uuid' }) id!: string;
+  @ApiProperty({ type: String, format: 'uuid' }) id!: string;
   @ApiProperty({ type: String, example: 'COMPLETED' }) status!: string;
   @ApiProperty({ type: Number, example: 87, nullable: true }) score!: number | null;
-  @ApiProperty({ format: 'date-time' }) createdAt!: string;
+  @ApiProperty({ type: String, format: 'date-time' }) createdAt!: string;
   @ApiProperty({ type: String, format: 'date-time', nullable: true }) finishedAt!: string | null;
 }
 
 export class AdminProjectDetailsResponseDto {
-  @ApiProperty({ type: ProjectResponseDto }) project!: ProjectResponseDto;
-  @ApiProperty({ type: UserResponseDto }) owner!: UserResponseDto;
+  @ApiProperty({ type: () => ProjectResponseDto }) project!: ProjectResponseDto;
+  @ApiProperty({ type: () => UserResponseDto }) owner!: UserResponseDto;
   @ApiProperty({ type: [AdminProjectVersionDto] }) versions!: AdminProjectVersionDto[];
   @ApiProperty({ type: [AdminProjectAnalysisDto] }) analyses!: AdminProjectAnalysisDto[];
 }
@@ -73,22 +73,22 @@ export class AdminAiUsageResponseDto {
 }
 
 export class AdminAiFailureDto {
-  @ApiProperty({ format: 'uuid' }) id!: string;
+  @ApiProperty({ type: String, format: 'uuid' }) id!: string;
   @ApiProperty({ type: String, example: 'omniroute' }) provider!: string;
   @ApiProperty({ type: String, example: 'deepseek-chat' }) model!: string;
   @ApiPropertyOptional({ type: String, nullable: true }) error!: string | null;
-  @ApiProperty({ format: 'date-time' }) createdAt!: string;
+  @ApiProperty({ type: String, format: 'date-time' }) createdAt!: string;
   @ApiPropertyOptional({ type: Number, nullable: true, example: 1200 }) latencyMs!: number | null;
   @ApiPropertyOptional({ type: String, nullable: true }) project!: string | null;
 }
 
 export class AdminAiUsageQueryDto {
-  @ApiPropertyOptional({ format: 'date-time' })
+  @ApiPropertyOptional({ type: String, format: 'date-time' })
   @IsOptional()
   @IsDateString()
   from?: string;
 
-  @ApiPropertyOptional({ format: 'date-time' })
+  @ApiPropertyOptional({ type: String, format: 'date-time' })
   @IsOptional()
   @IsDateString()
   to?: string;
@@ -103,12 +103,12 @@ export class AdminAiUsageQueryDto {
   @IsString()
   model?: string;
 
-  @ApiPropertyOptional({ format: 'uuid' })
+  @ApiPropertyOptional({ type: String, format: 'uuid' })
   @IsOptional()
   @IsString()
   userId?: string;
 
-  @ApiPropertyOptional({ format: 'uuid' })
+  @ApiPropertyOptional({ type: String, format: 'uuid' })
   @IsOptional()
   @IsString()
   projectId?: string;
@@ -150,12 +150,12 @@ export class AdminProcessingStatisticDto {
 }
 
 export class AdminStatisticsQueryDto {
-  @ApiPropertyOptional({ format: 'date-time', example: '2026-08-01T00:00:00.000Z' })
+  @ApiPropertyOptional({ type: String, format: 'date-time', example: '2026-08-01T00:00:00.000Z' })
   @IsOptional()
   @IsDateString()
   from?: string;
 
-  @ApiPropertyOptional({ format: 'date-time', example: '2026-08-10T23:59:59.999Z' })
+  @ApiPropertyOptional({ type: String, format: 'date-time', example: '2026-08-10T23:59:59.999Z' })
   @IsOptional()
   @IsDateString()
   to?: string;
@@ -192,27 +192,27 @@ export class AdminLogsQueryDto {
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ format: 'date-time' })
+  @ApiPropertyOptional({ type: String, format: 'date-time' })
   @IsOptional()
   @IsDateString()
   from?: string;
 
-  @ApiPropertyOptional({ format: 'date-time' })
+  @ApiPropertyOptional({ type: String, format: 'date-time' })
   @IsOptional()
   @IsDateString()
   to?: string;
 }
 
 export class AdminLogResponseDto {
-  @ApiProperty({ format: 'uuid' }) id!: string;
+  @ApiProperty({ type: String, format: 'uuid' }) id!: string;
   @ApiProperty({ type: String, example: 'ERROR' }) level!: string;
   @ApiProperty({ type: String, example: 'API' }) service!: string;
   @ApiPropertyOptional({ type: String, nullable: true }) context!: string | null;
-  @ApiProperty() message!: string;
+  @ApiProperty({ type: String }) message!: string;
   @ApiPropertyOptional({ type: String, nullable: true }) requestId!: string | null;
   @ApiPropertyOptional({ type: String, nullable: true }) traceId!: string | null;
   @ApiPropertyOptional({ type: String, nullable: true }) stack!: string | null;
-  @ApiProperty({ format: 'date-time' }) createdAt!: Date;
+  @ApiProperty({ type: String, format: 'date-time' }) createdAt!: Date;
 }
 
 export class AdminLogsMetaDto {
@@ -254,10 +254,10 @@ export class AdminJobResponseDto {
   @ApiProperty({ type: String, example: 'analyze' }) name!: string;
   @ApiProperty({ type: String, example: 'failed' }) state!: string;
   @ApiProperty({ type: Number, example: 3 }) attemptsMade!: number;
-  @ApiProperty({ format: 'date-time' }) createdAt!: string;
-  @ApiPropertyOptional({ format: 'date-time' }) processedOn?: string;
-  @ApiPropertyOptional({ format: 'date-time' }) finishedOn?: string;
-  @ApiPropertyOptional() failedReason?: string;
+  @ApiProperty({ type: String, format: 'date-time' }) createdAt!: string;
+  @ApiPropertyOptional({ type: String, format: 'date-time' }) processedOn?: string;
+  @ApiPropertyOptional({ type: String, format: 'date-time' }) finishedOn?: string;
+  @ApiPropertyOptional({ type: String }) failedReason?: string;
 }
 
 export class AdminJobsMetaDto {

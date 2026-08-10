@@ -6,8 +6,8 @@
 В этом блоке локально успешно пройдены `yarn test:stage14`,
 `yarn typecheck:apps` и `yarn format:check --ignore-unknown`; SDK unit: 6/6.
 Также вручную проверены запуск Web (`:5173`), Admin (`:5174`) и API (`:3000`)
-с Worker. API запускается с `DISABLE_SWAGGER=true`, потому что Swagger runtime
-сейчас падает на старых DTO metadata; это отдельный незакрытый production gap.
+с Worker. Swagger runtime и `/api/v1/docs-json` теперь запускаются штатно;
+health endpoint возвращает HTTP 200.
 После `590c2b7` локально повторно пройдены `yarn test:stage11` и
 `yarn typecheck:apps`; ранее для этой серии изменений также успешно пройдены
 `yarn ci:stage14` и `yarn test:e2e`, а также
