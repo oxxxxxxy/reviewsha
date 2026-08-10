@@ -1,5 +1,6 @@
 import { EmptyState, Loader, Table } from '@reviewsha/ui';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { adminSdk } from '../../api/client';
 
 export function QueuesPage() {
@@ -32,7 +33,11 @@ export function QueuesPage() {
           rows={rows}
           getRowKey={(row) => row.name}
           columns={[
-            { key: 'name', header: 'Queue', render: (row) => row.name },
+            {
+              key: 'name',
+              header: 'Queue',
+              render: (row) => <Link to={`/queues/${row.name}`}>{row.name}</Link>,
+            },
             { key: 'waiting', header: 'Waiting', render: (row) => row.waiting },
             { key: 'active', header: 'Active', render: (row) => row.active },
             { key: 'failed', header: 'Failed', render: (row) => row.failed },

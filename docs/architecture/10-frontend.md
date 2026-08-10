@@ -1099,3 +1099,7 @@ not receive credentials, tokens or provider secrets.
 
 Admin users and projects expose protected detail routes, and Statistics is a
 separate server-state view. All these routes remain behind `AdminProtectedRoute`.
+
+Queue monitoring links to a queue-specific jobs view with five-second polling
+and backend-mediated retry/remove actions. The Admin UI never issues Redis
+commands directly.
