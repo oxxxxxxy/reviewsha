@@ -7,7 +7,10 @@ import { PrismaClient, QueueStatus, Role, ScanStatus } from '@prisma/client';
 import { Client } from 'pg';
 import { PrismaService } from '../../apps/api/src/database/prisma.service';
 
-vi.setConfig({ hookTimeout: 120_000, testTimeout: 60_000 });
+// CI runners can be noticeably slower while Prisma creates a shadow database
+// and replays the complete migration history. Keep the test deterministic
+// without allowing a slow runner to fail an otherwise valid migration check.
+vi.setConfig({ hookTimeout: 240_000, testTimeout: 180_000 });
 
 const root = process.cwd();
 const prismaSchemaPath = join(root, 'apps/api/prisma/schema.prisma');
