@@ -15,7 +15,9 @@ import {
 import type { Response } from 'express';
 import {
   ApiBearerAuth,
+  ApiBadRequestResponse,
   ApiCreatedResponse,
+  ApiHeader,
   ApiNoContentResponse,
   ApiForbiddenResponse,
   ApiGatewayTimeoutResponse,
@@ -110,6 +112,12 @@ export class ChatController {
 
   @Post('chat/:sessionId/messages')
   @ApiOperation({ summary: 'Send a message to Reviewsha AI' })
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: false,
+    description: 'Stable client key used to safely retry the same message submission.',
+  })
+  @ApiBadRequestResponse({ description: 'The message or idempotency key is invalid.' })
   @ApiCreatedResponse({ type: ChatMessageResponseDto })
   @ApiServiceUnavailableResponse({ description: 'AI provider is unavailable.' })
   @ApiGatewayTimeoutResponse({ description: 'AI response timed out.' })
@@ -127,6 +135,12 @@ export class ChatController {
 
   @Post('chat/:sessionId/stream')
   @ApiOperation({ summary: 'Stream a Reviewsha AI answer over Server-Sent Events' })
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: false,
+    description: 'Stable client key used to safely retry the same stream submission.',
+  })
+  @ApiBadRequestResponse({ description: 'The message or idempotency key is invalid.' })
   @ApiProduces('text/event-stream')
   async stream(
     @CurrentUser() user: AuthenticatedUser,
