@@ -32,6 +32,21 @@ export interface QueueJobSummary {
   readonly failedReason?: string;
 }
 
+export interface AdminAiUsage {
+  readonly requests: number;
+  readonly usageRecords: number;
+  readonly tokens: number;
+  readonly failures: number;
+}
+
+export interface AdminStatistics {
+  readonly users: number;
+  readonly projects: number;
+  readonly analyses: number;
+  readonly completedAnalyses: number;
+  readonly failedAnalyses: number;
+}
+
 export interface AdminUserListResponse {
   readonly items: readonly User[];
   readonly meta: { page: number; limit: number; total: number; pages: number };
@@ -51,6 +66,14 @@ export class AdminAPI {
 
   queueOverview(): Promise<Record<string, QueueMetrics>> {
     return this.client.get<Record<string, QueueMetrics>>('/admin/queues');
+  }
+
+  aiUsage(): Promise<AdminAiUsage> {
+    return this.client.get<AdminAiUsage>('/admin/ai-usage');
+  }
+
+  statistics(): Promise<AdminStatistics> {
+    return this.client.get<AdminStatistics>('/admin/statistics');
   }
 
   queueJobs(

@@ -8,6 +8,7 @@ describe('AdminService', () => {
     scan: { count: vi.fn() },
     report: { count: vi.fn() },
     aIUsage: { aggregate: vi.fn() },
+    aIRequest: { count: vi.fn() },
   };
   const queues = {
     getAllQueueMetrics: vi.fn(),
@@ -45,6 +46,17 @@ describe('AdminService', () => {
       items: [{ id: 'job-1' }],
       total: 41,
       meta: { page: 2, limit: 20, total: 41, pages: 3 },
+    });
+  });
+
+  it('returns AI usage without exposing provider secrets', async () => {
+    prisma.aIUsage.aggregate.mockResolvedValue({ _count: { id: 4 }, _sum: { tokensUsed: 1200 } });
+    prisma.aIRequest.count.mockResolvedValueOnce(9).mockResolvedValueOnce(2);
+    await expect(service.aiUsage()).resolves.toEqual({
+      requests: 9,
+      usageRecords: 4,
+      tokens: 1200,
+      failures: 2,
     });
   });
 

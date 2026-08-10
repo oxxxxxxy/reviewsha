@@ -830,3 +830,7 @@ Administrative operations are exposed under `/admin` and require the `ADMIN`
 role: `GET /admin/overview`, `GET /admin/queues`, paginated
 `GET /admin/queues/:queueName/jobs`, `POST .../retry` and `DELETE .../:jobId`.
 The frontend never accesses BullMQ or Redis directly.
+
+Operational metrics are also available through the protected
+`GET /admin/ai-usage` and `GET /admin/statistics` endpoints. Aggregation is
+performed by the backend from persisted usage and analysis records.

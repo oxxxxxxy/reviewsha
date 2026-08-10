@@ -23,6 +23,18 @@ export class AdminController {
     return this.admin.queueOverview();
   }
 
+  @Get('ai-usage')
+  @ApiOperation({ summary: 'Get AI usage metrics' })
+  aiUsage() {
+    return this.admin.aiUsage();
+  }
+
+  @Get('statistics')
+  @ApiOperation({ summary: 'Get system statistics' })
+  statistics() {
+    return this.admin.statistics();
+  }
+
   @Get('queues/:queueName/jobs')
   jobs(
     @Param('queueName') queueName: string,

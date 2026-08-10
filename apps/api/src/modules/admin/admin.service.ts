@@ -37,6 +37,31 @@ export class AdminService {
     return this.queues.getAllQueueMetrics();
   }
 
+  async aiUsage() {
+    const [usage, requests, failures] = await Promise.all([
+      this.prisma.aIUsage.aggregate({ _sum: { tokensUsed: true }, _count: { id: true } }),
+      this.prisma.aIRequest.count(),
+      this.prisma.aIRequest.count({ where: { status: 'FAILED' } }),
+    ]);
+    return {
+      requests,
+      usageRecords: usage._count.id,
+      tokens: usage._sum.tokensUsed ?? 0,
+      failures,
+    };
+  }
+
+  async statistics() {
+    const [users, projects, analyses, completedAnalyses, failedAnalyses] = await Promise.all([
+      this.prisma.user.count({ where: { deletedAt: null } }),
+      this.prisma.project.count({ where: { deletedAt: null } }),
+      this.prisma.scan.count(),
+      this.prisma.scan.count({ where: { status: 'COMPLETED' } }),
+      this.prisma.scan.count({ where: { status: 'FAILED' } }),
+    ]);
+    return { users, projects, analyses, completedAnalyses, failedAnalyses };
+  }
+
   async queueJobs(
     queueName: string,
     page = 1,
