@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { EmptyState, Loader, Table } from '@reviewsha/ui';
 import { adminSdk } from '../../api/client';
 
@@ -32,7 +33,11 @@ export function ProjectsPage() {
           rows={rows}
           getRowKey={(project) => project.id}
           columns={[
-            { key: 'name', header: 'Name', render: (project) => project.name },
+            {
+              key: 'name',
+              header: 'Name',
+              render: (project) => <Link to={`/projects/${project.id}`}>{project.name}</Link>,
+            },
             { key: 'status', header: 'Status', render: (project) => project.status },
             { key: 'updated', header: 'Updated', render: (project) => project.updatedAt },
           ]}

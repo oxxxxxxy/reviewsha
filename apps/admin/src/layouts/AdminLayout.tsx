@@ -11,6 +11,7 @@ export const adminNavItems = [
   { to: '/queues', label: 'Queues' },
   { to: '/ai', label: 'AI' },
   { to: '/logs', label: 'Logs' },
+  { to: '/statistics', label: 'Statistics' },
   { to: '/settings', label: 'Settings' },
 ] as const;
 

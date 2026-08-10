@@ -841,3 +841,6 @@ performed by the backend from persisted usage and analysis records.
 
 `GET /admin/logs` provides paginated, server-side `level`, `service` and
 `search` filters over persisted masked `AdminLog` records.
+
+Admin detail reads use the existing ownership-aware `GET /users/:id` and
+`GET /projects/:id` resources; the `ADMIN` role is enforced by the backend.

@@ -11,17 +11,23 @@ import { ProjectsPage } from '../pages/Projects/ProjectsPage';
 import { QueuesPage } from '../pages/Queues/QueuesPage';
 import { SettingsPage } from '../pages/Settings/SettingsPage';
 import { UsersPage } from '../pages/Users/UsersPage';
+import { UserDetailsPage } from '../pages/Users/UserDetailsPage';
+import { ProjectDetailsPage } from '../pages/Projects/ProjectDetailsPage';
+import { StatisticsPage } from '../pages/Statistics/StatisticsPage';
 import { AdminProtectedRoute } from './AdminProtectedRoute';
 
 export const adminRoutes = [
   '/login',
   '/dashboard',
   '/users',
+  '/users/:id',
   '/projects',
+  '/projects/:id',
   '/queues',
   '/ai',
   '/logs',
   '/settings',
+  '/statistics',
 ] as const;
 
 export function AdminRouter() {
@@ -36,11 +42,14 @@ export function AdminRouter() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/users" element={<UsersPage />} />
+          <Route path="/users/:id" element={<UserDetailsPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/:id" element={<ProjectDetailsPage />} />
           <Route path="/queues" element={<QueuesPage />} />
           <Route path="/ai" element={<AIPage />} />
           <Route path="/logs" element={<LogsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/statistics" element={<StatisticsPage />} />
         </Route>
       </Route>
 

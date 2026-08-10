@@ -127,6 +127,10 @@ export class AdminAPI {
     return this.client.get<AdminUserListResponse>('/users', { params });
   }
 
+  user(userId: string): Promise<User> {
+    return this.client.get<User>(`/users/${userId}`);
+  }
+
   projects(params?: {
     page?: number;
     limit?: number;
@@ -134,6 +138,10 @@ export class AdminAPI {
     status?: string;
   }): Promise<AdminProjectListResponse> {
     return this.client.get<AdminProjectListResponse>('/projects', { params });
+  }
+
+  project(projectId: string): Promise<{ data: Project }> {
+    return this.client.get<{ data: Project }>(`/projects/${projectId}`);
   }
 
   queues(): Promise<QueueJob[]> {

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { Badge, EmptyState, Loader, Table } from '@reviewsha/ui';
 import { adminSdk } from '../../api/client';
 
@@ -32,7 +33,11 @@ export function UsersPage() {
           rows={rows}
           getRowKey={(user) => user.id}
           columns={[
-            { key: 'email', header: 'Email', render: (user) => user.email },
+            {
+              key: 'email',
+              header: 'Email',
+              render: (user) => <Link to={`/users/${user.id}`}>{user.email}</Link>,
+            },
             { key: 'role', header: 'Role', render: (user) => <Badge>{user.role}</Badge> },
             { key: 'created', header: 'Created', render: (user) => user.createdAt },
           ]}

@@ -1096,3 +1096,6 @@ UI provides loading, empty and error states.
 Admin operational views now use the protected SDK-backed AI usage and masked
 logs endpoints. Logs are paginated and filtered server-side; the frontend does
 not receive credentials, tokens or provider secrets.
+
+Admin users and projects expose protected detail routes, and Statistics is a
+separate server-state view. All these routes remain behind `AdminProtectedRoute`.

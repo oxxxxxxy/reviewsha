@@ -37,11 +37,14 @@ describe('AdminRouter', () => {
       '/login',
       '/dashboard',
       '/users',
+      '/users/:id',
       '/projects',
+      '/projects/:id',
       '/queues',
       '/ai',
       '/logs',
       '/settings',
+      '/statistics',
     ]);
   });
 
