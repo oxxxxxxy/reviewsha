@@ -1,7 +1,7 @@
 # Этапы 11–14 — Implementation Completion Audit
 
 Дата сверки: 2026-08-10  
-Последний проверенный коммит до этого аудита: `414030a`
+Последний проверенный коммит: `0f6d139`
 
 Этот файл является рабочей сверкой по требованиям планов этапов 11–14. Статус
 `PARTIAL` означает, что базовая функциональность есть, но критерий полного
@@ -85,8 +85,8 @@
   empty и error states.
 - Settings profile/security/preferences реализованы.
 - ErrorBoundary и базовые responsive/accessibility состояния присутствуют.
-- Shared `Modal` manages initial focus and Escape-to-close; Admin destructive
-  queue removal uses it instead of `window.confirm`.
+- Shared `Modal` manages initial focus and Escape-to-close; Admin queue removal
+  and Web project archiving use it instead of `window.confirm`.
 
 ### Что доработать
 
