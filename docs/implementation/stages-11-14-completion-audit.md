@@ -1,18 +1,20 @@
 # Этапы 11–14 — Implementation Completion Audit
 
-Дата сверки: 2026-08-10  
-Последний проверенный кодовый коммит: `30cb570`
+Дата сверки: 2026-08-11
+Последний проверенный кодовый коммит: `590c2b7`
 
-После `30cb570` локально повторно пройдены `yarn ci:stage14` и
-`yarn test:e2e`; ранее для этой серии изменений также успешно пройдены
+После `590c2b7` локально повторно пройдены `yarn test:stage11` и
+`yarn typecheck:apps`; ранее для этой серии изменений также успешно пройдены
+`yarn ci:stage14` и `yarn test:e2e`, а также
 `yarn ci:openapi`, `yarn ci:stage11`, `yarn ci:stage12`, `yarn ci:stage13` и
 полный `yarn test`.
 Все эти команды завершились успешно; это подтверждает текущую стабильность
 реализованных частей, но не меняет статусы этапов без закрытия acceptance и
 manual QA из разделов ниже.
 
-GitHub Actions для `30cb570` завершился успешно:
+GitHub Actions для предыдущего SDK/docs блока `30cb570` завершился успешно:
 `https://github.com/oxxxxxxy/reviewsha/actions/runs/31389462359`.
+Для `590c2b7` проверка GitHub Actions выполняется после push.
 
 Этот файл является рабочей сверкой по требованиям планов этапов 11–14. Статус
 `PARTIAL` означает, что базовая функциональность есть, но критерий полного
@@ -82,7 +84,7 @@ GitHub Actions для `30cb570` завершился успешно:
 6. Controller aborts the upstream stream on client connection close; this
    lifecycle is covered by a unit test in addition to service cancellation
    tests.
-6. Повторная отправка с одинаковым `idempotencyKey` переиспользует существующий
+7. Повторная отправка с одинаковым `idempotencyKey` переиспользует существующий
    chat job вместо создания второго пользовательского сообщения/job.
 
 ### Что ещё проверить до COMPLETE
