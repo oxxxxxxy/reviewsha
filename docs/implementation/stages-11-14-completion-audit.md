@@ -170,6 +170,8 @@
 - `yarn docs:openapi`, `yarn openapi:validate`, `yarn sdk:generate`,
   `yarn sdk:check` работают.
 - OpenAPI validation проверяет paths, refs и response schemas.
+- Chat and Admin controllers now publish the shared standard error schemas for
+  400/401/403/404/422/500 responses.
 - Generated OpenAPI TypeScript contract хранится в
   `packages/sdk/src/generated/openapi.ts`.
 - Admin response DTOs и SDK Admin types связаны с generated schemas.

@@ -16,6 +16,7 @@ import {
 import { CurrentUser } from '../../../common/auth/decorators/current-user.decorator';
 import { Ownership } from '../../../common/auth/decorators/ownership.decorator';
 import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
+import { ApiStandardErrors } from '../../../common/swagger';
 import {
   ChatMessageListResponseDto,
   ChatMessageResponseDto,
@@ -31,6 +32,7 @@ import { ChatStreamingService } from '../services/chat-streaming.service';
 
 @ApiTags('Chat')
 @ApiBearerAuth('bearer')
+@ApiStandardErrors()
 @Controller()
 export class ChatController {
   constructor(

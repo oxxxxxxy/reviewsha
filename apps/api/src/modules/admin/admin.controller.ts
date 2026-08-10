@@ -2,6 +2,7 @@ import { Controller, Delete, Get, Param, ParseUUIDPipe, Post, Query } from '@nes
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/auth/decorators/roles.decorator';
 import { ADMIN_ROLES } from '../../common/authorization/roles/role.constants';
+import { ApiStandardErrors } from '../../common/swagger';
 import { AdminService } from './admin.service';
 import {
   AdminActionResponseDto,
@@ -22,6 +23,7 @@ import {
 
 @ApiTags('Admin')
 @ApiBearerAuth('bearer')
+@ApiStandardErrors()
 @Roles(...ADMIN_ROLES)
 @Controller('admin')
 export class AdminController {
