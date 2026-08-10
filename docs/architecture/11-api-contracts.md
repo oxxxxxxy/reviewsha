@@ -835,6 +835,10 @@ The canonical schema is generated at `docs/generated/openapi.json` by
 `yarn docs:openapi` and checked by `yarn openapi:validate`. CI runs both steps;
 the generated SDK remains the next migration boundary for stage 14.1.
 
+`yarn sdk:generate` regenerates `packages/sdk/src/generated/openapi.ts` with
+`openapi-typescript`; `yarn sdk:check` fails when the committed generated
+contract drifts from Backend OpenAPI.
+
 Operational metrics are also available through the protected
 `GET /admin/ai-usage` and `GET /admin/statistics` endpoints. Aggregation is
 performed by the backend from persisted usage and analysis records.

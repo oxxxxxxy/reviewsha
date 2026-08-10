@@ -14,6 +14,7 @@ export * from './projects/projects.api.js';
 export * from './pipelines/pipelines.api.js';
 export * from './reports/reports.api.js';
 export * from './uploads/uploads.api.js';
+export type { components, operations, paths } from './generated/openapi.js';
 
 import { AdminAPI } from './admin/admin.api.js';
 import { AnalysisAPI } from './pipelines/analysis.api.js';
