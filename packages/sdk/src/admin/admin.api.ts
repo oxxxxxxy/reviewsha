@@ -21,6 +21,8 @@ export type AdminAiUsage = components['schemas']['AdminAiUsageResponseDto'];
 export type AdminAiUsageBreakdown = components['schemas']['AdminAiUsageBreakdownResponseDto'];
 
 export type AdminStatistics = components['schemas']['AdminStatisticsResponseDto'];
+export type AdminUserDetails = components['schemas']['AdminUserDetailsResponseDto'];
+export type AdminProjectDetails = components['schemas']['AdminProjectDetailsResponseDto'];
 
 export type AdminLog = components['schemas']['AdminLogResponseDto'];
 
@@ -117,6 +119,10 @@ export class AdminAPI {
     return this.client.get<User>(`/users/${userId}`);
   }
 
+  userDetails(userId: string): Promise<AdminUserDetails> {
+    return this.client.get<AdminUserDetails>(`/admin/users/${userId}/details`);
+  }
+
   projects(params?: {
     page?: number;
     limit?: number;
@@ -128,6 +134,10 @@ export class AdminAPI {
 
   project(projectId: string): Promise<{ data: Project }> {
     return this.client.get<{ data: Project }>(`/projects/${projectId}`);
+  }
+
+  projectDetails(projectId: string): Promise<AdminProjectDetails> {
+    return this.client.get<AdminProjectDetails>(`/admin/projects/${projectId}/details`);
   }
 
   queues(): Promise<QueueJob[]> {

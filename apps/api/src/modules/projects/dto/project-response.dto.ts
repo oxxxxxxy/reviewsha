@@ -12,7 +12,7 @@ export class ProjectStatsDto {
   @ApiProperty({ example: 2 })
   reportsCount!: number;
 
-  @ApiPropertyOptional({ example: '2026-08-05T12:00:00.000Z', nullable: true })
+  @ApiPropertyOptional({ type: String, example: '2026-08-05T12:00:00.000Z', nullable: true })
   lastAnalysisAt!: string | null;
 }
 
@@ -26,10 +26,10 @@ export class ProjectResponseDto {
   @ApiProperty({ example: 'Reviewsha API' })
   name!: string;
 
-  @ApiPropertyOptional({ example: 'Automated code review backend.', nullable: true })
+  @ApiPropertyOptional({ type: String, example: 'Automated code review backend.', nullable: true })
   description!: string | null;
 
-  @ApiPropertyOptional({ example: 'TypeScript', nullable: true })
+  @ApiPropertyOptional({ type: String, example: 'TypeScript', nullable: true })
   language!: string | null;
 
   @ApiProperty({ type: [String], example: ['backend', 'mvp'] })
@@ -41,7 +41,7 @@ export class ProjectResponseDto {
   @ApiProperty({ enum: Visibility, example: Visibility.PRIVATE })
   visibility!: Visibility;
 
-  @ApiPropertyOptional({ example: null, nullable: true })
+  @ApiPropertyOptional({ type: String, example: null, nullable: true })
   archivedAt!: string | null;
 
   @ApiProperty({ example: '2026-08-05T12:00:00.000Z' })

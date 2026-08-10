@@ -3,8 +3,9 @@ import { AdminService } from '../../../../src/modules/admin/admin.service';
 
 describe('AdminService', () => {
   const prisma = {
-    user: { count: vi.fn() },
-    project: { count: vi.fn() },
+    user: { count: vi.fn(), findUnique: vi.fn() },
+    project: { count: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
+    projectHistory: { findMany: vi.fn() },
     scan: { count: vi.fn(), findMany: vi.fn() },
     scanStep: { groupBy: vi.fn() },
     report: { count: vi.fn() },
@@ -39,6 +40,61 @@ describe('AdminService', () => {
       reports: 6,
       aiRequests: 12,
       aiTokens: 900,
+    });
+  });
+
+  it('returns user projects and recent activity for admin details', async () => {
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'user-1',
+      email: 'user@example.com',
+      displayName: 'User',
+      avatarUrl: null,
+      role: 'USER',
+      isActive: true,
+      createdAt: new Date('2026-08-01'),
+      updatedAt: new Date('2026-08-01'),
+    });
+    prisma.project.findMany.mockResolvedValue([]);
+    prisma.projectHistory.findMany.mockResolvedValue([]);
+    await expect(service.userDetails('user-1')).resolves.toEqual({
+      user: expect.objectContaining({ id: 'user-1', email: 'user@example.com' }),
+      projects: [],
+      activity: [],
+    });
+  });
+
+  it('returns project owner, versions and analyses for admin details', async () => {
+    prisma.project.findUnique.mockResolvedValue({
+      id: 'project-1',
+      ownerId: 'user-1',
+      name: 'Reviewsha',
+      description: null,
+      language: 'TS',
+      status: 'ACTIVE',
+      visibility: 'PRIVATE',
+      archivedAt: null,
+      createdAt: new Date('2026-08-01'),
+      updatedAt: new Date('2026-08-02'),
+      tags: [],
+      scans: [],
+      uploadedFiles: [],
+      _count: { scans: 0, uploadedFiles: 0, reports: 0 },
+      owner: {
+        id: 'user-1',
+        email: 'user@example.com',
+        displayName: 'User',
+        avatarUrl: null,
+        role: 'USER',
+        isActive: true,
+        createdAt: new Date('2026-08-01'),
+        updatedAt: new Date('2026-08-01'),
+      },
+    });
+    await expect(service.projectDetails('project-1')).resolves.toMatchObject({
+      project: expect.objectContaining({ id: 'project-1' }),
+      owner: expect.objectContaining({ id: 'user-1' }),
+      versions: [],
+      analyses: [],
     });
   });
 

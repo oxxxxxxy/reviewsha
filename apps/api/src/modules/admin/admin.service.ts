@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { QueueService, type QueueJobSummary, type QueueMetrics } from '../queue/queue.service';
 import { QUEUE_NAME_LIST, type QueueJobStatus, type QueueName } from '../queue/queue.constants';
+import { ProjectMapper } from '../projects/mappers/project.mapper';
+import { UserMapper } from '../users/mappers/user.mapper';
 
 @Injectable()
 export class AdminService {
@@ -9,6 +11,91 @@ export class AdminService {
     private readonly prisma: PrismaService,
     private readonly queues: QueueService,
   ) {}
+
+  async userDetails(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    const [projects, activity] = await Promise.all([
+      this.prisma.project.findMany({
+        where: { ownerId: id, deletedAt: null },
+        include: {
+          tags: true,
+          scans: {
+            where: { status: 'COMPLETED', deletedAt: null },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { createdAt: true },
+          },
+          _count: { select: { scans: true, uploadedFiles: true, reports: true } },
+        },
+        orderBy: { updatedAt: 'desc' },
+      }),
+      this.prisma.projectHistory.findMany({
+        where: { project: { ownerId: id } },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        include: { actor: { select: { email: true } }, project: { select: { name: true } } },
+      }),
+    ]);
+    return {
+      user: UserMapper.toResponse(user),
+      projects: ProjectMapper.toResponseList(projects),
+      activity: activity.map((item) => ({
+        id: item.id,
+        project: item.project.name,
+        action: item.action,
+        actorEmail: item.actor.email,
+        changedFields: item.changedFields,
+        createdAt: item.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  async projectDetails(id: string) {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: {
+        owner: true,
+        tags: true,
+        scans: {
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+            finishedAt: true,
+            report: { select: { score: true } },
+          },
+        },
+        uploadedFiles: {
+          where: { deletedAt: null },
+          orderBy: { version: 'desc' },
+          take: 50,
+          select: { version: true, size: true, status: true, createdAt: true },
+        },
+        _count: { select: { scans: true, uploadedFiles: true, reports: true } },
+      },
+    });
+    if (!project) throw new NotFoundException('Project not found');
+    return {
+      project: ProjectMapper.toResponse(ProjectMapper.toEntity(project)),
+      owner: UserMapper.toResponse(project.owner),
+      versions: project.uploadedFiles.map((item) => ({
+        version: item.version,
+        size: Number(item.size),
+        status: item.status,
+        createdAt: item.createdAt.toISOString(),
+      })),
+      analyses: project.scans.map((item) => ({
+        id: item.id,
+        status: item.status,
+        score: item.report?.score ?? null,
+        createdAt: item.createdAt.toISOString(),
+        finishedAt: item.finishedAt?.toISOString() ?? null,
+      })),
+    };
+  }
 
   async overview() {
     const [users, activeUsers, projects, archivedProjects, analyses, reports, aiUsage] =

@@ -16,6 +16,8 @@ import {
   AdminLogResponseDto,
   AdminLogsResponseDto,
   AdminOverviewResponseDto,
+  AdminProjectDetailsResponseDto,
+  AdminUserDetailsResponseDto,
   AdminStatisticsResponseDto,
   AdminStatisticsQueryDto,
   QueueOverviewResponseDto,
@@ -34,6 +36,20 @@ export class AdminController {
   @ApiOkResponse({ type: AdminOverviewResponseDto })
   overview() {
     return this.admin.overview();
+  }
+
+  @Get('users/:id/details')
+  @ApiOperation({ summary: 'Get an administrative user detail summary' })
+  @ApiOkResponse({ type: AdminUserDetailsResponseDto })
+  userDetails(@Param('id', ParseUUIDPipe) id: string) {
+    return this.admin.userDetails(id);
+  }
+
+  @Get('projects/:id/details')
+  @ApiOperation({ summary: 'Get an administrative project detail summary' })
+  @ApiOkResponse({ type: AdminProjectDetailsResponseDto })
+  projectDetails(@Param('id', ParseUUIDPipe) id: string) {
+    return this.admin.projectDetails(id);
   }
 
   @Get('queues')

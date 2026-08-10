@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDateString, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { ProjectResponseDto } from '../../projects/dto/project-response.dto';
+import { UserResponseDto } from '../../users/dto/user-response.dto';
 
 export class AdminOverviewResponseDto {
   @ApiProperty({ example: 1248 }) users!: number;
@@ -11,6 +13,34 @@ export class AdminOverviewResponseDto {
   @ApiProperty({ example: 390 }) reports!: number;
   @ApiProperty({ example: 12420 }) aiRequests!: number;
   @ApiProperty({ example: 3200000 }) aiTokens!: number;
+}
+
+export class AdminUserDetailsResponseDto {
+  @ApiProperty({ type: UserResponseDto }) user!: UserResponseDto;
+  @ApiProperty({ type: [ProjectResponseDto] }) projects!: ProjectResponseDto[];
+  @ApiProperty({ type: [Object] }) activity!: Array<Record<string, unknown>>;
+}
+
+export class AdminProjectVersionDto {
+  @ApiProperty({ example: 3 }) version!: number;
+  @ApiProperty({ example: 1048576 }) size!: number;
+  @ApiProperty({ example: 'READY' }) status!: string;
+  @ApiProperty({ format: 'date-time' }) createdAt!: string;
+}
+
+export class AdminProjectAnalysisDto {
+  @ApiProperty({ format: 'uuid' }) id!: string;
+  @ApiProperty({ example: 'COMPLETED' }) status!: string;
+  @ApiProperty({ type: Number, example: 87, nullable: true }) score!: number | null;
+  @ApiProperty({ format: 'date-time' }) createdAt!: string;
+  @ApiProperty({ type: String, format: 'date-time', nullable: true }) finishedAt!: string | null;
+}
+
+export class AdminProjectDetailsResponseDto {
+  @ApiProperty({ type: ProjectResponseDto }) project!: ProjectResponseDto;
+  @ApiProperty({ type: UserResponseDto }) owner!: UserResponseDto;
+  @ApiProperty({ type: [AdminProjectVersionDto] }) versions!: AdminProjectVersionDto[];
+  @ApiProperty({ type: [AdminProjectAnalysisDto] }) analyses!: AdminProjectAnalysisDto[];
 }
 
 export class QueueMetricsResponseDto {
