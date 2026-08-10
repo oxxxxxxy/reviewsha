@@ -189,6 +189,8 @@
 - Auth `LoginRequest` и `RegisterRequest` в SDK теперь напрямую выведены из
   generated OpenAPI schemas; response/domain types сохраняются shared там, где
   они используются приложениями.
+- Project create/update request contracts теперь выводят поля из generated
+  OpenAPI schemas; nullable description/language в OpenAPI исправлены на `string`.
 
 ### Что доработать
 

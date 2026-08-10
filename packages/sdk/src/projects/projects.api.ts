@@ -1,21 +1,19 @@
 import type { Project } from '@reviewsha/types';
 import type { ApiClient } from '../client/api-client.js';
+import type { components } from '../generated/openapi.js';
 
-export interface CreateProjectRequest {
-  readonly name: string;
-  readonly description?: string;
-  readonly language?: string;
-  readonly visibility?: 'PRIVATE' | 'ORGANIZATION' | 'PUBLIC';
+/** Project request contracts derive their scalar fields from OpenAPI. */
+export type CreateProjectRequest = Omit<
+  components['schemas']['CreateProjectDto'],
+  'tags' | 'visibility'
+> & {
+  readonly visibility?: components['schemas']['CreateProjectDto']['visibility'];
   readonly tags?: readonly string[];
-}
+};
 
-export interface UpdateProjectRequest {
-  readonly name?: string;
-  readonly description?: string | null;
-  readonly language?: string | null;
-  readonly visibility?: 'PRIVATE' | 'ORGANIZATION' | 'PUBLIC';
+export type UpdateProjectRequest = Omit<components['schemas']['UpdateProjectDto'], 'tags'> & {
   readonly tags?: readonly string[];
-}
+};
 
 export interface ProjectEnvelope {
   readonly data: Project;

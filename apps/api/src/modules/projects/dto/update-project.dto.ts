@@ -33,6 +33,7 @@ export class UpdateProjectDto {
   @ApiPropertyOptional({
     example: 'Updated project description.',
     maxLength: 5_000,
+    type: String,
     nullable: true,
   })
   @IsOptional()
@@ -43,6 +44,7 @@ export class UpdateProjectDto {
   @ApiPropertyOptional({
     example: 'TypeScript',
     maxLength: PROJECT_MAX_LANGUAGE_LENGTH,
+    type: String,
     nullable: true,
   })
   @IsOptional()

@@ -1038,9 +1038,9 @@ export interface components {
             /** @example Reviewsha API */
             name?: string;
             /** @example Updated project description. */
-            description?: Record<string, never> | null;
+            description?: string | null;
             /** @example TypeScript */
-            language?: Record<string, never> | null;
+            language?: string | null;
             /**
              * @example PRIVATE
              * @enum {string}
