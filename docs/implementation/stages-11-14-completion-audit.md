@@ -140,16 +140,18 @@ manual QA из разделов ниже.
   admin project details include owner, uploaded versions and analysis summary.
 - Queue overview, jobs, retry/remove API и UI.
 - Admin controller security matrix now exercises every administrative handler:
-  `USER` is denied and `ADMIN` is accepted by the role guard; direct HTTP/IDOR
-  verification remains a separate acceptance task.
+  `USER` is denied and `ADMIN` is accepted by the role guard. An HTTP integration
+  matrix now sends both roles through every current admin route, including retry
+  and remove mutations; full database-backed IDOR verification remains a
+  separate acceptance task.
 
 ### Что доработать
 
 1. Расширять user/project summaries только при появлении новых backend fields;
    current ownership, activity, versions and analyses summaries are implemented.
 3. Реализовывать block/unblock/role mutation только после наличия backend API.
-4. Создать HTTP security matrix: USER → 403 для каждого `/admin/*` endpoint,
-   включая mutations и прямые запросы с подменёнными IDs.
+4. Расширить HTTP security matrix реальными database-backed ownership/IDOR
+   сценариями с подменёнными user/project/job/log IDs.
 5. Добавить полноценные Admin E2E и manual responsive/accessibility QA.
 
 ## 13.2 Administration
