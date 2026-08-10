@@ -42,11 +42,12 @@ AI SaaS platform for automated code review.
 | 11.2 AI Context & Streaming        | ✅ COMPLETE    | Related context, Redis cache, memory compression, searchable history, SSE and token usage                                 |
 | 12.1 Core Application              | ✅ COMPLETE    | Shared UI Kit/tokens, protected Web auth, refresh/logout flow, real API Dashboard and responsive application layout       |
 | 12.2 User Features                 | 🟡 IN PROGRESS | Projects, ZIP versions, analysis start/status, report details/exports/compare, project chat streaming and Settings API    |
+| 13.1 Admin Core                    | 🟡 IN PROGRESS | Admin RBAC boundary, real overview metrics, queue monitoring API, retry/remove operations and Admin Dashboard/Queues UI   |
 
 Текущий статус:
 
 ```txt
-Текущий этап: 12.2 User Features
+Текущий этап: 13.1 Admin Core
 ```
 
 ---

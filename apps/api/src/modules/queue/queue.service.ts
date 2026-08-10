@@ -26,6 +26,17 @@ export interface QueueMetrics {
   paused: number;
 }
 
+export interface QueueJobSummary {
+  id: string;
+  name: string;
+  state: QueueJobStatus;
+  attemptsMade: number;
+  createdAt: string;
+  processedOn?: string;
+  finishedOn?: string;
+  failedReason?: string;
+}
+
 @Injectable()
 export class QueueService implements OnModuleDestroy {
   private readonly queues: QueueMap;
@@ -78,6 +89,36 @@ export class QueueService implements OnModuleDestroy {
   async getJobStatus(queueName: QueueName, id: string): Promise<QueueJobStatus | null> {
     const job = await this.getJob(queueName, id);
     return job ? ((await job.getState()) as QueueJobStatus) : null;
+  }
+
+  async listJobs(
+    queueName: QueueName,
+    page = 1,
+    limit = 20,
+  ): Promise<{ items: QueueJobSummary[]; total: number }> {
+    const queue = this.queues[queueName];
+    const [jobs, counts] = await Promise.all([
+      queue.getJobs(
+        ['waiting', 'active', 'completed', 'failed', 'delayed', 'paused'],
+        (page - 1) * limit,
+        page * limit - 1,
+      ),
+      queue.getJobCounts('waiting', 'active', 'completed', 'failed', 'delayed', 'paused'),
+    ]);
+    const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+    const items = await Promise.all(
+      jobs.map(async (job) => ({
+        id: String(job.id),
+        name: job.name,
+        state: (await job.getState()) as QueueJobStatus,
+        attemptsMade: job.attemptsMade,
+        createdAt: new Date(job.timestamp).toISOString(),
+        ...(job.processedOn ? { processedOn: new Date(job.processedOn).toISOString() } : {}),
+        ...(job.finishedOn ? { finishedOn: new Date(job.finishedOn).toISOString() } : {}),
+        ...(job.failedReason ? { failedReason: job.failedReason } : {}),
+      })),
+    );
+    return { items, total };
   }
 
   async removeJob(queueName: QueueName, id: string): Promise<void> {

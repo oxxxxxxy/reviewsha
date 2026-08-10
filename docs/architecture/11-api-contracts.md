@@ -825,3 +825,8 @@ Analysis uses `GET /projects/:projectId/analyses` for paginated status history
 and `POST /projects/:projectId/analyses` to start the latest completed upload (or
 an explicitly selected upload via `uploadId`). Profile and password settings use
 `PATCH /auth/me` and `POST /auth/change-password`.
+
+Administrative operations are exposed under `/admin` and require the `ADMIN`
+role: `GET /admin/overview`, `GET /admin/queues`, paginated
+`GET /admin/queues/:queueName/jobs`, `POST .../retry` and `DELETE .../:jobId`.
+The frontend never accesses BullMQ or Redis directly.

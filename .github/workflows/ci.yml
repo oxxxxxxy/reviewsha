@@ -439,6 +439,46 @@ jobs:
       - run: yarn install --immutable --non-interactive
       - run: yarn test:stage11
 
+  stage12-tests:
+    name: Stage 12 Web / Admin / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [24.x]
+    steps:
+      - uses: actions/checkout@v5
+      - run: corepack enable
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - run: corepack prepare yarn@1.22.22 --activate
+      - run: yarn install --immutable --non-interactive
+      - run: yarn test:stage12
+
+  stage13-tests:
+    name: Stage 13 Admin / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [24.x]
+    steps:
+      - uses: actions/checkout@v5
+      - run: corepack enable
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - run: corepack prepare yarn@1.22.22 --activate
+      - run: yarn install --immutable --non-interactive
+      - run: yarn test:stage13
+
   e2e-tests:
     name: Playwright E2E / Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
@@ -516,6 +556,8 @@ jobs:
       - stage9-tests
       - stage10-tests
       - stage11-tests
+      - stage12-tests
+      - stage13-tests
       - e2e-tests
       - docker-config
     if: ${{ always() }}

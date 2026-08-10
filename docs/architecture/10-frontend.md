@@ -1085,3 +1085,10 @@ reports and project chat. Reports support detailed findings plus Markdown, PDF
 and JSON downloads and two-report comparison. Settings updates the profile and
 changes the password through the authenticated API. Chat sends only through the
 shared SSE SDK transport and exposes cancellation and user-facing stream errors.
+
+## Stage 13.1 progress
+
+`apps/admin` now consumes real Admin overview and BullMQ queue metrics through
+the shared SDK. The backend exposes RBAC-protected overview, queue jobs,
+retry and remove operations; queue polling is limited to five seconds and the
+UI provides loading, empty and error states.

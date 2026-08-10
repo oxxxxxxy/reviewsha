@@ -19,6 +19,7 @@ import { QueueModule } from './modules/queue/queue.module';
 import { PipelineModule } from './modules/pipeline/pipeline.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ChatModule } from './modules/chat/chat.module';
     PipelineModule,
     ReportsModule,
     ChatModule,
+    AdminModule,
     HealthModule,
   ],
   providers: [

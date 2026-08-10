@@ -45,7 +45,7 @@
     "ci:prisma": "yarn test:stage3",
     "ci:e2e": "yarn test:e2e:install && yarn test:e2e",
     "ci:docker": "docker compose config && docker build -f apps/worker/Dockerfile -t reviewsha-worker:ci .",
-    "ci:local": "yarn install --immutable --non-interactive && yarn ci:quality && yarn ci:build && yarn ci:openapi && yarn ci:unit && yarn ci:smoke && yarn ci:prisma && yarn ci:stage4 && yarn ci:stage5 && yarn ci:stage6 && yarn ci:stage7 && yarn ci:stage8 && yarn ci:stage9 && yarn ci:stage10 && yarn ci:stage11 && yarn ci:e2e && yarn ci:docker",
+    "ci:local": "yarn install --immutable --non-interactive && yarn ci:quality && yarn ci:build && yarn ci:openapi && yarn ci:unit && yarn ci:smoke && yarn ci:prisma && yarn ci:stage4 && yarn ci:stage5 && yarn ci:stage6 && yarn ci:stage7 && yarn ci:stage8 && yarn ci:stage9 && yarn ci:stage10 && yarn ci:stage11 && yarn ci:stage12 && yarn ci:stage13 && yarn ci:e2e && yarn ci:docker",
     "docs:openapi": "yarn workspace @reviewsha/api docs:openapi",
     "ci:openapi": "yarn docs:openapi",
     "test:stage4": "yarn workspace @reviewsha/api test:stage4",
@@ -63,7 +63,11 @@
     "test:stage10": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/api vitest run --coverage=false && yarn workspace @reviewsha/worker vitest run tests/unit/reporting tests/unit/processors/ai-report.processors.test.ts --coverage=false && vitest run tests/stage10 --coverage=false",
     "ci:stage10": "yarn test:stage10",
     "test:stage11": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/api vitest run tests/unit/modules/chat tests/integration/modules/chat --coverage=false && yarn workspace @reviewsha/worker vitest run tests/unit/processors/chat.processor.test.ts tests/unit/processors/processor.registry.test.ts --coverage=false",
-    "ci:stage11": "yarn test:stage11"
+    "ci:stage11": "yarn test:stage11",
+    "test:stage12": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/api vitest run tests/unit/modules/auth tests/unit/modules/pipeline tests/integration/modules/chat --coverage=false && yarn workspace @reviewsha/web test && yarn workspace @reviewsha/admin test",
+    "ci:stage12": "yarn test:stage12",
+    "test:stage13": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/api vitest run tests/unit/modules/admin tests/unit/modules/users tests/unit/modules/projects --coverage=false && yarn workspace @reviewsha/admin test",
+    "ci:stage13": "yarn test:stage13"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
