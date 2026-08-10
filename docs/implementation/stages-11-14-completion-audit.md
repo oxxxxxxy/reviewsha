@@ -133,6 +133,9 @@
 - Admin user details now include owned projects and recent project activity;
   admin project details include owner, uploaded versions and analysis summary.
 - Queue overview, jobs, retry/remove API и UI.
+- Admin controller security matrix now exercises every administrative handler:
+  `USER` is denied and `ADMIN` is accepted by the role guard; direct HTTP/IDOR
+  verification remains a separate acceptance task.
 
 ### Что доработать
 
