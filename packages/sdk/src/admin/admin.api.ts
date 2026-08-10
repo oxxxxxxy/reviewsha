@@ -1,21 +1,12 @@
-import type { Project, QueueJob, User } from '@reviewsha/types';
 import type { ApiClient } from '../client/api-client.js';
 import type { components } from '../generated/openapi.js';
 
 export type AdminOverview = components['schemas']['AdminOverviewResponseDto'];
 
 export type QueueMetrics = components['schemas']['QueueMetricsResponseDto'];
-
-export interface QueueJobSummary {
-  readonly id: string;
-  readonly name: string;
-  readonly state: string;
-  readonly attemptsMade: number;
-  readonly createdAt: string;
-  readonly processedOn?: string;
-  readonly finishedOn?: string;
-  readonly failedReason?: string;
-}
+export type QueueOverview = components['schemas']['QueueOverviewResponseDto'];
+export type QueueJobSummary = components['schemas']['AdminJobResponseDto'];
+export type QueueJobsResponse = components['schemas']['AdminJobsResponseDto'];
 
 export type AdminAiUsage = components['schemas']['AdminAiUsageResponseDto'];
 export type AdminAiUsageBreakdown = components['schemas']['AdminAiUsageBreakdownResponseDto'];
@@ -26,16 +17,6 @@ export type AdminProjectDetails = components['schemas']['AdminProjectDetailsResp
 
 export type AdminLog = components['schemas']['AdminLogResponseDto'];
 
-export interface AdminUserListResponse {
-  readonly items: readonly User[];
-  readonly meta: { page: number; limit: number; total: number; pages: number };
-}
-
-export interface AdminProjectListResponse {
-  readonly data: readonly Project[];
-  readonly meta: { page: number; limit: number; total: number; pages: number };
-}
-
 export class AdminAPI {
   constructor(private readonly client: ApiClient) {}
 
@@ -43,8 +24,8 @@ export class AdminAPI {
     return this.client.get<AdminOverview>('/admin/overview');
   }
 
-  queueOverview(): Promise<Record<string, QueueMetrics>> {
-    return this.client.get<Record<string, QueueMetrics>>('/admin/queues');
+  queueOverview(): Promise<QueueOverview> {
+    return this.client.get<QueueOverview>('/admin/queues');
   }
 
   aiUsage(params?: {
@@ -88,11 +69,8 @@ export class AdminAPI {
   queueJobs(
     queueName: string,
     params?: { page?: number; limit?: number; state?: string },
-  ): Promise<{
-    items: readonly QueueJobSummary[];
-    meta: { page: number; limit: number; total: number; pages: number };
-  }> {
-    return this.client.get(`/admin/queues/${queueName}/jobs`, { params });
+  ): Promise<QueueJobsResponse> {
+    return this.client.get<QueueJobsResponse>(`/admin/queues/${queueName}/jobs`, { params });
   }
 
   queueJob(queueName: string, jobId: string): Promise<QueueJobSummary> {
@@ -111,12 +89,12 @@ export class AdminAPI {
     page?: number;
     limit?: number;
     search?: string;
-  }): Promise<AdminUserListResponse> {
-    return this.client.get<AdminUserListResponse>('/users', { params });
+  }): Promise<components['schemas']['UsersListResponseDto']> {
+    return this.client.get('/users', { params });
   }
 
-  user(userId: string): Promise<User> {
-    return this.client.get<User>(`/users/${userId}`);
+  user(userId: string): Promise<components['schemas']['UserResponseDto']> {
+    return this.client.get(`/users/${userId}`);
   }
 
   userDetails(userId: string): Promise<AdminUserDetails> {
@@ -128,19 +106,15 @@ export class AdminAPI {
     limit?: number;
     search?: string;
     status?: string;
-  }): Promise<AdminProjectListResponse> {
-    return this.client.get<AdminProjectListResponse>('/projects', { params });
+  }): Promise<components['schemas']['ProjectsListResponseDto']> {
+    return this.client.get('/projects', { params });
   }
 
-  project(projectId: string): Promise<{ data: Project }> {
-    return this.client.get<{ data: Project }>(`/projects/${projectId}`);
+  project(projectId: string): Promise<components['schemas']['ProjectResponseEnvelopeDto']> {
+    return this.client.get(`/projects/${projectId}`);
   }
 
   projectDetails(projectId: string): Promise<AdminProjectDetails> {
     return this.client.get<AdminProjectDetails>(`/admin/projects/${projectId}/details`);
-  }
-
-  queues(): Promise<QueueJob[]> {
-    return this.client.get<QueueJob[]>('/admin/queues');
   }
 }

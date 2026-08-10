@@ -83,4 +83,22 @@ describe('@reviewsha/sdk public API', () => {
       expect.objectContaining({ signal, responseType: 'blob' }),
     );
   });
+
+  it('keeps admin queue methods aligned with the OpenAPI response shapes', async () => {
+    const sdk = createReviewshaSDK({ baseURL: 'http://localhost/api/v1' });
+    vi.spyOn(sdk.client, 'get')
+      .mockResolvedValueOnce({ scan: { status: 'HEALTHY' } } as never)
+      .mockResolvedValueOnce({
+        items: [],
+        meta: { page: 1, limit: 20, total: 0, pages: 0 },
+      } as never);
+
+    await sdk.admin.queueOverview();
+    await sdk.admin.queueJobs('ai.queue', { page: 1, limit: 20 });
+
+    expect(sdk.client.get).toHaveBeenNthCalledWith(1, '/admin/queues');
+    expect(sdk.client.get).toHaveBeenNthCalledWith(2, '/admin/queues/ai.queue/jobs', {
+      params: { page: 1, limit: 20 },
+    });
+  });
 });
