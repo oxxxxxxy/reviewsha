@@ -140,13 +140,17 @@ function ProjectsList() {
 
 function ProjectDetails({ projectId }: { projectId: string }) {
   const client = useQueryClient();
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const project = useQuery({
     queryKey: ['project', projectId],
     queryFn: ({ signal }) => reviewshaSdk.projects.get(projectId, signal),
   });
   const archive = useMutation({
     mutationFn: () => reviewshaSdk.projects.archive(projectId),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ['project', projectId] }),
+    onSuccess: () => {
+      setArchiveOpen(false);
+      void client.invalidateQueries({ queryKey: ['project', projectId] });
+    },
   });
   const [uploadProgress, setUploadProgress] = useState<number>();
   const [editName, setEditName] = useState('');
@@ -155,7 +159,6 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const uploadController = useRef<AbortController | undefined>(undefined);
   const [uploadError, setUploadError] = useState<string>();
-  const [archiveOpen, setArchiveOpen] = useState(false);
   const uploads = useQuery({
     queryKey: ['uploads', projectId],
     queryFn: ({ signal }) => reviewshaSdk.uploads.list(projectId, signal),

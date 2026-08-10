@@ -10,6 +10,7 @@ export function QueueDetailsPage() {
   const [page, setPage] = useState(1);
   const [state, setState] = useState('');
   const [removeJobId, setRemoveJobId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const jobs = useQuery({
     enabled: Boolean(queueName),
@@ -34,13 +35,23 @@ export function QueueDetailsPage() {
       </section>
     );
   const retry = async (jobId: string) => {
-    await adminSdk.admin.retryJob(queueName!, jobId);
-    await queryClient.invalidateQueries({ queryKey: ['admin', 'queue-jobs', queueName] });
+    setActionError(null);
+    try {
+      await adminSdk.admin.retryJob(queueName!, jobId);
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'queue-jobs', queueName] });
+    } catch {
+      setActionError('Unable to retry job.');
+    }
   };
   const remove = async (jobId: string) => {
-    await adminSdk.admin.removeJob(queueName!, jobId);
-    await queryClient.invalidateQueries({ queryKey: ['admin', 'queue-jobs', queueName] });
-    setRemoveJobId(null);
+    setActionError(null);
+    try {
+      await adminSdk.admin.removeJob(queueName!, jobId);
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'queue-jobs', queueName] });
+      setRemoveJobId(null);
+    } catch {
+      setActionError('Unable to remove job.');
+    }
   };
   return (
     <section className="page">
@@ -62,6 +73,7 @@ export function QueueDetailsPage() {
           { value: 'paused', label: 'Paused' },
         ]}
       />
+      {actionError ? <p role="alert">{actionError}</p> : null}
       {jobs.data.items.length ? (
         <Table
           rows={jobs.data.items}
