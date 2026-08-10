@@ -9,7 +9,7 @@ describe('AdminService', () => {
     scanStep: { groupBy: vi.fn() },
     report: { count: vi.fn() },
     aIUsage: { aggregate: vi.fn() },
-    aIRequest: { count: vi.fn() },
+    aIRequest: { count: vi.fn(), findMany: vi.fn() },
     adminLog: { findMany: vi.fn(), count: vi.fn() },
   };
   const queues = {
@@ -75,11 +75,33 @@ describe('AdminService', () => {
   it('returns AI usage without exposing provider secrets', async () => {
     prisma.aIUsage.aggregate.mockResolvedValue({ _count: { id: 4 }, _sum: { tokensUsed: 1200 } });
     prisma.aIRequest.count.mockResolvedValueOnce(9).mockResolvedValueOnce(2);
+    prisma.aIRequest.findMany.mockResolvedValue([
+      {
+        id: 'request-1',
+        provider: 'omniroute',
+        model: 'deepseek-chat',
+        error: 'timeout',
+        createdAt: new Date('2026-08-10T10:00:00Z'),
+        response: null,
+        scan: { project: { name: 'Reviewsha' } },
+      },
+    ]);
     await expect(service.aiUsage()).resolves.toEqual({
       requests: 9,
       usageRecords: 4,
       tokens: 1200,
       failures: 2,
+      failuresList: [
+        {
+          id: 'request-1',
+          provider: 'omniroute',
+          model: 'deepseek-chat',
+          error: 'timeout',
+          createdAt: '2026-08-10T10:00:00.000Z',
+          latencyMs: null,
+          project: 'Reviewsha',
+        },
+      ],
     });
   });
 

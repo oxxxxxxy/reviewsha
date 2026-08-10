@@ -64,7 +64,7 @@ export class AdminService {
       ...(params.userId ? { userId: params.userId } : {}),
       ...(params.projectId ? { projectId: params.projectId } : {}),
     };
-    const [usage, requests, failures] = await Promise.all([
+    const [usage, requests, failures, failureItems] = await Promise.all([
       this.prisma.aIUsage.aggregate({
         where: usageWhere,
         _sum: { tokensUsed: true },
@@ -72,12 +72,35 @@ export class AdminService {
       }),
       this.prisma.aIRequest.count({ where: requestWhere }),
       this.prisma.aIRequest.count({ where: { ...requestWhere, status: 'FAILED' } }),
+      this.prisma.aIRequest.findMany({
+        where: { ...requestWhere, status: 'FAILED' },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+        select: {
+          id: true,
+          provider: true,
+          model: true,
+          error: true,
+          createdAt: true,
+          response: { select: { durationMs: true } },
+          scan: { select: { project: { select: { name: true } } } },
+        },
+      }),
     ]);
     return {
       requests,
       usageRecords: usage._count.id,
       tokens: usage._sum.tokensUsed ?? 0,
       failures,
+      failuresList: failureItems.map((item) => ({
+        id: item.id,
+        provider: item.provider,
+        model: item.model,
+        error: item.error,
+        createdAt: item.createdAt.toISOString(),
+        latencyMs: item.response?.durationMs ?? null,
+        project: item.scan.project.name,
+      })),
     };
   }
 

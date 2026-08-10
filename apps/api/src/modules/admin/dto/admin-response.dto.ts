@@ -39,6 +39,17 @@ export class AdminAiUsageResponseDto {
   @ApiProperty({ example: 12420 }) usageRecords!: number;
   @ApiProperty({ example: 3200000 }) tokens!: number;
   @ApiProperty({ example: 142 }) failures!: number;
+  @ApiProperty({ type: () => [AdminAiFailureDto] }) failuresList!: AdminAiFailureDto[];
+}
+
+export class AdminAiFailureDto {
+  @ApiProperty({ format: 'uuid' }) id!: string;
+  @ApiProperty({ example: 'omniroute' }) provider!: string;
+  @ApiProperty({ example: 'deepseek-chat' }) model!: string;
+  @ApiPropertyOptional({ type: String, nullable: true }) error!: string | null;
+  @ApiProperty({ format: 'date-time' }) createdAt!: string;
+  @ApiPropertyOptional({ type: Number, nullable: true, example: 1200 }) latencyMs!: number | null;
+  @ApiPropertyOptional({ type: String, nullable: true }) project!: string | null;
 }
 
 export class AdminAiUsageQueryDto {

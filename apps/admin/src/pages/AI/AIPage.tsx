@@ -118,6 +118,22 @@ export function AIPage() {
           )}
         </>
       ) : null}
+      <h2>Recent failures</h2>
+      {usage.data.failuresList.length ? (
+        <Table
+          rows={usage.data.failuresList}
+          getRowKey={(row) => row.id}
+          columns={[
+            { key: 'provider', header: 'Provider', render: (row) => row.provider },
+            { key: 'model', header: 'Model', render: (row) => row.model },
+            { key: 'project', header: 'Project', render: (row) => row.project ?? '—' },
+            { key: 'error', header: 'Error', render: (row) => row.error ?? 'Unknown error' },
+            { key: 'latency', header: 'Latency', render: (row) => row.latencyMs ?? '—' },
+          ]}
+        />
+      ) : (
+        <EmptyState title="No AI failures for selected period" />
+      )}
     </section>
   );
 }

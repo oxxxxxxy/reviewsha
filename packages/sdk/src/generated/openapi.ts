@@ -1232,6 +1232,20 @@ export interface components {
             notification: components["schemas"]["QueueMetricsResponseDto"];
             deadLetter: components["schemas"]["QueueMetricsResponseDto"];
         };
+        AdminAiFailureDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example omniroute */
+            provider: string;
+            /** @example deepseek-chat */
+            model: string;
+            error?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @example 1200 */
+            latencyMs?: number | null;
+            project?: string | null;
+        };
         AdminAiUsageResponseDto: {
             /** @example 12420 */
             requests: number;
@@ -1241,6 +1255,7 @@ export interface components {
             tokens: number;
             /** @example 142 */
             failures: number;
+            failuresList: components["schemas"]["AdminAiFailureDto"][];
         };
         AdminAiUsageBreakdownItemDto: {
             /** @example deepseek-chat */
