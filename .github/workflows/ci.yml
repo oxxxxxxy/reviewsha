@@ -479,6 +479,26 @@ jobs:
       - run: yarn install --immutable --non-interactive
       - run: yarn test:stage13
 
+  stage14-tests:
+    name: Stage 14 SDK / Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [24.x]
+    steps:
+      - uses: actions/checkout@v5
+      - run: corepack enable
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+          cache-dependency-path: yarn.lock
+      - run: corepack prepare yarn@1.22.22 --activate
+      - run: yarn install --immutable --non-interactive
+      - run: yarn test:stage14
+
   e2e-tests:
     name: Playwright E2E / Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
@@ -558,6 +578,7 @@ jobs:
       - stage11-tests
       - stage12-tests
       - stage13-tests
+      - stage14-tests
       - e2e-tests
       - docker-config
     if: ${{ always() }}

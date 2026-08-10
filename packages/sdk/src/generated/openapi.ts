@@ -4,3553 +4,3552 @@
  */
 
 export interface paths {
-  '/users': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List users with pagination, search and sorting
+         * @description ADMIN can read user records.
+         */
+        get: operations["Users_findAll"];
+        put?: never;
+        /**
+         * Create user
+         * @description ADMIN can manage users.
+         */
+        post: operations["Users_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List users with pagination, search and sorting
-     * @description ADMIN can read user records.
-     */
-    get: operations['Users_findAll'];
-    put?: never;
-    /**
-     * Create user
-     * @description ADMIN can manage users.
-     */
-    post: operations['Users_create'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/users/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user by id
+         * @description ADMIN can read user records.
+         */
+        get: operations["Users_findById"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete user
+         * @description ADMIN can manage users.
+         */
+        delete: operations["Users_delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update user
+         * @description ADMIN can manage users.
+         */
+        patch: operations["Users_update"];
+        trace?: never;
     };
-    /**
-     * Get user by id
-     * @description ADMIN can read user records.
-     */
-    get: operations['Users_findById'];
-    put?: never;
-    post?: never;
-    /**
-     * Delete user
-     * @description ADMIN can manage users.
-     */
-    delete: operations['Users_delete'];
-    options?: never;
-    head?: never;
-    /**
-     * Update user
-     * @description ADMIN can manage users.
-     */
-    patch: operations['Users_update'];
-    trace?: never;
-  };
-  '/auth/register': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register a new user
+         * @description Public endpoint. Creates a user, stores an Argon2 password hash and returns a token pair.
+         */
+        post: operations["Auth_register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Register a new user
-     * @description Public endpoint. Creates a user, stores an Argon2 password hash and returns a token pair.
-     */
-    post: operations['Auth_register'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/login': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Login with email and password
+         * @description Public endpoint. Validates credentials, creates a session and returns a token pair.
+         */
+        post: operations["Auth_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Login with email and password
-     * @description Public endpoint. Validates credentials, creates a session and returns a token pair.
-     */
-    post: operations['Auth_login'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/logout': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout current refresh token
+         * @description Authenticated USER or ADMIN can revoke own session(s).
+         */
+        post: operations["Auth_logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Logout current refresh token
-     * @description Authenticated USER or ADMIN can revoke own session(s).
-     */
-    post: operations['Auth_logout'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/logout-all': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/auth/logout-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout all devices
+         * @description Authenticated USER or ADMIN can revoke own session(s).
+         */
+        post: operations["Auth_logoutAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Logout all devices
-     * @description Authenticated USER or ADMIN can revoke own session(s).
-     */
-    post: operations['Auth_logoutAll'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/refresh': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate refresh token and issue a new token pair
+         * @description Public refresh endpoint protected by RefreshAuthGuard. Rotates the refresh token and revokes the old session token.
+         */
+        post: operations["Auth_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Rotate refresh token and issue a new token pair
-     * @description Public refresh endpoint protected by RefreshAuthGuard. Rotates the refresh token and revokes the old session token.
-     */
-    post: operations['Auth_refresh'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/auth/me': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current user
+         * @description Authenticated USER or ADMIN can read own current-user profile.
+         */
+        get: operations["Auth_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update current user profile
+         * @description Authenticated USER or ADMIN can update own profile fields.
+         */
+        patch: operations["Auth_updateMe"];
+        trace?: never;
     };
-    /**
-     * Get current user
-     * @description Authenticated USER or ADMIN can read own current-user profile.
-     */
-    get: operations['Auth_me'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    /**
-     * Update current user profile
-     * @description Authenticated USER or ADMIN can update own profile fields.
-     */
-    patch: operations['Auth_updateMe'];
-    trace?: never;
-  };
-  '/auth/change-password': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/auth/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change the current user password and revoke sessions */
+        post: operations["Auth_changePassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Change the current user password and revoke sessions */
-    post: operations['Auth_changePassword'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/sessions': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List active user sessions
+         * @description Authenticated USER or ADMIN can list own active sessions.
+         */
+        get: operations["Sessions_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List active user sessions
-     * @description Authenticated USER or ADMIN can list own active sessions.
-     */
-    get: operations['Sessions_list'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/sessions/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/sessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke one session
+         * @description Authenticated USER or ADMIN can revoke own sessions.
+         */
+        delete: operations["Sessions_revoke"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post?: never;
-    /**
-     * Revoke one session
-     * @description Authenticated USER or ADMIN can revoke own sessions.
-     */
-    delete: operations['Sessions_revoke'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/projects': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List projects available to the current user
+         * @description USER can read own projects; ADMIN can read any project.
+         */
+        get: operations["Projects_findAll"];
+        put?: never;
+        /**
+         * Create a project
+         * @description USER or ADMIN can create projects.
+         */
+        post: operations["Projects_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * List projects available to the current user
-     * @description USER can read own projects; ADMIN can read any project.
-     */
-    get: operations['Projects_findAll'];
-    put?: never;
-    /**
-     * Create a project
-     * @description USER or ADMIN can create projects.
-     */
-    post: operations['Projects_create'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/projects/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/projects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a project by id
+         * @description USER can read own projects; ADMIN can read any project.
+         */
+        get: operations["Projects_findById"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a project
+         * @description USER can manage own projects; ADMIN can manage any project.
+         */
+        delete: operations["Projects_delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a project
+         * @description USER can manage own projects; ADMIN can manage any project.
+         */
+        patch: operations["Projects_update"];
+        trace?: never;
     };
-    /**
-     * Get a project by id
-     * @description USER can read own projects; ADMIN can read any project.
-     */
-    get: operations['Projects_findById'];
-    put?: never;
-    post?: never;
-    /**
-     * Delete a project
-     * @description USER can manage own projects; ADMIN can manage any project.
-     */
-    delete: operations['Projects_delete'];
-    options?: never;
-    head?: never;
-    /**
-     * Update a project
-     * @description USER can manage own projects; ADMIN can manage any project.
-     */
-    patch: operations['Projects_update'];
-    trace?: never;
-  };
-  '/projects/{id}/archive': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/projects/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive a project
+         * @description Archives a project owned by the current user or any project for an ADMIN.
+         */
+        post: operations["Projects_archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Archive a project
-     * @description Archives a project owned by the current user or any project for an ADMIN.
-     */
-    post: operations['Projects_archive'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/projects/{id}/restore': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/projects/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore an archived project
+         * @description Restores an archived project owned by the current user or any project for an ADMIN.
+         */
+        post: operations["Projects_restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Restore an archived project
-     * @description Restores an archived project owned by the current user or any project for an ADMIN.
-     */
-    post: operations['Projects_restore'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/projects/{id}/history': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/projects/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get project change history
+         * @description Returns project lifecycle and field-change history for the current user or ADMIN.
+         */
+        get: operations["Projects_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Get project change history
-     * @description Returns project lifecycle and field-change history for the current user or ADMIN.
-     */
-    get: operations['Projects_history'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/projects/{projectId}/uploads': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/projects/{projectId}/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List project upload versions */
+        get: operations["Uploads_list"];
+        put?: never;
+        /** Upload a ZIP archive for a project */
+        post: operations["Uploads_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List project upload versions */
-    get: operations['Uploads_list'];
-    put?: never;
-    /** Upload a ZIP archive for a project */
-    post: operations['Uploads_create'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/pipelines/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/pipelines/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get analysis pipeline status and progress */
+        get: operations["Pipeline_getStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get analysis pipeline status and progress */
-    get: operations['Pipeline_getStatus'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/pipelines/{id}/resume': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/pipelines/{id}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume a failed or cancelled pipeline */
+        post: operations["Pipeline_resume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Resume a failed or cancelled pipeline */
-    post: operations['Pipeline_resume'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/pipelines/{id}/cancel': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/pipelines/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a running pipeline */
+        post: operations["Pipeline_cancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Cancel a running pipeline */
-    post: operations['Pipeline_cancel'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/projects/{projectId}/analyses': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/projects/{projectId}/analyses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List project analyses */
+        get: operations["Analysis_list"];
+        put?: never;
+        /** Start analysis for the latest or selected upload */
+        post: operations["Analysis_start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List project analyses */
-    get: operations['Analysis_list'];
-    put?: never;
-    /** Start analysis for the latest or selected upload */
-    post: operations['Analysis_start'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reports/compare': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/reports/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare two report versions */
+        get: operations["Reports_compare"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Compare two report versions */
-    get: operations['Reports_compare'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reports/{id}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/reports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a report */
+        get: operations["Reports_findById"];
+        put?: never;
+        post?: never;
+        /** Delete a report */
+        delete: operations["Reports_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get a report */
-    get: operations['Reports_findById'];
-    put?: never;
-    post?: never;
-    /** Delete a report */
-    delete: operations['Reports_remove'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/projects/{id}/reports': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/projects/{id}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List project reports */
+        get: operations["Reports_findByProject"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List project reports */
-    get: operations['Reports_findByProject'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reports/{id}/status': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/reports/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get report generation status */
+        get: operations["Reports_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get report generation status */
-    get: operations['Reports_status'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reports/{id}/export/{format}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/reports/{id}/export/{format}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export and persist a report as Markdown, JSON, or PDF */
+        get: operations["Reports_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Export and persist a report as Markdown, JSON, or PDF */
-    get: operations['Reports_export'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/projects/{id}/chat': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/projects/{id}/chat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List project chat sessions */
+        get: operations["Chat_list"];
+        put?: never;
+        /** Create a project chat session */
+        post: operations["Chat_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** List project chat sessions */
-    get: operations['Chat_list'];
-    put?: never;
-    /** Create a project chat session */
-    post: operations['Chat_create'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/chat/{sessionId}/messages': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/chat/{sessionId}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get paginated chat history */
+        get: operations["Chat_history"];
+        put?: never;
+        /** Send a message to Reviewsha AI */
+        post: operations["Chat_send"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get paginated chat history */
-    get: operations['Chat_history'];
-    put?: never;
-    /** Send a message to Reviewsha AI */
-    post: operations['Chat_send'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/chat/{sessionId}/stream': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/chat/{sessionId}/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stream a Reviewsha AI answer over Server-Sent Events */
+        post: operations["Chat_stream"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Stream a Reviewsha AI answer over Server-Sent Events */
-    post: operations['Chat_stream'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin/overview': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get administrative system overview */
+        get: operations["Admin_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get administrative system overview */
-    get: operations['Admin_overview'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin/queues': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin/queues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get BullMQ queue metrics */
+        get: operations["Admin_queues"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get BullMQ queue metrics */
-    get: operations['Admin_queues'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin/ai-usage': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin/ai-usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get AI usage metrics */
+        get: operations["Admin_aiUsage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get AI usage metrics */
-    get: operations['Admin_aiUsage'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin/statistics': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin/statistics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get system statistics */
+        get: operations["Admin_statistics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Get system statistics */
-    get: operations['Admin_statistics'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin/logs': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin/logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search paginated masked system logs */
+        get: operations["Admin_logs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** Search paginated masked system logs */
-    get: operations['Admin_logs'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin/queues/{queueName}/jobs': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin/queues/{queueName}/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["Admin_jobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get: operations['Admin_jobs'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin/queues/{queueName}/jobs/{jobId}/retry': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin/queues/{queueName}/jobs/{jobId}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["Admin_retry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post: operations['Admin_retry'];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/admin/queues/{queueName}/jobs/{jobId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/admin/queues/{queueName}/jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["Admin_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    post?: never;
-    delete: operations['Admin_remove'];
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/health': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Health check
+         * @description Public endpoint. Returns API, database, Redis and MinIO availability.
+         */
+        get: operations["Health_getHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Health check
-     * @description Public endpoint. Returns API, database, Redis and MinIO availability.
-     */
-    get: operations['Health_getHealth'];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    ApiErrorDetailsDto: {
-      /**
-       * @description HTTP status code.
-       * @example 400
-       */
-      statusCode: number;
-      /**
-       * @description Short error name.
-       * @example Bad Request
-       */
-      error: string;
-      /**
-       * @description Human-readable error message.
-       * @example Validation failed
-       */
-      message: string;
-      /**
-       * @description Request path that produced the error.
-       * @example /api/v1/users
-       */
-      path: string;
-      /**
-       * @description UTC error timestamp.
-       * @example 2026-08-02T20:00:00.000Z
-       */
-      timestamp: string;
+    schemas: {
+        ApiErrorDetailsDto: {
+            /**
+             * @description HTTP status code.
+             * @example 400
+             */
+            statusCode: number;
+            /**
+             * @description Short error name.
+             * @example Bad Request
+             */
+            error: string;
+            /**
+             * @description Human-readable error message.
+             * @example Validation failed
+             */
+            message: string;
+            /**
+             * @description Request path that produced the error.
+             * @example /api/v1/users
+             */
+            path: string;
+            /**
+             * @description UTC error timestamp.
+             * @example 2026-08-02T20:00:00.000Z
+             */
+            timestamp: string;
+        };
+        ApiErrorResponseDto: {
+            /**
+             * @description Always false for error responses.
+             * @example false
+             */
+            success: boolean;
+            /** @description Normalized API error payload. */
+            error: components["schemas"]["ApiErrorDetailsDto"];
+            /**
+             * @description Optional request correlation id when request tracing is enabled.
+             * @example req_01JABCDE1234567890
+             */
+            requestId?: string;
+        };
+        UserResponseDto: {
+            /** @example 00000000-0000-4000-8000-000000000001 */
+            id: string;
+            /** @example developer@reviewsha.local */
+            email: string;
+            /** @example Developer */
+            displayName: string;
+            /** @example https://cdn.reviewsha.local/avatars/user.png */
+            avatarUrl?: Record<string, never> | null;
+            /**
+             * @example USER
+             * @enum {string}
+             */
+            role: "USER" | "ADMIN" | "SUPER_ADMIN";
+            /** @example true */
+            isActive: boolean;
+            /** @example 2026-08-02T12:00:00.000Z */
+            createdAt: string;
+            /** @example 2026-08-02T12:00:00.000Z */
+            updatedAt: string;
+        };
+        UsersListMetaDto: {
+            /** @example 1 */
+            page: number;
+            /** @example 20 */
+            limit: number;
+            /** @example 135 */
+            total: number;
+            /** @example 7 */
+            pages: number;
+        };
+        UsersListResponseDto: {
+            items: components["schemas"]["UserResponseDto"][];
+            meta: components["schemas"]["UsersListMetaDto"];
+        };
+        CreateUserDto: {
+            /** @example developer@reviewsha.local */
+            email: string;
+            /** @example strong-password-123 */
+            password: string;
+            /** @example Developer */
+            displayName: string;
+        };
+        UpdateUserDto: {
+            /** @example Updated Developer */
+            displayName?: string;
+            /** @example https://cdn.reviewsha.local/avatars/user.png */
+            avatarUrl?: string;
+            /** @example true */
+            isActive?: boolean;
+        };
+        RegisterDto: {
+            /** @example developer@reviewsha.local */
+            email: string;
+            /** @example strong-password-123 */
+            password: string;
+            /** @example Developer */
+            displayName: string;
+        };
+        AuthResponseDto: {
+            /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
+            accessToken: string;
+            /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
+            refreshToken: string;
+            user: components["schemas"]["UserResponseDto"];
+        };
+        LoginDto: {
+            /** @example developer@reviewsha.local */
+            email: string;
+            /** @example strong-password-123 */
+            password: string;
+        };
+        RefreshDto: {
+            /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
+            refreshToken: string;
+        };
+        ChangePasswordDto: {
+            /** @example old-strong-password */
+            currentPassword: string;
+            /** @example new-strong-password */
+            newPassword: string;
+        };
+        SessionResponseDto: {
+            /** @example 00000000-0000-4000-8000-000000000001 */
+            id: string;
+            /** @example 00000000-0000-4000-8000-000000000101 */
+            userId: string;
+            /** @example Chrome on Linux */
+            device?: Record<string, never>;
+            /** @example 127.0.0.1 */
+            ip?: Record<string, never>;
+            /** @example Mozilla/5.0 ... */
+            userAgent?: Record<string, never>;
+            /** @example Chrome */
+            browser?: Record<string, never>;
+            /** @example Linux */
+            os?: Record<string, never>;
+            /**
+             * Format: date-time
+             * @example 2026-08-02T19:00:00.000Z
+             */
+            createdAt: string;
+            /** @example 2026-08-02T19:30:00.000Z */
+            lastUsedAt?: Record<string, never>;
+            /**
+             * Format: date-time
+             * @example 2026-09-01T19:00:00.000Z
+             */
+            expiresAt: string;
+            /** @example false */
+            current: boolean;
+        };
+        ProjectStatsDto: {
+            /** @example 3 */
+            analysesCount: number;
+            /** @example 2 */
+            uploadsCount: number;
+            /** @example 2 */
+            reportsCount: number;
+            /** @example 2026-08-05T12:00:00.000Z */
+            lastAnalysisAt?: Record<string, never> | null;
+        };
+        ProjectResponseDto: {
+            /** @example 00000000-0000-4000-8000-000000000001 */
+            id: string;
+            /** @example 00000000-0000-4000-8000-000000000002 */
+            ownerId: string;
+            /** @example Reviewsha API */
+            name: string;
+            /** @example Automated code review backend. */
+            description?: Record<string, never> | null;
+            /** @example TypeScript */
+            language?: Record<string, never> | null;
+            /** @example [
+             *       "backend",
+             *       "mvp"
+             *     ] */
+            tags: string[];
+            /**
+             * @example ACTIVE
+             * @enum {string}
+             */
+            status: "ACTIVE" | "ARCHIVED" | "DELETED";
+            /**
+             * @example PRIVATE
+             * @enum {string}
+             */
+            visibility: "PRIVATE" | "ORGANIZATION" | "PUBLIC";
+            /** @example null */
+            archivedAt?: Record<string, never> | null;
+            /** @example 2026-08-05T12:00:00.000Z */
+            createdAt: string;
+            /** @example 2026-08-05T12:00:00.000Z */
+            updatedAt: string;
+            stats: components["schemas"]["ProjectStatsDto"];
+        };
+        ProjectsListMetaDto: {
+            /** @example 1 */
+            page: number;
+            /** @example 20 */
+            limit: number;
+            /** @example 2 */
+            total: number;
+            /** @example 1 */
+            pages: number;
+        };
+        ProjectsListResponseDto: {
+            data: components["schemas"]["ProjectResponseDto"][];
+            meta: components["schemas"]["ProjectsListMetaDto"];
+        };
+        ProjectResponseEnvelopeDto: {
+            data: components["schemas"]["ProjectResponseDto"];
+        };
+        CreateProjectDto: {
+            /** @example Reviewsha API */
+            name: string;
+            /** @example Automated code review backend. */
+            description?: string;
+            /** @example TypeScript */
+            language?: string;
+            /**
+             * @default PRIVATE
+             * @example PRIVATE
+             * @enum {string}
+             */
+            visibility: "PRIVATE" | "ORGANIZATION" | "PUBLIC";
+            /** @example [
+             *       "backend",
+             *       "mvp"
+             *     ] */
+            tags?: string[];
+        };
+        UpdateProjectDto: {
+            /** @example Reviewsha API */
+            name?: string;
+            /** @example Updated project description. */
+            description?: Record<string, never> | null;
+            /** @example TypeScript */
+            language?: Record<string, never> | null;
+            /**
+             * @example PRIVATE
+             * @enum {string}
+             */
+            visibility?: "PRIVATE" | "ORGANIZATION" | "PUBLIC";
+            /** @example [
+             *       "backend",
+             *       "mvp"
+             *     ] */
+            tags?: string[];
+        };
+        ProjectHistoryResponseDto: {
+            /** @example 00000000-0000-4000-8000-000000000020 */
+            id: string;
+            /**
+             * @example UPDATED
+             * @enum {string}
+             */
+            action: "CREATED" | "UPDATED" | "ARCHIVED" | "RESTORED" | "DELETED" | "TAG_ADDED" | "TAG_REMOVED";
+            /** @example 00000000-0000-4000-8000-000000000001 */
+            actorId: string;
+            /** @example developer@reviewsha.local */
+            actorEmail: string;
+            /** @example {
+             *       "name": {
+             *         "from": "Old",
+             *         "to": "New"
+             *       }
+             *     } */
+            changedFields?: Record<string, never> | null;
+            /** @example 2026-08-05T12:00:00.000Z */
+            createdAt: string;
+        };
+        ProjectHistoryListResponseDto: {
+            data: components["schemas"]["ProjectHistoryResponseDto"][];
+        };
+        UploadResponseDto: {
+            /** @example 00000000-0000-4000-8000-000000000001 */
+            id: string;
+            /** @example project.zip */
+            fileName: string;
+            /** @example projects/user/project/uploads/upload.zip */
+            storageKey: string;
+            /**
+             * @example COMPLETED
+             * @enum {string}
+             */
+            status: "PENDING" | "VALIDATING" | "UPLOADING" | "COMPLETED" | "FAILED" | "DELETED";
+            /** @example 1 */
+            version: number;
+            /** @example 5242880 */
+            size: number;
+            /** @example application/zip */
+            mimeType: string;
+            /** @example sha256:... */
+            checksum: string;
+            /** @example 2026-08-05T12:00:00.000Z */
+            createdAt: string;
+        };
+        UploadListResponseDto: {
+            data: components["schemas"]["UploadResponseDto"][];
+        };
+        PipelineStatusDto: {
+            /** @example scan-uuid */
+            id: string;
+            /** @example project-uuid */
+            projectId: string;
+            /** @example upload-uuid */
+            uploadId: string;
+            /** @example ANALYZE */
+            currentStep: Record<string, never> | null;
+            /** @example RUNNING */
+            status: Record<string, never> | null;
+            /** @example 70 */
+            progress: number;
+            /** @example AI_TIMEOUT */
+            errorCode?: Record<string, never>;
+            /** @example AI provider timed out */
+            errorMessage?: Record<string, never>;
+            /** @example 2026-08-06T00:00:00.000Z */
+            startedAt?: Record<string, never>;
+            /** @example 2026-08-06T00:05:00.000Z */
+            finishedAt?: Record<string, never>;
+        };
+        AnalysisResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            projectId: string;
+            /** Format: uuid */
+            uploadId?: Record<string, never> | null;
+            status: string;
+            pipelineStatus: Record<string, never>;
+            currentStep?: Record<string, never> | null;
+            progress: number;
+            errorMessage?: Record<string, never> | null;
+            /** Format: date-time */
+            createdAt?: string | null;
+            finishedAt?: Record<string, never> | null;
+        };
+        AnalysesListResponseDto: {
+            data: components["schemas"]["AnalysisResponseDto"][];
+            meta: Record<string, never>;
+        };
+        ReportIssueDto: {
+            id: string;
+            severity: string;
+            category: string;
+            title: string;
+            description: string;
+            filePath: string;
+            line?: Record<string, never> | null;
+            recommendation?: Record<string, never> | null;
+        };
+        ReportExportDto: {
+            /** @enum {string} */
+            format: "MD" | "PDF" | "JSON";
+            size: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ReportResponseDto: {
+            id: string;
+            scanId: string;
+            projectId: string;
+            /** @enum {string} */
+            status: "GENERATING" | "READY" | "FAILED";
+            score?: Record<string, never> | null;
+            summary?: Record<string, never> | null;
+            /** @enum {string} */
+            format: "MD" | "PDF" | "JSON";
+            tokensUsed: number;
+            /** Format: date-time */
+            createdAt: string;
+            issues: components["schemas"]["ReportIssueDto"][];
+            recommendations: string[];
+            exports: components["schemas"]["ReportExportDto"][];
+        };
+        ReportsListDto: {
+            data: components["schemas"]["ReportResponseDto"][];
+            meta: Record<string, never>;
+        };
+        CreateChatDto: {
+            /** @example JWT findings */
+            title?: string;
+        };
+        ChatSessionResponseDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            /** Format: date-time */
+            updatedAt: string;
+            messagesCount: number;
+        };
+        Object: Record<string, never>;
+        ChatSessionListResponseDto: {
+            data: components["schemas"]["ChatSessionResponseDto"][];
+            meta: Record<string, never>;
+        };
+        ChatMessageResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            role: "USER" | "ASSISTANT" | "SYSTEM";
+            content: string;
+            tokens: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        ChatMessageListResponseDto: {
+            data: components["schemas"]["ChatMessageResponseDto"][];
+            meta: Record<string, never>;
+        };
+        SendMessageDto: {
+            /** @example Почему AI отметил JWT? */
+            message: string;
+        };
     };
-    ApiErrorResponseDto: {
-      /**
-       * @description Always false for error responses.
-       * @example false
-       */
-      success: boolean;
-      /** @description Normalized API error payload. */
-      error: components['schemas']['ApiErrorDetailsDto'];
-      /**
-       * @description Optional request correlation id when request tracing is enabled.
-       * @example req_01JABCDE1234567890
-       */
-      requestId?: string;
-    };
-    UserResponseDto: {
-      /** @example 00000000-0000-4000-8000-000000000001 */
-      id: string;
-      /** @example developer@reviewsha.local */
-      email: string;
-      /** @example Developer */
-      displayName: string;
-      /** @example https://cdn.reviewsha.local/avatars/user.png */
-      avatarUrl?: Record<string, never> | null;
-      /**
-       * @example USER
-       * @enum {string}
-       */
-      role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
-      /** @example true */
-      isActive: boolean;
-      /** @example 2026-08-02T12:00:00.000Z */
-      createdAt: string;
-      /** @example 2026-08-02T12:00:00.000Z */
-      updatedAt: string;
-    };
-    UsersListMetaDto: {
-      /** @example 1 */
-      page: number;
-      /** @example 20 */
-      limit: number;
-      /** @example 135 */
-      total: number;
-      /** @example 7 */
-      pages: number;
-    };
-    UsersListResponseDto: {
-      items: components['schemas']['UserResponseDto'][];
-      meta: components['schemas']['UsersListMetaDto'];
-    };
-    CreateUserDto: {
-      /** @example developer@reviewsha.local */
-      email: string;
-      /** @example strong-password-123 */
-      password: string;
-      /** @example Developer */
-      displayName: string;
-    };
-    UpdateUserDto: {
-      /** @example Updated Developer */
-      displayName?: string;
-      /** @example https://cdn.reviewsha.local/avatars/user.png */
-      avatarUrl?: string;
-      /** @example true */
-      isActive?: boolean;
-    };
-    RegisterDto: {
-      /** @example developer@reviewsha.local */
-      email: string;
-      /** @example strong-password-123 */
-      password: string;
-      /** @example Developer */
-      displayName: string;
-    };
-    AuthResponseDto: {
-      /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
-      accessToken: string;
-      /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
-      refreshToken: string;
-      user: components['schemas']['UserResponseDto'];
-    };
-    LoginDto: {
-      /** @example developer@reviewsha.local */
-      email: string;
-      /** @example strong-password-123 */
-      password: string;
-    };
-    RefreshDto: {
-      /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
-      refreshToken: string;
-    };
-    ChangePasswordDto: {
-      /** @example old-strong-password */
-      currentPassword: string;
-      /** @example new-strong-password */
-      newPassword: string;
-    };
-    SessionResponseDto: {
-      /** @example 00000000-0000-4000-8000-000000000001 */
-      id: string;
-      /** @example 00000000-0000-4000-8000-000000000101 */
-      userId: string;
-      /** @example Chrome on Linux */
-      device?: Record<string, never>;
-      /** @example 127.0.0.1 */
-      ip?: Record<string, never>;
-      /** @example Mozilla/5.0 ... */
-      userAgent?: Record<string, never>;
-      /** @example Chrome */
-      browser?: Record<string, never>;
-      /** @example Linux */
-      os?: Record<string, never>;
-      /**
-       * Format: date-time
-       * @example 2026-08-02T19:00:00.000Z
-       */
-      createdAt: string;
-      /** @example 2026-08-02T19:30:00.000Z */
-      lastUsedAt?: Record<string, never>;
-      /**
-       * Format: date-time
-       * @example 2026-09-01T19:00:00.000Z
-       */
-      expiresAt: string;
-      /** @example false */
-      current: boolean;
-    };
-    ProjectStatsDto: {
-      /** @example 3 */
-      analysesCount: number;
-      /** @example 2 */
-      uploadsCount: number;
-      /** @example 2 */
-      reportsCount: number;
-      /** @example 2026-08-05T12:00:00.000Z */
-      lastAnalysisAt?: Record<string, never> | null;
-    };
-    ProjectResponseDto: {
-      /** @example 00000000-0000-4000-8000-000000000001 */
-      id: string;
-      /** @example 00000000-0000-4000-8000-000000000002 */
-      ownerId: string;
-      /** @example Reviewsha API */
-      name: string;
-      /** @example Automated code review backend. */
-      description?: Record<string, never> | null;
-      /** @example TypeScript */
-      language?: Record<string, never> | null;
-      /** @example [
-       *       "backend",
-       *       "mvp"
-       *     ] */
-      tags: string[];
-      /**
-       * @example ACTIVE
-       * @enum {string}
-       */
-      status: 'ACTIVE' | 'ARCHIVED' | 'DELETED';
-      /**
-       * @example PRIVATE
-       * @enum {string}
-       */
-      visibility: 'PRIVATE' | 'ORGANIZATION' | 'PUBLIC';
-      /** @example null */
-      archivedAt?: Record<string, never> | null;
-      /** @example 2026-08-05T12:00:00.000Z */
-      createdAt: string;
-      /** @example 2026-08-05T12:00:00.000Z */
-      updatedAt: string;
-      stats: components['schemas']['ProjectStatsDto'];
-    };
-    ProjectsListMetaDto: {
-      /** @example 1 */
-      page: number;
-      /** @example 20 */
-      limit: number;
-      /** @example 2 */
-      total: number;
-      /** @example 1 */
-      pages: number;
-    };
-    ProjectsListResponseDto: {
-      data: components['schemas']['ProjectResponseDto'][];
-      meta: components['schemas']['ProjectsListMetaDto'];
-    };
-    ProjectResponseEnvelopeDto: {
-      data: components['schemas']['ProjectResponseDto'];
-    };
-    CreateProjectDto: {
-      /** @example Reviewsha API */
-      name: string;
-      /** @example Automated code review backend. */
-      description?: string;
-      /** @example TypeScript */
-      language?: string;
-      /**
-       * @default PRIVATE
-       * @example PRIVATE
-       * @enum {string}
-       */
-      visibility: 'PRIVATE' | 'ORGANIZATION' | 'PUBLIC';
-      /** @example [
-       *       "backend",
-       *       "mvp"
-       *     ] */
-      tags?: string[];
-    };
-    UpdateProjectDto: {
-      /** @example Reviewsha API */
-      name?: string;
-      /** @example Updated project description. */
-      description?: Record<string, never> | null;
-      /** @example TypeScript */
-      language?: Record<string, never> | null;
-      /**
-       * @example PRIVATE
-       * @enum {string}
-       */
-      visibility?: 'PRIVATE' | 'ORGANIZATION' | 'PUBLIC';
-      /** @example [
-       *       "backend",
-       *       "mvp"
-       *     ] */
-      tags?: string[];
-    };
-    ProjectHistoryResponseDto: {
-      /** @example 00000000-0000-4000-8000-000000000020 */
-      id: string;
-      /**
-       * @example UPDATED
-       * @enum {string}
-       */
-      action:
-        'CREATED' | 'UPDATED' | 'ARCHIVED' | 'RESTORED' | 'DELETED' | 'TAG_ADDED' | 'TAG_REMOVED';
-      /** @example 00000000-0000-4000-8000-000000000001 */
-      actorId: string;
-      /** @example developer@reviewsha.local */
-      actorEmail: string;
-      /** @example {
-       *       "name": {
-       *         "from": "Old",
-       *         "to": "New"
-       *       }
-       *     } */
-      changedFields?: Record<string, never> | null;
-      /** @example 2026-08-05T12:00:00.000Z */
-      createdAt: string;
-    };
-    ProjectHistoryListResponseDto: {
-      data: components['schemas']['ProjectHistoryResponseDto'][];
-    };
-    UploadResponseDto: {
-      /** @example 00000000-0000-4000-8000-000000000001 */
-      id: string;
-      /** @example project.zip */
-      fileName: string;
-      /** @example projects/user/project/uploads/upload.zip */
-      storageKey: string;
-      /**
-       * @example COMPLETED
-       * @enum {string}
-       */
-      status: 'PENDING' | 'VALIDATING' | 'UPLOADING' | 'COMPLETED' | 'FAILED' | 'DELETED';
-      /** @example 1 */
-      version: number;
-      /** @example 5242880 */
-      size: number;
-      /** @example application/zip */
-      mimeType: string;
-      /** @example sha256:... */
-      checksum: string;
-      /** @example 2026-08-05T12:00:00.000Z */
-      createdAt: string;
-    };
-    UploadListResponseDto: {
-      data: components['schemas']['UploadResponseDto'][];
-    };
-    PipelineStatusDto: {
-      /** @example scan-uuid */
-      id: string;
-      /** @example project-uuid */
-      projectId: string;
-      /** @example upload-uuid */
-      uploadId: string;
-      /** @example ANALYZE */
-      currentStep: Record<string, never> | null;
-      /** @example RUNNING */
-      status: Record<string, never> | null;
-      /** @example 70 */
-      progress: number;
-      /** @example AI_TIMEOUT */
-      errorCode?: Record<string, never>;
-      /** @example AI provider timed out */
-      errorMessage?: Record<string, never>;
-      /** @example 2026-08-06T00:00:00.000Z */
-      startedAt?: Record<string, never>;
-      /** @example 2026-08-06T00:05:00.000Z */
-      finishedAt?: Record<string, never>;
-    };
-    AnalysisResponseDto: {
-      /** Format: uuid */
-      id: string;
-      /** Format: uuid */
-      projectId: string;
-      /** Format: uuid */
-      uploadId?: Record<string, never> | null;
-      status: string;
-      pipelineStatus: Record<string, never>;
-      currentStep?: Record<string, never> | null;
-      progress: number;
-      errorMessage?: Record<string, never> | null;
-      /** Format: date-time */
-      createdAt?: string | null;
-      finishedAt?: Record<string, never> | null;
-    };
-    AnalysesListResponseDto: {
-      data: components['schemas']['AnalysisResponseDto'][];
-      meta: Record<string, never>;
-    };
-    ReportIssueDto: {
-      id: string;
-      severity: string;
-      category: string;
-      title: string;
-      description: string;
-      filePath: string;
-      line?: Record<string, never> | null;
-      recommendation?: Record<string, never> | null;
-    };
-    ReportExportDto: {
-      /** @enum {string} */
-      format: 'MD' | 'PDF' | 'JSON';
-      size: number;
-      /** Format: date-time */
-      createdAt: string;
-    };
-    ReportResponseDto: {
-      id: string;
-      scanId: string;
-      projectId: string;
-      /** @enum {string} */
-      status: 'GENERATING' | 'READY' | 'FAILED';
-      score?: Record<string, never> | null;
-      summary?: Record<string, never> | null;
-      /** @enum {string} */
-      format: 'MD' | 'PDF' | 'JSON';
-      tokensUsed: number;
-      /** Format: date-time */
-      createdAt: string;
-      issues: components['schemas']['ReportIssueDto'][];
-      recommendations: string[];
-      exports: components['schemas']['ReportExportDto'][];
-    };
-    ReportsListDto: {
-      data: components['schemas']['ReportResponseDto'][];
-      meta: Record<string, never>;
-    };
-    CreateChatDto: {
-      /** @example JWT findings */
-      title?: string;
-    };
-    ChatSessionResponseDto: {
-      /** Format: uuid */
-      id: string;
-      title: string;
-      /** Format: date-time */
-      updatedAt: string;
-      messagesCount: number;
-    };
-    Object: Record<string, never>;
-    ChatSessionListResponseDto: {
-      data: components['schemas']['ChatSessionResponseDto'][];
-      meta: Record<string, never>;
-    };
-    ChatMessageResponseDto: {
-      /** Format: uuid */
-      id: string;
-      /** @enum {string} */
-      role: 'USER' | 'ASSISTANT' | 'SYSTEM';
-      content: string;
-      tokens: number;
-      /** Format: date-time */
-      createdAt: string;
-    };
-    ChatMessageListResponseDto: {
-      data: components['schemas']['ChatMessageResponseDto'][];
-      meta: Record<string, never>;
-    };
-    SendMessageDto: {
-      /** @example Почему AI отметил JWT? */
-      message: string;
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  Users_findAll: {
-    parameters: {
-      query?: {
-        page?: number;
-        limit?: number;
-        search?: string;
-        sort?: 'createdAt' | 'displayName' | 'email';
-        order?: 'asc' | 'desc';
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Paginated list of users. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UsersListResponseDto'];
-        };
-      };
-      /** @description Invalid query parameters */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Users_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateUserDto'];
-      };
-    };
-    responses: {
-      /** @description Created user record. */
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UserResponseDto'];
-        };
-      };
-      /** @description Invalid payload */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Email already exists */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Users_findById: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description User UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description User record. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UserResponseDto'];
-        };
-      };
-      /** @description Invalid user id */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description User not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Users_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description User UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description User deleted */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Invalid user id */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description User not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Users_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description User UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateUserDto'];
-      };
-    };
-    responses: {
-      /** @description User record. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UserResponseDto'];
-        };
-      };
-      /** @description Invalid user id or payload */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description User not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description No update fields provided */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Auth_register: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RegisterDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AuthResponseDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Email already exists */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Auth_login: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['LoginDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AuthResponseDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Invalid credentials or inactive user */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Auth_logout: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RefreshDto'];
-      };
-    };
-    responses: {
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Invalid or revoked token */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Auth_logoutAll: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Auth_refresh: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['RefreshDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AuthResponseDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Invalid, expired or revoked refresh token */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Auth_me: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UserResponseDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Invalid token or inactive user */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Auth_updateMe: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateUserDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UserResponseDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Invalid token or inactive user */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Auth_changePassword: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['ChangePasswordDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Sessions_list: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Active sessions for the current user. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['SessionResponseDto'][];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Invalid access token */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Sessions_revoke: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Session UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Session revoked */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Session not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Projects_findAll: {
-    parameters: {
-      query?: {
-        page?: number;
-        limit?: number;
-        search?: string;
-        language?: string;
-        /** @description Comma-separated tag names. */
-        tags?: string[];
-        createdFrom?: string;
-        createdTo?: string;
-        status?: 'ACTIVE' | 'ARCHIVED' | 'DELETED';
-        visibility?: 'PRIVATE' | 'ORGANIZATION' | 'PUBLIC';
-        sort?: 'createdAt' | 'updatedAt' | 'name' | 'lastAnalysisAt' | 'analysesCount';
-        order?: 'asc' | 'desc';
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectsListResponseDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Projects_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateProjectDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectResponseEnvelopeDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Projects_findById: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Project UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectResponseEnvelopeDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Project not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Projects_delete: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Project UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Project deleted */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Project not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Projects_update: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Project UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['UpdateProjectDto'];
-      };
-    };
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectResponseEnvelopeDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Project not found */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description No project fields provided */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Projects_archive: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Project UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectResponseEnvelopeDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Projects_restore: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Project UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectResponseEnvelopeDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Projects_history: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Project UUID. */
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ProjectHistoryListResponseDto'];
-        };
-      };
-      /** @description Bad request. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Authentication required. */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Access is forbidden. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Resource was not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Payload is semantically invalid. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-      /** @description Unexpected server error. */
-      500: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ApiErrorResponseDto'];
-        };
-      };
-    };
-  };
-  Uploads_list: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        projectId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UploadListResponseDto'];
-        };
-      };
-    };
-  };
-  Uploads_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        /** @description Project UUID. */
-        projectId: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'multipart/form-data': {
-          /** Format: binary */
-          file: string;
-        };
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['UploadResponseDto'];
-        };
-      };
-      /** @description Missing file or invalid project identifier. */
-      400: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description The current user cannot access this project. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Project not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description The archive failed validation. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Object storage is unavailable. */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Pipeline_getStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['PipelineStatusDto'];
-        };
-      };
-    };
-  };
-  Pipeline_resume: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Pipeline_cancel: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Analysis_list: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        projectId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AnalysesListResponseDto'];
-        };
-      };
-    };
-  };
-  Analysis_start: {
-    parameters: {
-      query: {
-        uploadId: string;
-      };
-      header?: never;
-      path: {
-        projectId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['AnalysisResponseDto'];
-        };
-      };
-    };
-  };
-  Reports_compare: {
-    parameters: {
-      query: {
-        oldReportId: string;
-        newReportId: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Reports_findById: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ReportResponseDto'];
-        };
-      };
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Reports_remove: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Reports_findByProject: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ReportsListDto'];
-        };
-      };
-    };
-  };
-  Reports_status: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ReportResponseDto'];
-        };
-      };
-    };
-  };
-  Reports_export: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-        format: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Chat_list: {
-    parameters: {
-      query?: {
-        page?: components['schemas']['Object'];
-        limit?: components['schemas']['Object'];
-        search?: string;
-        before?: string;
-        after?: string;
-        sort?: 'asc' | 'desc';
-      };
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ChatSessionListResponseDto'];
-        };
-      };
-    };
-  };
-  Chat_create: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        id: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['CreateChatDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ChatSessionResponseDto'];
-        };
-      };
-      /** @description The project belongs to another user. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Project not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Chat_history: {
-    parameters: {
-      query?: {
-        page?: components['schemas']['Object'];
-        limit?: components['schemas']['Object'];
-        search?: string;
-        before?: string;
-        after?: string;
-        sort?: 'asc' | 'desc';
-      };
-      header?: never;
-      path: {
-        sessionId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ChatMessageListResponseDto'];
-        };
-      };
-      /** @description The chat belongs to another user. */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description Chat session not found. */
-      404: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Chat_send: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        sessionId: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SendMessageDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': components['schemas']['ChatMessageResponseDto'];
-        };
-      };
-      /** @description AI provider is unavailable. */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      /** @description AI response timed out. */
-      504: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Chat_stream: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        sessionId: string;
-      };
-      cookie?: never;
-    };
-    requestBody: {
-      content: {
-        'application/json': components['schemas']['SendMessageDto'];
-      };
-    };
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Admin_overview: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Admin_queues: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Admin_aiUsage: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Admin_statistics: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Admin_logs: {
-    parameters: {
-      query: {
-        level: string;
-        service: string;
-        search: string;
-      };
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Admin_jobs: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        queueName: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Admin_retry: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        queueName: string;
-        jobId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      201: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Admin_remove: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path: {
-        queueName: string;
-        jobId: string;
-      };
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-    };
-  };
-  Health_getHealth: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description API health status. */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          'application/json': unknown;
-        };
-      };
-      /** @description Database connection is unavailable. */
-      503: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
+    Users_findAll: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                search?: string;
+                sort?: "createdAt" | "displayName" | "email";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated list of users. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersListResponseDto"];
+                };
+            };
+            /** @description Invalid query parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Users_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserDto"];
+            };
+        };
+        responses: {
+            /** @description Created user record. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+            /** @description Invalid payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Email already exists */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Users_findById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User record. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+            /** @description Invalid user id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Users_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid user id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Users_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description User UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserDto"];
+            };
+        };
+        responses: {
+            /** @description User record. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+            /** @description Invalid user id or payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No update fields provided */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Auth_register: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Email already exists */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Auth_login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Invalid credentials or inactive user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Auth_logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshDto"];
+            };
+        };
+        responses: {
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Auth_logoutAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Auth_refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RefreshDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Invalid, expired or revoked refresh token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Auth_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Invalid token or inactive user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Auth_updateMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Invalid token or inactive user */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Auth_changePassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Sessions_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active sessions for the current user. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponseDto"][];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Sessions_revoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Session UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Session revoked */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Session not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Projects_findAll: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                search?: string;
+                language?: string;
+                /** @description Comma-separated tag names. */
+                tags?: string[];
+                createdFrom?: string;
+                createdTo?: string;
+                status?: "ACTIVE" | "ARCHIVED" | "DELETED";
+                visibility?: "PRIVATE" | "ORGANIZATION" | "PUBLIC";
+                sort?: "createdAt" | "updatedAt" | "name" | "lastAnalysisAt" | "analysesCount";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectsListResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Projects_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProjectDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectResponseEnvelopeDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Projects_findById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Project UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectResponseEnvelopeDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Project not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Projects_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Project UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Project deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Project not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Projects_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Project UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProjectDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectResponseEnvelopeDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Project not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description No project fields provided */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Projects_archive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Project UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectResponseEnvelopeDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Projects_restore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Project UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectResponseEnvelopeDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Projects_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Project UUID. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectHistoryListResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Uploads_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadListResponseDto"];
+                };
+            };
+        };
+    };
+    Uploads_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Project UUID. */
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadResponseDto"];
+                };
+            };
+            /** @description Missing file or invalid project identifier. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The current user cannot access this project. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Project not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description The archive failed validation. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Object storage is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Pipeline_getStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelineStatusDto"];
+                };
+            };
+        };
+    };
+    Pipeline_resume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Pipeline_cancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Analysis_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysesListResponseDto"];
+                };
+            };
+        };
+    };
+    Analysis_start: {
+        parameters: {
+            query: {
+                uploadId: string;
+            };
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisResponseDto"];
+                };
+            };
+        };
+    };
+    Reports_compare: {
+        parameters: {
+            query: {
+                oldReportId: string;
+                newReportId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Reports_findById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportResponseDto"];
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Reports_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Reports_findByProject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportsListDto"];
+                };
+            };
+        };
+    };
+    Reports_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportResponseDto"];
+                };
+            };
+        };
+    };
+    Reports_export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                format: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Chat_list: {
+        parameters: {
+            query?: {
+                page?: components["schemas"]["Object"];
+                limit?: components["schemas"]["Object"];
+                search?: string;
+                before?: string;
+                after?: string;
+                sort?: "asc" | "desc";
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatSessionListResponseDto"];
+                };
+            };
+        };
+    };
+    Chat_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateChatDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatSessionResponseDto"];
+                };
+            };
+            /** @description The project belongs to another user. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Project not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Chat_history: {
+        parameters: {
+            query?: {
+                page?: components["schemas"]["Object"];
+                limit?: components["schemas"]["Object"];
+                search?: string;
+                before?: string;
+                after?: string;
+                sort?: "asc" | "desc";
+            };
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessageListResponseDto"];
+                };
+            };
+            /** @description The chat belongs to another user. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Chat session not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Chat_send: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessageResponseDto"];
+                };
+            };
+            /** @description AI provider is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description AI response timed out. */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Chat_stream: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Admin_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Admin_queues: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Admin_aiUsage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Admin_statistics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Admin_logs: {
+        parameters: {
+            query: {
+                level: string;
+                service: string;
+                search: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Admin_jobs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                queueName: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Admin_retry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                queueName: string;
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Admin_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                queueName: string;
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Health_getHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description API health status. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Database connection is unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
     };
-  };
 }
