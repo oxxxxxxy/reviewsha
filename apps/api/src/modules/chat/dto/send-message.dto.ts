@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class SendMessageDto {
   @ApiProperty({ example: 'Почему AI отметил JWT?' })
@@ -8,4 +8,14 @@ export class SendMessageDto {
   @Matches(/\S/u, { message: 'message must contain a non-whitespace character' })
   @MaxLength(4000)
   message!: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'Stable client key used to deduplicate retried submissions.',
+    example: '2f8b2f5e-8f1a-4d72-b2c5-5f0e4b3c8b1a',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(128)
+  idempotencyKey?: string;
 }

@@ -21,6 +21,7 @@ export interface ChatMessage {
 
 export interface ChatMessageRequest {
   readonly message: string;
+  readonly idempotencyKey?: string;
 }
 
 export type ChatMessageResponse = ChatMessage;

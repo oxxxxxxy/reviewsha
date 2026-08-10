@@ -5,6 +5,7 @@ import {
   Injectable,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
 import { MessageRole } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
@@ -60,7 +61,13 @@ export class ChatService {
 
   async send(user: AuthenticatedUser, sessionId: string, dto: SendMessageDto) {
     const message = dto.message.trim();
-    const { requestId } = await this.enqueue(user, sessionId, message);
+    const { requestId } = await this.enqueue(
+      user,
+      sessionId,
+      message,
+      undefined,
+      dto.idempotencyKey,
+    );
     this.logger.log(
       `Chat request started sessionId=${sessionId} jobId=${requestId}`,
       'ChatService',
@@ -88,7 +95,13 @@ export class ChatService {
     streamId: string,
   ) {
     const message = dto.message.trim();
-    const { requestId } = await this.enqueue(user, sessionId, message, streamId);
+    const { requestId } = await this.enqueue(
+      user,
+      sessionId,
+      message,
+      streamId,
+      dto.idempotencyKey,
+    );
     this.logger.log(
       `Chat streaming request started sessionId=${sessionId} jobId=${requestId} streamId=${streamId}`,
       'ChatService',
@@ -112,11 +125,19 @@ export class ChatService {
     sessionId: string,
     message: string,
     streamId?: string,
+    idempotencyKey?: string,
   ): Promise<{ requestId: string }> {
     const session = await this.sessions.requireOwned(user, sessionId);
     const maxLength = this.config.get<number>('chat.messageMaxLength', 4000);
     if (!message || message.length > maxLength) {
       throw new BadRequestException('Chat message length is invalid');
+    }
+    const deterministicJobId = idempotencyKey
+      ? `chat-${createHash('sha256').update(`${sessionId}:${idempotencyKey}`).digest('hex')}`
+      : undefined;
+    if (deterministicJobId) {
+      const existing = await this.queues.getJob(QUEUE_NAMES.chat, deterministicJobId);
+      if (existing) return { requestId: deterministicJobId };
     }
     const context = await this.contexts.build(session.projectId, message);
     const history = await this.repository.recentMessages(sessionId, 20);
@@ -127,7 +148,7 @@ export class ChatService {
       content: message,
       tokens: Math.ceil(message.length / 4),
     });
-    const queued = await this.queues.addJob(QUEUE_NAMES.chat, 'chat.generate', {
+    const payload = {
       sessionId,
       projectId: session.projectId,
       userId: user.id,
@@ -143,7 +164,12 @@ export class ChatService {
       activeTopic: session.activeTopic ?? null,
       message: this.secrets.redact(message),
       ...(streamId ? { streamId } : {}),
-    });
+    };
+    const queued = deterministicJobId
+      ? await this.queues.addJob(QUEUE_NAMES.chat, 'chat.generate', payload, {
+          jobId: deterministicJobId,
+        })
+      : await this.queues.addJob(QUEUE_NAMES.chat, 'chat.generate', payload);
     return { requestId: queued.id };
   }
 

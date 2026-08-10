@@ -20,7 +20,7 @@ describe('ChatService', () => {
   };
   const sessions = { requireOwned: vi.fn() };
   const contexts = { build: vi.fn() };
-  const queues = { addJob: vi.fn(), getJobStatus: vi.fn() };
+  const queues = { addJob: vi.fn(), getJob: vi.fn(), getJobStatus: vi.fn() };
   const values: Record<string, number> = {
     'chat.messageMaxLength': 4000,
     'chat.requestTimeoutMs': 20,
@@ -161,5 +161,21 @@ describe('ChatService', () => {
     await service.send(user, 'session-1', { message: 'SECRET_QUESTION' });
     expect(JSON.stringify(logger.log.mock.calls)).not.toContain('SECRET_QUESTION');
     expect(JSON.stringify(logger.log.mock.calls)).not.toContain('Reviewsha');
+  });
+
+  it('reuses an existing queued job for a retried idempotent submission', async () => {
+    queues.getJob.mockResolvedValue({ id: 'existing-job' });
+    await expect(
+      service.send(user, 'session-1', {
+        message: 'Question',
+        idempotencyKey: 'retry-key',
+      }),
+    ).resolves.toMatchObject({ id: 'answer-1' });
+    expect(queues.getJob).toHaveBeenCalledWith(
+      'chat.queue',
+      expect.stringMatching(/^chat-[a-f0-9]{64}$/),
+    );
+    expect(repository.saveMessage).not.toHaveBeenCalled();
+    expect(queues.addJob).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,7 @@
 # Этапы 11–14 — Implementation Completion Audit
 
 Дата сверки: 2026-08-10  
-Последний проверенный коммит до этого аудита: `1fb30fa`
+Последний проверенный коммит до этого аудита: `414030a`
 
 Этот файл является рабочей сверкой по требованиям планов этапов 11–14. Статус
 `PARTIAL` означает, что базовая функциональность есть, но критерий полного
@@ -39,8 +39,9 @@
    create, list, get, send, history, delete/archive, ownership и malformed history.
 2. Добавить backend security tests для каждого endpoint с чужими `userId`,
    `conversationId` и `projectId`, включая IDOR-проверки через HTTP.
-3. Добавить idempotency key или backend deduplication для повторной отправки
-   одного сообщения; одной блокировки кнопки на Frontend недостаточно.
+3. Реализовать idempotency key и backend deduplication для повторной отправки
+   одного сообщения; API принимает `idempotencyKey`, а Queue job получает
+   детерминированный ID.
 4. Добавить полные E2E и manual QA сценарии из плана 11.
 
 ## 11.2 AI Context & Streaming
@@ -63,6 +64,8 @@
 3. Worker публикует chunks через Redis broker, API передаёт их SSE-клиенту.
 4. Assistant message/usage сохраняются до `complete` event.
 5. Disconnect публикует cancel control event и передаёт AbortSignal upstream.
+6. Повторная отправка с одинаковым `idempotencyKey` переиспользует существующий
+   chat job вместо создания второго пользовательского сообщения/job.
 
 ### Что ещё проверить до COMPLETE
 

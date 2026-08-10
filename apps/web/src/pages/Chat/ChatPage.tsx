@@ -42,7 +42,7 @@ export function ChatPage() {
     try {
       await reviewshaSdk.chat.stream(
         sessionId,
-        { message: prompt },
+        { message: prompt, idempotencyKey: globalThis.crypto.randomUUID() },
         ({ event, data }) => {
           if (event === 'token') {
             const token =

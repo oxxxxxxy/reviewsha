@@ -1183,6 +1183,11 @@ export interface components {
         SendMessageDto: {
             /** @example Почему AI отметил JWT? */
             message: string;
+            /**
+             * @description Stable client key used to deduplicate retried submissions.
+             * @example 2f8b2f5e-8f1a-4d72-b2c5-5f0e4b3c8b1a
+             */
+            idempotencyKey?: string;
         };
         AdminOverviewResponseDto: {
             /** @example 1248 */
