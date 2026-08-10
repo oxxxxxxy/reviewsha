@@ -130,12 +130,14 @@
 - Admin login/session/refresh/logout.
 - Admin overview с реальными API metrics.
 - Users/projects list, server-side search/pagination и details pages.
+- Admin user details now include owned projects and recent project activity;
+  admin project details include owner, uploaded versions and analysis summary.
 - Queue overview, jobs, retry/remove API и UI.
 
 ### Что доработать
 
-1. Добавить user details: связанные projects и разрешённую activity summary.
-2. Добавить project details: versions, analyses и reports summary.
+1. Расширять user/project summaries только при появлении новых backend fields;
+   current ownership, activity, versions and analyses summaries are implemented.
 3. Реализовывать block/unblock/role mutation только после наличия backend API.
 4. Создать HTTP security matrix: USER → 403 для каждого `/admin/*` endpoint,
    включая mutations и прямые запросы с подменёнными IDs.
