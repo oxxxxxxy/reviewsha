@@ -1,17 +1,7 @@
 import type { ApiClient } from '../client/api-client.js';
+import type { components } from '../generated/openapi.js';
 
-export interface PipelineStatus {
-  readonly id: string;
-  readonly projectId: string;
-  readonly uploadId: string;
-  readonly currentStep: string | null;
-  readonly status: string | null;
-  readonly progress: number;
-  readonly errorCode: string | null;
-  readonly errorMessage: string | null;
-  readonly startedAt: string | null;
-  readonly finishedAt: string | null;
-}
+export type PipelineStatus = components['schemas']['PipelineStatusDto'];
 
 export interface PipelineResponse {
   readonly data: PipelineStatus;

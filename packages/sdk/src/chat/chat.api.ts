@@ -1,34 +1,21 @@
 import type { ApiClient } from '../client/api-client.js';
 import type { components } from '../generated/openapi.js';
 
-export interface ChatSession {
-  readonly id: string;
-  readonly title: string;
-  readonly updatedAt: string;
-  readonly messagesCount: number;
-}
-export interface ChatListResponse {
-  readonly data: readonly ChatSession[];
-  readonly meta: { page: number; limit: number; total: number };
-}
-
-export interface ChatMessage {
-  readonly id: string;
-  readonly role: 'USER' | 'ASSISTANT' | 'SYSTEM';
-  readonly content: string;
-  readonly tokens: number;
-  readonly createdAt: string;
-}
+export type ChatSession = components['schemas']['ChatSessionResponseDto'];
+export type ChatListResponse = components['schemas']['ChatSessionListResponseDto'];
+export type ChatMessage = components['schemas']['ChatMessageResponseDto'];
+export type ChatMessageListResponse = components['schemas']['ChatMessageListResponseDto'];
+export type CreateChatRequest = components['schemas']['CreateChatDto'];
 
 export type ChatMessageRequest = components['schemas']['SendMessageDto'];
 
-export type ChatMessageResponse = ChatMessage;
+export type ChatMessageResponse = components['schemas']['ChatMessageResponseDto'];
 
 export class ChatAPI {
   constructor(private readonly client: ApiClient) {}
 
   create(projectId: string, title?: string): Promise<ChatSession> {
-    return this.client.post<ChatSession, { title?: string }>(`/projects/${projectId}/chat`, {
+    return this.client.post<ChatSession, CreateChatRequest>(`/projects/${projectId}/chat`, {
       title,
     });
   }
@@ -36,10 +23,8 @@ export class ChatAPI {
   list(projectId: string, signal?: AbortSignal): Promise<ChatListResponse> {
     return this.client.get<ChatListResponse>(`/projects/${projectId}/chat`, { signal });
   }
-  getMessages(sessionId: string, signal?: AbortSignal): Promise<{ data: readonly ChatMessage[] }> {
-    return this.client.get<{ data: readonly ChatMessage[] }>(`/chat/${sessionId}/messages`, {
-      signal,
-    });
+  getMessages(sessionId: string, signal?: AbortSignal): Promise<ChatMessageListResponse> {
+    return this.client.get<ChatMessageListResponse>(`/chat/${sessionId}/messages`, { signal });
   }
 
   sendMessage(sessionId: string, payload: ChatMessageRequest): Promise<ChatMessageResponse> {

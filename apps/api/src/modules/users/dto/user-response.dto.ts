@@ -11,7 +11,11 @@ export class UserResponseDto {
   @ApiProperty({ example: 'Developer' })
   displayName!: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.reviewsha.local/avatars/user.png', nullable: true })
+  @ApiPropertyOptional({
+    type: String,
+    example: 'https://cdn.reviewsha.local/avatars/user.png',
+    nullable: true,
+  })
   avatarUrl!: string | null;
 
   @ApiProperty({ enum: Role, example: Role.USER })

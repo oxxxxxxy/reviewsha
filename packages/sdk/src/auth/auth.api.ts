@@ -1,15 +1,22 @@
 import type { ApiClient } from '../client/api-client.js';
 import type { components } from '../generated/openapi.js';
-import type { User } from '@reviewsha/types';
+import type { Role } from '@reviewsha/types';
 
 /** Request contracts are derived from the canonical OpenAPI artifact. */
 export type LoginRequest = components['schemas']['LoginDto'];
 
-export interface LoginResponse {
-  readonly user: User;
-  readonly accessToken: string;
-  readonly refreshToken: string;
-}
+/** Generated user fields with the shared domain Role enum at the app boundary. */
+export type ApiUser = Omit<
+  components['schemas']['UserResponseDto'],
+  'role' | 'displayName' | 'isActive'
+> & {
+  role: Role;
+  displayName?: string;
+  isActive?: boolean;
+};
+export type LoginResponse = Omit<components['schemas']['AuthResponseDto'], 'user'> & {
+  user: ApiUser;
+};
 
 export type RegisterRequest = components['schemas']['RegisterDto'];
 
@@ -18,10 +25,7 @@ export interface UpdateProfileRequest {
   readonly avatarUrl?: string | null;
 }
 
-export interface ChangePasswordRequest {
-  readonly currentPassword: string;
-  readonly newPassword: string;
-}
+export type ChangePasswordRequest = components['schemas']['ChangePasswordDto'];
 
 export class AuthAPI {
   constructor(private readonly client: ApiClient) {}
@@ -40,12 +44,12 @@ export class AuthAPI {
     });
   }
 
-  me(): Promise<User> {
-    return this.client.get<User>('/auth/me');
+  me(): Promise<ApiUser> {
+    return this.client.get<ApiUser>('/auth/me');
   }
 
-  updateMe(payload: UpdateProfileRequest): Promise<User> {
-    return this.client.patch<User, UpdateProfileRequest>('/auth/me', payload);
+  updateMe(payload: UpdateProfileRequest): Promise<ApiUser> {
+    return this.client.patch<ApiUser, UpdateProfileRequest>('/auth/me', payload);
   }
 
   changePassword(payload: ChangePasswordRequest): Promise<void> {

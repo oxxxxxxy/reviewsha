@@ -850,7 +850,7 @@ export interface components {
             /** @example Developer */
             displayName: string;
             /** @example https://cdn.reviewsha.local/avatars/user.png */
-            avatarUrl?: Record<string, never> | null;
+            avatarUrl?: string | null;
             /**
              * @example USER
              * @enum {string}

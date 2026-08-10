@@ -205,6 +205,9 @@ manual QA из разделов ниже.
 - Project create/update request contracts теперь выводят поля из generated
   OpenAPI schemas; nullable description/language в OpenAPI исправлены на `string`.
 - Chat message request contract также выведен из generated `SendMessageDto`.
+- Chat session/message, auth response/change-password и pipeline status
+  contracts теперь также используют generated OpenAPI schemas; user response
+  metadata явно фиксирует строковый `avatarUrl`.
 - Report issue/detail/list contracts теперь используют generated OpenAPI
   schemas; report pagination metadata and nullable fields are explicitly
   documented in the backend DTO.
