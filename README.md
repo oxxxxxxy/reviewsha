@@ -43,6 +43,7 @@ AI SaaS platform for automated code review.
 | 12.1 Core Application              | ✅ COMPLETE    | Shared UI Kit/tokens, protected Web auth, refresh/logout flow, real API Dashboard and responsive application layout        |
 | 12.2 User Features                 | 🟡 IN PROGRESS | Projects, ZIP versions, analysis start/status, report details/exports/compare, project chat streaming and Settings API     |
 | 13.1 Admin Core                    | 🟡 IN PROGRESS | Admin RBAC boundary, real overview/AI metrics, queue monitoring API, retry/remove operations and Admin Dashboard/Queues UI |
+| 14.1 OpenAPI & SDK                 | 🟡 IN PROGRESS | Canonical OpenAPI generation/validation is now checked locally and in CI; SDK generation/drift migration remains next      |
 
 Текущий статус:
 
