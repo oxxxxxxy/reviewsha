@@ -859,7 +859,9 @@ tokens or costs from raw records in the browser.
 `GET /admin/logs` provides paginated, server-side `level`, `service` and
 `search` filters over persisted masked `AdminLog` records. Statistics accepts
 optional ISO-8601 `from` and `to` query parameters and aggregates the selected
-period in the backend.
+period in the backend. `GET /admin/logs/:id` provides a masked detail view with
+request/trace identifiers and a stack trace when available; secrets are never
+returned by the Admin log projection.
 
 Admin detail reads use the existing ownership-aware `GET /users/:id` and
 `GET /projects/:id` resources; the `ADMIN` role is enforced by the backend.

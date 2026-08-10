@@ -677,6 +677,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a masked system log entry */
+        get: operations["Admin_log"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/queues/{queueName}/jobs": {
         parameters: {
             query?: never;
@@ -3644,6 +3661,8 @@ export interface operations {
                 level?: string;
                 service?: string;
                 search?: string;
+                from?: string;
+                to?: string;
             };
             header?: never;
             path?: never;
@@ -3657,6 +3676,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminLogsResponseDto"];
+                };
+            };
+        };
+    };
+    Admin_log: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminLogResponseDto"];
                 };
             };
         };

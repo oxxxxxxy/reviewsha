@@ -6,6 +6,7 @@ import { AIPage } from '../pages/AI/AIPage';
 import { DashboardPage } from '../pages/Dashboard/DashboardPage';
 import { LoginPage } from '../pages/Login/LoginPage';
 import { LogsPage } from '../pages/Logs/LogsPage';
+import { LogDetailsPage } from '../pages/Logs/LogDetailsPage';
 import { NotFoundPage } from '../pages/NotFound/NotFoundPage';
 import { ProjectsPage } from '../pages/Projects/ProjectsPage';
 import { QueuesPage } from '../pages/Queues/QueuesPage';
@@ -28,6 +29,7 @@ export const adminRoutes = [
   '/queues/:queueName',
   '/ai',
   '/logs',
+  '/logs/:id',
   '/settings',
   '/statistics',
 ] as const;
@@ -51,6 +53,7 @@ export function AdminRouter() {
           <Route path="/queues/:queueName" element={<QueueDetailsPage />} />
           <Route path="/ai" element={<AIPage />} />
           <Route path="/logs" element={<LogsPage />} />
+          <Route path="/logs/:id" element={<LogDetailsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/statistics" element={<StatisticsPage />} />
         </Route>

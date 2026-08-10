@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/auth/decorators/roles.decorator';
 import { ADMIN_ROLES } from '../../common/authorization/roles/role.constants';
@@ -10,6 +10,7 @@ import {
   AdminJobsQueryDto,
   AdminJobsResponseDto,
   AdminLogsQueryDto,
+  AdminLogResponseDto,
   AdminLogsResponseDto,
   AdminOverviewResponseDto,
   AdminStatisticsResponseDto,
@@ -64,6 +65,13 @@ export class AdminController {
   @ApiOkResponse({ type: AdminLogsResponseDto })
   logs(@Query() query: AdminLogsQueryDto) {
     return this.admin.logs(query);
+  }
+
+  @Get('logs/:id')
+  @ApiOperation({ summary: 'Get a masked system log entry' })
+  @ApiOkResponse({ type: AdminLogResponseDto })
+  log(@Param('id', ParseUUIDPipe) id: string) {
+    return this.admin.log(id);
   }
 
   @Get('queues/:queueName/jobs')

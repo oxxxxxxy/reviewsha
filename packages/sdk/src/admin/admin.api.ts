@@ -63,11 +63,17 @@ export class AdminAPI {
     level?: string;
     service?: string;
     search?: string;
+    from?: string;
+    to?: string;
   }): Promise<{
     items: readonly AdminLog[];
     meta: { page: number; limit: number; total: number; pages: number };
   }> {
     return this.client.get('/admin/logs', { params });
+  }
+
+  log(id: string): Promise<AdminLog> {
+    return this.client.get<AdminLog>(`/admin/logs/${id}`);
   }
 
   queueJobs(

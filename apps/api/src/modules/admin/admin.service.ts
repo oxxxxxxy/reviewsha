@@ -138,6 +138,8 @@ export class AdminService {
     level?: string;
     service?: string;
     search?: string;
+    from?: string;
+    to?: string;
   }) {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(100, Math.max(1, params.limit ?? 20));
@@ -150,6 +152,14 @@ export class AdminService {
               { message: { contains: params.search, mode: 'insensitive' as const } },
               { context: { contains: params.search, mode: 'insensitive' as const } },
             ],
+          }
+        : {}),
+      ...(params.from || params.to
+        ? {
+            createdAt: {
+              ...(params.from ? { gte: new Date(params.from) } : {}),
+              ...(params.to ? { lte: new Date(params.to) } : {}),
+            },
           }
         : {}),
     };
@@ -174,6 +184,25 @@ export class AdminService {
       this.prisma.adminLog.count({ where }),
     ]);
     return { items, meta: { page, limit, total, pages: Math.ceil(total / limit) } };
+  }
+
+  async log(id: string) {
+    const item = await this.prisma.adminLog.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        level: true,
+        service: true,
+        context: true,
+        message: true,
+        requestId: true,
+        traceId: true,
+        stack: true,
+        createdAt: true,
+      },
+    });
+    if (!item) throw new NotFoundException('Log entry not found');
+    return item;
   }
 
   async queueJobs(
