@@ -191,6 +191,7 @@
   они используются приложениями.
 - Project create/update request contracts теперь выводят поля из generated
   OpenAPI schemas; nullable description/language в OpenAPI исправлены на `string`.
+- Chat message request contract также выведен из generated `SendMessageDto`.
 
 ### Что доработать
 

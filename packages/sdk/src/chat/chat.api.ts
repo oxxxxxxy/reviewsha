@@ -1,4 +1,5 @@
 import type { ApiClient } from '../client/api-client.js';
+import type { components } from '../generated/openapi.js';
 
 export interface ChatSession {
   readonly id: string;
@@ -19,10 +20,7 @@ export interface ChatMessage {
   readonly createdAt: string;
 }
 
-export interface ChatMessageRequest {
-  readonly message: string;
-  readonly idempotencyKey?: string;
-}
+export type ChatMessageRequest = components['schemas']['SendMessageDto'];
 
 export type ChatMessageResponse = ChatMessage;
 
