@@ -770,7 +770,7 @@ Worker ChatProcessor
 
 ↓
 
-Existing AIService / OmniRouter / DeepSeek
+AIService.stream → OmniRouterProvider SSE / DeepSeek
 
 ↓
 
@@ -778,7 +778,7 @@ ChatMessage (PostgreSQL)
 
 ↓
 
-Response polling with timeout
+Redis stream broker + cancel signal
 
 ↓
 

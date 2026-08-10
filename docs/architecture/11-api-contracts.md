@@ -604,6 +604,11 @@ Response:
 `POST /chat/:sessionId/stream`, response `text/event-stream`; события `token`, `complete`, `error`.
 История дополнительно принимает `search`, `before`, `after`, `sort=asc|desc`.
 
+Streaming проходит через Redis broker между API и Worker: API создаёт stream subscription,
+Worker передаёт chunks из `AIProvider.stream`, а `OmniRouterProvider` читает upstream SSE.
+Disconnect публикует cancel control event. `complete` отправляется только после сохранения
+assistant message и `ChatUsage`; partial/error response не помечается завершённым.
+
 ---
 
 # 13. Admin API

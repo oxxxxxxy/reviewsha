@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { AIProvider, AIResponse } from '../providers/ai-provider.interface';
+import type { AIProvider, AIResponse, AIStreamChunk } from '../providers/ai-provider.interface';
 import type { LLMRequest, AIReviewResult } from '../types/ai.types';
 import { AIResponseValidator } from './ai-response.validator';
 
@@ -41,11 +41,37 @@ export class AIService {
     }
   }
 
-  stream(request: LLMRequest): AsyncIterable<AIResponse> {
-    const generate = async function* (service: AIService) {
-      yield await service.generate(request);
-    };
-    return generate(this);
+  async *stream(request: LLMRequest, signal?: AbortSignal): AsyncIterable<AIStreamChunk> {
+    await this.acquire();
+    try {
+      const attempts = this.config?.get<number>('worker.aiRetryAttempts', 3) ?? 3;
+      const initialDelay = this.config?.get<number>('worker.aiRetryDelayMs', 1000) ?? 1000;
+      let lastError: unknown;
+      let emitted = false;
+      for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        try {
+          if (this.provider.stream) {
+            for await (const chunk of this.provider.stream(request, signal)) {
+              if (chunk.content) emitted = true;
+              yield chunk;
+            }
+          } else {
+            const response = await this.provider.generate(request);
+            yield response;
+          }
+          return;
+        } catch (error) {
+          lastError = error;
+          if (signal?.aborted || emitted || !this.isRetryable(error) || attempt === attempts) {
+            throw error;
+          }
+          await this.delay(initialDelay * 2 ** (attempt - 1));
+        }
+      }
+      throw lastError;
+    } finally {
+      this.release();
+    }
   }
 
   validateResponse(response: AIResponse): AIReviewResult {

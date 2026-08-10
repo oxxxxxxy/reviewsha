@@ -59,8 +59,61 @@ export class ChatService {
   }
 
   async send(user: AuthenticatedUser, sessionId: string, dto: SendMessageDto) {
-    const session = await this.sessions.requireOwned(user, sessionId);
     const message = dto.message.trim();
+    const { requestId } = await this.enqueue(user, sessionId, message);
+    this.logger.log(
+      `Chat request started sessionId=${sessionId} jobId=${requestId}`,
+      'ChatService',
+    );
+    const response = await this.waitForResponse(requestId);
+    await this.repository.touchSession(sessionId);
+    await this.memory.update(sessionId, message, response.content);
+    this.logger.log(
+      `Chat response received sessionId=${sessionId} tokens=${response.tokens}`,
+      'ChatService',
+    );
+    return {
+      id: response.id,
+      role: response.role,
+      content: response.content,
+      tokens: response.tokens,
+      createdAt: response.createdAt,
+    };
+  }
+
+  async startStream(
+    user: AuthenticatedUser,
+    sessionId: string,
+    dto: SendMessageDto,
+    streamId: string,
+  ) {
+    const message = dto.message.trim();
+    const { requestId } = await this.enqueue(user, sessionId, message, streamId);
+    this.logger.log(
+      `Chat streaming request started sessionId=${sessionId} jobId=${requestId} streamId=${streamId}`,
+      'ChatService',
+    );
+    return { requestId };
+  }
+
+  async finishStream(
+    user: AuthenticatedUser,
+    sessionId: string,
+    question: string,
+    response: string,
+  ): Promise<void> {
+    await this.sessions.requireOwned(user, sessionId);
+    await this.repository.touchSession(sessionId);
+    await this.memory.update(sessionId, question, response);
+  }
+
+  private async enqueue(
+    user: AuthenticatedUser,
+    sessionId: string,
+    message: string,
+    streamId?: string,
+  ): Promise<{ requestId: string }> {
+    const session = await this.sessions.requireOwned(user, sessionId);
     const maxLength = this.config.get<number>('chat.messageMaxLength', 4000);
     if (!message || message.length > maxLength) {
       throw new BadRequestException('Chat message length is invalid');
@@ -89,25 +142,9 @@ export class ChatService {
       summary: session.summary ?? null,
       activeTopic: session.activeTopic ?? null,
       message: this.secrets.redact(message),
+      ...(streamId ? { streamId } : {}),
     });
-    this.logger.log(
-      `Chat request started sessionId=${sessionId} jobId=${queued.id}`,
-      'ChatService',
-    );
-    const response = await this.waitForResponse(queued.id);
-    await this.repository.touchSession(sessionId);
-    await this.memory.update(sessionId, message, response.content);
-    this.logger.log(
-      `Chat response received sessionId=${sessionId} tokens=${response.tokens}`,
-      'ChatService',
-    );
-    return {
-      id: response.id,
-      role: response.role,
-      content: response.content,
-      tokens: response.tokens,
-      createdAt: response.createdAt,
-    };
+    return { requestId: queued.id };
   }
 
   private async waitForResponse(requestId: string) {

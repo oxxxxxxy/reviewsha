@@ -33,6 +33,8 @@ import { CleanupProcessor } from './processors/cleanup.processor';
 import { DownloadProcessor } from './processors/download.processor';
 import { PipelineStateService } from './services/pipeline-state.service';
 import { ChatProcessor } from './processors/chat.processor';
+import { ChatStreamControlService } from './processors/chat-stream-control.service';
+import { ChatStreamPublisherService } from './processors/chat-stream-publisher.service';
 
 @Module({
   imports: [WorkerConfigModule, QueueModule, AIModule, ReportingModule],
@@ -58,6 +60,8 @@ import { ChatProcessor } from './processors/chat.processor';
     ReportProcessor,
     NotifyProcessor,
     ChatProcessor,
+    ChatStreamControlService,
+    ChatStreamPublisherService,
     ProcessorRegistry,
     WorkerHealthService,
     ScanWorker,

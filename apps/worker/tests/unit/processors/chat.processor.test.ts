@@ -19,13 +19,21 @@ describe('ChatProcessor', () => {
     chatMessage: { findFirst: vi.fn(), upsert: vi.fn() },
     chatUsage: { upsert: vi.fn() },
   };
-  const ai = { generate: vi.fn() };
+  const ai = { generate: vi.fn(), stream: vi.fn() };
+  const streamControl = { listen: vi.fn() };
+  const streamPublisher = { publish: vi.fn() };
   const logger = { log: vi.fn() };
   let processor: ChatProcessor;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    processor = new ChatProcessor(db as never, ai as never, logger as never);
+    processor = new ChatProcessor(
+      db as never,
+      ai as never,
+      logger as never,
+      streamControl as never,
+      streamPublisher as never,
+    );
     db.chatSession.findFirst.mockResolvedValue({ id: 'session-1' });
     db.chatSession.update.mockResolvedValue({});
     db.chatMessage.findFirst.mockResolvedValue({ id: 'message-1' });
@@ -38,6 +46,7 @@ describe('ChatProcessor', () => {
       completionTokens: 3,
       totalTokens: 13,
     });
+    streamControl.listen.mockResolvedValue(vi.fn(async () => undefined));
   });
 
   const job = (value: unknown = payload) => ({
@@ -119,5 +128,33 @@ describe('ChatProcessor', () => {
   it('does not log prompt content', async () => {
     await processor.execute(job() as never);
     expect(JSON.stringify(logger.log.mock.calls)).not.toContain('Why JWT?');
+  });
+
+  it('publishes provider chunks and only completes after persistence', async () => {
+    ai.stream.mockImplementation(async function* () {
+      yield { content: 'AI ', model: 'deepseek-v4-flash-free' };
+      yield {
+        content: 'answer',
+        model: 'deepseek-v4-flash-free',
+        promptTokens: 10,
+        completionTokens: 3,
+        totalTokens: 13,
+      };
+      yield { model: 'deepseek-v4-flash-free', done: true };
+    });
+    await processor.execute(job({ ...payload, streamId: 'stream-1' }) as never);
+    expect(ai.stream).toHaveBeenCalledOnce();
+    expect(streamPublisher.publish).toHaveBeenCalledWith('stream-1', {
+      type: 'token',
+      token: 'AI ',
+    });
+    expect(streamPublisher.publish).toHaveBeenLastCalledWith('stream-1', {
+      type: 'complete',
+      messageId: 'answer-1',
+      tokens: 13,
+    });
+    expect(db.chatMessage.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ create: expect.objectContaining({ content: 'AI answer' }) }),
+    );
   });
 });

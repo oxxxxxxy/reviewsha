@@ -16,6 +16,10 @@
 ## Streaming
 
 `POST /api/v1/chat/:sessionId/stream`, `text/event-stream`. События: `token`, `complete`, `error`.
-Закрытие соединения прекращает выдачу. Сообщение и `ChatUsage` сохраняются в PostgreSQL.
+API подписывается на Redis stream channel, а Worker публикует provider chunks после
+`AIService.stream()`. OmniRouterProvider читает OpenAI-compatible SSE напрямую, поэтому
+ответ не буферизуется в API. При закрытии соединения API отправляет cancel signal Worker;
+upstream request отменяется через `AbortSignal`. Сообщение и `ChatUsage` сохраняются в
+PostgreSQL только после завершения генерации.
 
 История поддерживает `page`, `limit`, `search`, `before`, `after`, `sort`.

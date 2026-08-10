@@ -12,7 +12,7 @@
 | Этап | Статус | Ключевой результат |
 | --- | --- | --- |
 | 11.1 Chat Module | PARTIAL | Conversation/message lifecycle, ownership, history, memory и API реализованы; полный acceptance QA не закрыт. |
-| 11.2 AI Context & Streaming | PARTIAL | Context, memory, cache и SSE есть; backend пока выдаёт готовый ответ порциями, а не передаёт токены провайдера напрямую. |
+| 11.2 AI Context & Streaming | PARTIAL | Provider-to-Worker-to-API streaming реализован через OmniRouter SSE и Redis broker; real end-to-end/disconnect QA ещё не закрыты. |
 | 12.1 Core Application | FUNCTIONAL / QA PARTIAL | UI Kit, auth, protected routes и Dashboard работают через реальный API; не закрыты требуемые объёмы тестов и ручной QA. |
 | 12.2 User Features | PARTIAL | Projects, upload, analysis, reports, chat и settings подключены; отсутствует полный пользовательский E2E и часть UX/API coverage. |
 | 13.1 Admin Core | PARTIAL | Отдельный Admin, RBAC, users/projects, overview и queue core есть; security matrix и полный E2E не закрыты. |
@@ -56,23 +56,20 @@
 - Реальный локальный OmniRoute установлен в root через Yarn и запущен на
   `http://localhost:20128`; API `/v1/models` и DeepSeek SSE проверены.
 
-### Критический незакрытый пункт
+### Реализованный streaming path
 
-Текущий Chat streaming получает полный ответ AI, затем разбивает его на слова
-и отправляет их через SSE. `AIService.stream()` не прокидывает provider stream,
-а `OmniRouterProvider` не имеет streaming-метода. Поэтому это ещё не настоящий
-provider-to-worker-to-API token streaming.
+1. `AIProvider.stream()` и `AIService.stream()` передают async iterable chunks.
+2. `OmniRouterProvider` читает `text/event-stream`, `[DONE]` и usage.
+3. Worker публикует chunks через Redis broker, API передаёт их SSE-клиенту.
+4. Assistant message/usage сохраняются до `complete` event.
+5. Disconnect публикует cancel control event и передаёт AbortSignal upstream.
 
-### План доработки
+### Что ещё проверить до COMPLETE
 
-1. Добавить `stream()` в общий `AIProvider` contract.
-2. Реализовать чтение `text/event-stream` в `OmniRouterProvider` с обработкой
-   `data:` chunks, `[DONE]`, usage и provider errors.
-3. Передать async iterable из Worker processor в Chat streaming transport без
-   предварительной сборки полного ответа.
-4. Сохранять accumulated partial response по выбранной политике при disconnect.
-5. Передавать AbortSignal до provider request и отменять upstream при disconnect.
-6. Добавить real-provider integration tests и E2E streaming/disconnect/retry tests.
+1. Real API → Redis → Worker → API → browser E2E с работающими PostgreSQL/Redis.
+2. Disconnect во время provider response и отсутствие зависших jobs/connections.
+3. Retry/error policy после partial chunks и восстановление истории.
+4. Contract/OpenAPI и manual QA для streaming на desktop/mobile.
 
 ## 12.1 Core Application
 

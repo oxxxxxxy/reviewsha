@@ -193,6 +193,47 @@ describe('OmniRouterProvider HTTP contract', () => {
     );
     vi.unstubAllGlobals();
   });
+
+  it('forwards OpenAI-compatible SSE chunks without buffering the response', async () => {
+    const encoder = new TextEncoder();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode(
+            'data: {"model":"deepseek-v4-flash-free","choices":[{"delta":{"content":"Hello "}}]}\n\n',
+          ),
+        );
+        controller.enqueue(
+          encoder.encode(
+            'data: {"choices":[{"delta":{"content":"world"}}]}\n\n' +
+              'data: {"choices":[],"usage":{"prompt_tokens":2,"completion_tokens":2,"total_tokens":4}}\n\n' +
+              'data: [DONE]\n\n',
+          ),
+        );
+        controller.close();
+      },
+    });
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, body }));
+    const config = new ConfigService({
+      worker: {
+        aiApiKey: 'secret-key',
+        aiBaseUrl: 'https://router.test/v1',
+        aiModel: 'deepseek-v4-flash-free',
+        aiTimeoutMs: 100,
+      },
+    });
+    const chunks = [];
+    for await (const chunk of new OmniRouterProvider(config).stream(request)) chunks.push(chunk);
+    expect(chunks.map((chunk) => chunk.content).join('')).toBe('Hello world');
+    expect(chunks.at(-1)).toMatchObject({
+      model: 'deepseek-v4-flash-free',
+      promptTokens: 2,
+      completionTokens: 2,
+      totalTokens: 4,
+      done: true,
+    });
+    vi.unstubAllGlobals();
+  });
 });
 
 describe('SecretRedactorService', () => {

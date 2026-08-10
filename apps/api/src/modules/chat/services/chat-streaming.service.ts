@@ -1,7 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
 import type { SendMessageDto } from '../dto/send-message.dto';
 import { ChatService } from './chat.service';
+import { ChatStreamBrokerService } from './chat-stream-broker.service';
 
 export type ChatStreamEvent =
   | { event: 'token'; data: { token: string } }
@@ -9,7 +11,10 @@ export type ChatStreamEvent =
 
 @Injectable()
 export class ChatStreamingService {
-  constructor(@Inject(ChatService) private readonly chat: ChatService) {}
+  constructor(
+    @Inject(ChatService) private readonly chat: ChatService,
+    @Inject(ChatStreamBrokerService) private readonly broker: ChatStreamBrokerService,
+  ) {}
 
   async *stream(
     user: AuthenticatedUser,
@@ -17,16 +22,27 @@ export class ChatStreamingService {
     dto: SendMessageDto,
     signal?: AbortSignal,
   ): AsyncGenerator<ChatStreamEvent> {
-    const response = await this.chat.send(user, sessionId, dto);
-    for (const token of response.content.match(/\S+\s*/gu) ?? []) {
-      if (signal?.aborted) return;
-      yield { event: 'token', data: { token } };
-    }
-    if (!signal?.aborted) {
-      yield {
-        event: 'complete',
-        data: { messageId: response.id, tokens: response.tokens },
-      };
+    const streamId = randomUUID();
+    const subscription = await this.broker.open(streamId, signal);
+    let content = '';
+    try {
+      await this.chat.startStream(user, sessionId, dto, streamId);
+      for await (const item of subscription) {
+        if (item.type === 'token') {
+          content += item.token;
+          yield { event: 'token', data: { token: item.token } };
+        } else if (item.type === 'error') {
+          throw new Error(item.message);
+        } else {
+          await this.chat.finishStream(user, sessionId, dto.message.trim(), content);
+          yield {
+            event: 'complete',
+            data: { messageId: item.messageId, tokens: item.tokens },
+          };
+        }
+      }
+    } finally {
+      await subscription.cancel();
     }
   }
 }

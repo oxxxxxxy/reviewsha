@@ -10,6 +10,7 @@ import { ChatContextCacheService } from './services/chat-context-cache.service';
 import { ChatMemoryService } from './services/chat-memory.service';
 import { ConversationSummaryService } from './services/conversation-summary.service';
 import { ChatStreamingService } from './services/chat-streaming.service';
+import { ChatStreamBrokerService } from './services/chat-stream-broker.service';
 
 @Module({
   controllers: [ChatController],
@@ -23,6 +24,7 @@ import { ChatStreamingService } from './services/chat-streaming.service';
     ChatMemoryService,
     ConversationSummaryService,
     ChatStreamingService,
+    ChatStreamBrokerService,
     ChatSessionService,
   ],
   exports: [ChatService, ChatContextService, ChatSessionService],

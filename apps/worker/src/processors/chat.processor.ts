@@ -1,12 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { MessageRole } from '@prisma/client';
 import type { Job } from 'bullmq';
 
 import { AIService } from '../ai/services/ai.service';
+import type { AIResponse } from '../ai/providers/ai-provider.interface';
 import { WorkerLoggerService } from '../common/logger/worker-logger.service';
 import { WorkerDatabaseService } from '../database/worker-database.service';
 import type { QueueJobResult } from '../queue/queue.events';
 import type { JobHandler } from './job-handler.interface';
+import type { LLMRequest } from '../ai/types/ai.types';
+import { ChatStreamControlService } from './chat-stream-control.service';
+import { ChatStreamPublisherService } from './chat-stream-publisher.service';
 
 type ChatHistoryItem = { role: MessageRole; content: string };
 type ChatPayload = {
@@ -21,6 +25,7 @@ type ChatPayload = {
   summary: string | null;
   activeTopic: string | null;
   message: string;
+  streamId?: string;
 };
 
 @Injectable()
@@ -31,6 +36,8 @@ export class ChatProcessor implements JobHandler {
     private readonly db: WorkerDatabaseService,
     private readonly ai: AIService,
     private readonly logger: WorkerLoggerService,
+    @Optional() private readonly streamControl?: ChatStreamControlService,
+    @Optional() private readonly streamPublisher?: ChatStreamPublisherService,
   ) {}
 
   async execute(job: Job): Promise<QueueJobResult> {
@@ -57,13 +64,32 @@ export class ChatProcessor implements JobHandler {
     if (!userMessage) throw new Error('CHAT_USER_MESSAGE_NOT_FOUND');
 
     const startedAt = Date.now();
-    const response = await this.ai.generate({
+    const request: LLMRequest = {
       system: payload.system,
       prompt: this.prompt(payload),
       outputFormat: 'text',
       chunks: [],
       task: 'chat',
-    });
+    };
+    let response: AIResponse;
+    if (payload.streamId) {
+      if (!this.streamControl || !this.streamPublisher) throw new Error('CHAT_STREAM_UNAVAILABLE');
+      const controller = new AbortController();
+      const stopListening = await this.streamControl.listen(payload.streamId, controller);
+      try {
+        response = await this.generateStream(payload.streamId, request, controller.signal);
+      } catch (error) {
+        await this.streamPublisher.publish(payload.streamId, {
+          type: 'error',
+          message: error instanceof Error ? error.message : 'AI streaming failed',
+        });
+        throw error;
+      } finally {
+        await stopListening();
+      }
+    } else {
+      response = await this.ai.generate(request);
+    }
     const content = response.content.trim();
     if (!content) throw new Error('AI_EMPTY_CHAT_RESPONSE');
 
@@ -104,6 +130,14 @@ export class ChatProcessor implements JobHandler {
       where: { id: payload.sessionId },
       data: { updatedAt: new Date() },
     });
+    if (payload.streamId) {
+      if (!this.streamPublisher) throw new Error('CHAT_STREAM_UNAVAILABLE');
+      await this.streamPublisher.publish(payload.streamId, {
+        type: 'complete',
+        messageId: message.id,
+        tokens: response.totalTokens,
+      });
+    }
     this.logger.log(
       `Chat response completed sessionId=${payload.sessionId} model=${response.model} tokens=${response.totalTokens} durationMs=${Date.now() - startedAt}`,
       'ChatProcessor',
@@ -113,6 +147,37 @@ export class ChatProcessor implements JobHandler {
       queue: job.queueName,
       jobId: requestId,
       data: { messageId: message.id, tokens: response.totalTokens },
+    };
+  }
+
+  private async generateStream(
+    streamId: string,
+    request: LLMRequest,
+    signal: AbortSignal,
+  ): Promise<AIResponse> {
+    let content = '';
+    let model = 'unknown';
+    let promptTokens = 0;
+    let completionTokens = 0;
+    let totalTokens = 0;
+    for await (const chunk of this.ai.stream(request, signal)) {
+      if (chunk.model) model = chunk.model;
+      promptTokens = chunk.promptTokens ?? promptTokens;
+      completionTokens = chunk.completionTokens ?? completionTokens;
+      totalTokens = chunk.totalTokens ?? totalTokens;
+      if (chunk.content) {
+        content += chunk.content;
+        if (!this.streamPublisher) throw new Error('CHAT_STREAM_UNAVAILABLE');
+        await this.streamPublisher.publish(streamId, { type: 'token', token: chunk.content });
+      }
+    }
+    const outputTokens = completionTokens || Math.ceil(content.length / 4);
+    return {
+      content,
+      model,
+      promptTokens,
+      completionTokens: outputTokens,
+      totalTokens: totalTokens || promptTokens + outputTokens,
     };
   }
 
