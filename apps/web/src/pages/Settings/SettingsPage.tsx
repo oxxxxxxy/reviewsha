@@ -11,6 +11,13 @@ export function SettingsPage() {
   const [displayName, setDisplayName] = useState(user?.displayName ?? user?.name ?? '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [theme, setTheme] = useState(() => localStorage.getItem('reviewsha.theme') ?? 'system');
+  const [language, setLanguage] = useState(
+    () => localStorage.getItem('reviewsha.language') ?? 'en',
+  );
+  const [notifications, setNotifications] = useState(
+    () => localStorage.getItem('reviewsha.notifications') !== 'off',
+  );
   const update = useMutation({
     mutationFn: () => reviewshaSdk.auth.updateMe({ displayName: displayName.trim() }),
     onSuccess: (next) => {
@@ -25,6 +32,11 @@ export function SettingsPage() {
       setNewPassword('');
     },
   });
+  const savePreferences = () => {
+    localStorage.setItem('reviewsha.theme', theme);
+    localStorage.setItem('reviewsha.language', language);
+    localStorage.setItem('reviewsha.notifications', notifications ? 'on' : 'off');
+  };
   if (!user) return <Loader label="Loading profile" />;
   return (
     <section className="page">
@@ -69,6 +81,33 @@ export function SettingsPage() {
         </Button>
         {changePassword.isSuccess ? <p role="status">Password changed.</p> : null}
         {changePassword.isError ? <p role="alert">Unable to change password.</p> : null}
+      </section>
+      <section className="form" aria-label="Preferences">
+        <h2>Preferences</h2>
+        <label>
+          Theme
+          <select value={theme} onChange={(event) => setTheme(event.target.value)}>
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+        <label>
+          Language
+          <select value={language} onChange={(event) => setLanguage(event.target.value)}>
+            <option value="en">English</option>
+            <option value="ru">Русский</option>
+          </select>
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={notifications}
+            onChange={(event) => setNotifications(event.target.checked)}
+          />
+          Enable notifications
+        </label>
+        <Button onClick={savePreferences}>Save preferences</Button>
       </section>
     </section>
   );

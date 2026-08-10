@@ -101,6 +101,10 @@ Admin users and projects use the same server-side search/pagination boundary.
 Operational logs expose server-side search, level and service filters. These
 filters are query state and do not load the full collection into the browser.
 
+Settings separates server-backed profile/security mutations from local
+preferences. Theme, language and notification preferences are stored in the
+browser only until a backend preferences contract is introduced.
+
 ---
 
 # 4. Архитектура приложения

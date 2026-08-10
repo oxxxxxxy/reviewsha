@@ -1,6 +1,6 @@
 import { Button, Card, EmptyState, Loader } from '@reviewsha/ui';
 import { useQuery } from '@tanstack/react-query';
-import { useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { reviewshaSdk } from '../../api/client';
 
@@ -84,6 +84,7 @@ function ReportsList({ projectId }: { projectId?: string }) {
                 Compare
               </label>
               <h2>{report.summary || 'Analysis report'}</h2>
+              <Link to={`/reports/${report.id}`}>View details</Link>
               <p>Score: {report.score ?? '—'}</p>
               <Button variant="secondary" onClick={() => void download(report.id, 'pdf')}>
                 PDF
