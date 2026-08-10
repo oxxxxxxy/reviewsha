@@ -1,15 +1,19 @@
-import { Button, EmptyState, Loader, Table } from '@reviewsha/ui';
+import { Button, EmptyState, Loader, Select, Table } from '@reviewsha/ui';
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { adminSdk } from '../../api/client';
 
 export function QueueDetailsPage() {
   const { queueName } = useParams();
+  const [page, setPage] = useState(1);
+  const [state, setState] = useState('');
   const queryClient = useQueryClient();
   const jobs = useQuery({
     enabled: Boolean(queueName),
-    queryKey: ['admin', 'queue-jobs', queueName],
-    queryFn: () => adminSdk.admin.queueJobs(queueName!, { limit: 50 }),
+    queryKey: ['admin', 'queue-jobs', queueName, page, state],
+    queryFn: () =>
+      adminSdk.admin.queueJobs(queueName!, { page, limit: 20, ...(state ? { state } : {}) }),
     refetchInterval: 5000,
   });
   if (jobs.isLoading)
@@ -39,6 +43,23 @@ export function QueueDetailsPage() {
   return (
     <section className="page">
       <h1>{queueName}</h1>
+      <Select
+        label="Status"
+        value={state}
+        onChange={(event) => {
+          setState(event.target.value);
+          setPage(1);
+        }}
+        options={[
+          { value: '', label: 'All statuses' },
+          { value: 'waiting', label: 'Waiting' },
+          { value: 'active', label: 'Active' },
+          { value: 'completed', label: 'Completed' },
+          { value: 'failed', label: 'Failed' },
+          { value: 'delayed', label: 'Delayed' },
+          { value: 'paused', label: 'Paused' },
+        ]}
+      />
       {jobs.data.items.length ? (
         <Table
           rows={jobs.data.items}
@@ -67,6 +88,27 @@ export function QueueDetailsPage() {
       ) : (
         <EmptyState title="No jobs found" />
       )}
+      {jobs.data.meta.pages > 1 ? (
+        <nav aria-label="Queue jobs pagination">
+          <Button
+            variant="secondary"
+            disabled={page <= 1}
+            onClick={() => setPage((value) => value - 1)}
+          >
+            Previous
+          </Button>{' '}
+          <span>
+            Page {jobs.data.meta.page} of {jobs.data.meta.pages}
+          </span>{' '}
+          <Button
+            variant="secondary"
+            disabled={page >= jobs.data.meta.pages}
+            onClick={() => setPage((value) => value + 1)}
+          >
+            Next
+          </Button>
+        </nav>
+      ) : null}
     </section>
   );
 }

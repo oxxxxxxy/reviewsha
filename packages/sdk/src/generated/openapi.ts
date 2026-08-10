@@ -710,6 +710,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/queues/{queueName}/jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a safe queue job summary */
+        get: operations["Admin_job"];
+        put?: never;
+        post?: never;
+        delete: operations["Admin_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/queues/{queueName}/jobs/{jobId}/retry": {
         parameters: {
             query?: never;
@@ -721,22 +738,6 @@ export interface paths {
         put?: never;
         post: operations["Admin_retry"];
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/queues/{queueName}/jobs/{jobId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["Admin_remove"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3595,7 +3596,14 @@ export interface operations {
     };
     Admin_aiUsage: {
         parameters: {
-            query?: never;
+            query?: {
+                from?: string;
+                to?: string;
+                provider?: string;
+                model?: string;
+                userId?: string;
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3614,7 +3622,14 @@ export interface operations {
     };
     Admin_aiUsageBreakdown: {
         parameters: {
-            query?: never;
+            query?: {
+                from?: string;
+                to?: string;
+                provider?: string;
+                model?: string;
+                userId?: string;
+                projectId?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -3706,6 +3721,7 @@ export interface operations {
             query?: {
                 page?: number;
                 limit?: number;
+                state?: "waiting" | "active" | "completed" | "failed" | "delayed" | "paused";
             };
             header?: never;
             path: {
@@ -3722,6 +3738,48 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdminJobsResponseDto"];
                 };
+            };
+        };
+    };
+    Admin_job: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                queueName: string;
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminJobResponseDto"];
+                };
+            };
+        };
+    };
+    Admin_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                queueName: string;
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -3744,26 +3802,6 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdminActionResponseDto"];
                 };
-            };
-        };
-    };
-    Admin_remove: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                queueName: string;
-                jobId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
             };
         };
     };

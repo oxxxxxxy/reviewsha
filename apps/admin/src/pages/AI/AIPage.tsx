@@ -1,15 +1,26 @@
 import { Card, EmptyState, Loader, Table } from '@reviewsha/ui';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { adminSdk } from '../../api/client';
 
 export function AIPage() {
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [provider, setProvider] = useState('');
+  const [model, setModel] = useState('');
+  const params = {
+    ...(from ? { from: new Date(`${from}T00:00:00.000Z`).toISOString() } : {}),
+    ...(to ? { to: new Date(`${to}T23:59:59.999Z`).toISOString() } : {}),
+    ...(provider ? { provider } : {}),
+    ...(model ? { model } : {}),
+  };
   const usage = useQuery({
-    queryKey: ['admin', 'ai-usage'],
-    queryFn: () => adminSdk.admin.aiUsage(),
+    queryKey: ['admin', 'ai-usage', params],
+    queryFn: () => adminSdk.admin.aiUsage(params),
   });
   const breakdown = useQuery({
-    queryKey: ['admin', 'ai-usage', 'breakdown'],
-    queryFn: () => adminSdk.admin.aiUsageBreakdown(),
+    queryKey: ['admin', 'ai-usage', 'breakdown', params],
+    queryFn: () => adminSdk.admin.aiUsageBreakdown(params),
   });
   if (usage.isLoading)
     return (
@@ -29,6 +40,21 @@ export function AIPage() {
   return (
     <section className="page">
       <h1>AI</h1>
+      <fieldset className="filters">
+        <legend>Filters</legend>
+        <label>
+          From <input type="date" value={from} onChange={(event) => setFrom(event.target.value)} />
+        </label>{' '}
+        <label>
+          To <input type="date" value={to} onChange={(event) => setTo(event.target.value)} />
+        </label>{' '}
+        <label>
+          Provider <input value={provider} onChange={(event) => setProvider(event.target.value)} />
+        </label>{' '}
+        <label>
+          Model <input value={model} onChange={(event) => setModel(event.target.value)} />
+        </label>
+      </fieldset>
       <div className="project-list">
         <Card>
           <strong>Requests</strong>

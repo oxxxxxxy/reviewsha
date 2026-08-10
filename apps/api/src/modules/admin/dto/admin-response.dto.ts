@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDateString, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class AdminOverviewResponseDto {
   @ApiProperty({ example: 1248 }) users!: number;
@@ -37,6 +37,38 @@ export class AdminAiUsageResponseDto {
   @ApiProperty({ example: 12420 }) usageRecords!: number;
   @ApiProperty({ example: 3200000 }) tokens!: number;
   @ApiProperty({ example: 142 }) failures!: number;
+}
+
+export class AdminAiUsageQueryDto {
+  @ApiPropertyOptional({ format: 'date-time' })
+  @IsOptional()
+  @IsDateString()
+  from?: string;
+
+  @ApiPropertyOptional({ format: 'date-time' })
+  @IsOptional()
+  @IsDateString()
+  to?: string;
+
+  @ApiPropertyOptional({ example: 'opencode-zen' })
+  @IsOptional()
+  @IsString()
+  provider?: string;
+
+  @ApiPropertyOptional({ example: 'deepseek-v4-flash-free' })
+  @IsOptional()
+  @IsString()
+  model?: string;
+
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsString()
+  projectId?: string;
 }
 
 export class AdminAiUsageBreakdownItemDto {
@@ -155,6 +187,11 @@ export class AdminJobsQueryDto {
   @Min(1)
   @Max(100)
   limit = 20;
+
+  @ApiPropertyOptional({ enum: ['waiting', 'active', 'completed', 'failed', 'delayed', 'paused'] })
+  @IsOptional()
+  @IsIn(['waiting', 'active', 'completed', 'failed', 'delayed', 'paused'])
+  state?: string;
 }
 
 export class AdminJobResponseDto {

@@ -5,7 +5,9 @@ import { ADMIN_ROLES } from '../../common/authorization/roles/role.constants';
 import { AdminService } from './admin.service';
 import {
   AdminActionResponseDto,
+  AdminJobResponseDto,
   AdminAiUsageResponseDto,
+  AdminAiUsageQueryDto,
   AdminAiUsageBreakdownResponseDto,
   AdminJobsQueryDto,
   AdminJobsResponseDto,
@@ -42,15 +44,15 @@ export class AdminController {
   @Get('ai-usage')
   @ApiOperation({ summary: 'Get AI usage metrics' })
   @ApiOkResponse({ type: AdminAiUsageResponseDto })
-  aiUsage() {
-    return this.admin.aiUsage();
+  aiUsage(@Query() query: AdminAiUsageQueryDto) {
+    return this.admin.aiUsage(query);
   }
 
   @Get('ai-usage/breakdown')
   @ApiOperation({ summary: 'Get AI usage grouped by provider, user and project' })
   @ApiOkResponse({ type: AdminAiUsageBreakdownResponseDto })
-  aiUsageBreakdown() {
-    return this.admin.aiUsageBreakdown();
+  aiUsageBreakdown(@Query() query: AdminAiUsageQueryDto) {
+    return this.admin.aiUsageBreakdown(query);
   }
 
   @Get('statistics')
@@ -77,7 +79,14 @@ export class AdminController {
   @Get('queues/:queueName/jobs')
   @ApiOkResponse({ type: AdminJobsResponseDto })
   jobs(@Param('queueName') queueName: string, @Query() query: AdminJobsQueryDto) {
-    return this.admin.queueJobs(queueName, query.page, query.limit);
+    return this.admin.queueJobs(queueName, query.page, query.limit, query.state);
+  }
+
+  @Get('queues/:queueName/jobs/:jobId')
+  @ApiOperation({ summary: 'Get a safe queue job summary' })
+  @ApiOkResponse({ type: AdminJobResponseDto })
+  job(@Param('queueName') queueName: string, @Param('jobId') jobId: string) {
+    return this.admin.queueJob(queueName, jobId);
   }
 
   @Post('queues/:queueName/jobs/:jobId/retry')

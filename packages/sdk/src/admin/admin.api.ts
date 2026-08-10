@@ -45,12 +45,19 @@ export class AdminAPI {
     return this.client.get<Record<string, QueueMetrics>>('/admin/queues');
   }
 
-  aiUsage(): Promise<AdminAiUsage> {
-    return this.client.get<AdminAiUsage>('/admin/ai-usage');
+  aiUsage(params?: {
+    from?: string;
+    to?: string;
+    provider?: string;
+    model?: string;
+    userId?: string;
+    projectId?: string;
+  }): Promise<AdminAiUsage> {
+    return this.client.get<AdminAiUsage>('/admin/ai-usage', { params });
   }
 
-  aiUsageBreakdown(): Promise<AdminAiUsageBreakdown> {
-    return this.client.get<AdminAiUsageBreakdown>('/admin/ai-usage/breakdown');
+  aiUsageBreakdown(params?: Parameters<AdminAPI['aiUsage']>[0]): Promise<AdminAiUsageBreakdown> {
+    return this.client.get<AdminAiUsageBreakdown>('/admin/ai-usage/breakdown', { params });
   }
 
   statistics(params?: { from?: string; to?: string }): Promise<AdminStatistics> {
@@ -78,12 +85,16 @@ export class AdminAPI {
 
   queueJobs(
     queueName: string,
-    params?: { page?: number; limit?: number },
+    params?: { page?: number; limit?: number; state?: string },
   ): Promise<{
     items: readonly QueueJobSummary[];
     meta: { page: number; limit: number; total: number; pages: number };
   }> {
     return this.client.get(`/admin/queues/${queueName}/jobs`, { params });
+  }
+
+  queueJob(queueName: string, jobId: string): Promise<QueueJobSummary> {
+    return this.client.get(`/admin/queues/${queueName}/jobs/${jobId}`);
   }
 
   retryJob(queueName: string, jobId: string): Promise<{ ok: true }> {

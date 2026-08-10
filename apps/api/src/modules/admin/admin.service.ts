@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { QueueService, type QueueJobSummary, type QueueMetrics } from '../queue/queue.service';
-import { QUEUE_NAME_LIST, type QueueName } from '../queue/queue.constants';
+import { QUEUE_NAME_LIST, type QueueJobStatus, type QueueName } from '../queue/queue.constants';
 
 @Injectable()
 export class AdminService {
@@ -37,11 +37,41 @@ export class AdminService {
     return this.queues.getAllQueueMetrics();
   }
 
-  async aiUsage() {
+  async aiUsage(
+    params: {
+      from?: string;
+      to?: string;
+      provider?: string;
+      model?: string;
+      userId?: string;
+      projectId?: string;
+    } = {},
+  ) {
+    const createdAt = {
+      ...(params.from ? { gte: new Date(params.from) } : {}),
+      ...(params.to ? { lte: new Date(params.to) } : {}),
+    };
+    const requestWhere = {
+      ...(Object.keys(createdAt).length ? { createdAt } : {}),
+      ...(params.provider ? { provider: params.provider } : {}),
+      ...(params.model ? { model: params.model } : {}),
+      ...(params.userId ? { userId: params.userId } : {}),
+      ...(params.projectId ? { scan: { projectId: params.projectId } } : {}),
+    };
+    const usageWhere = {
+      ...(Object.keys(createdAt).length ? { createdAt } : {}),
+      ...(params.model ? { model: params.model } : {}),
+      ...(params.userId ? { userId: params.userId } : {}),
+      ...(params.projectId ? { projectId: params.projectId } : {}),
+    };
     const [usage, requests, failures] = await Promise.all([
-      this.prisma.aIUsage.aggregate({ _sum: { tokensUsed: true }, _count: { id: true } }),
-      this.prisma.aIRequest.count(),
-      this.prisma.aIRequest.count({ where: { status: 'FAILED' } }),
+      this.prisma.aIUsage.aggregate({
+        where: usageWhere,
+        _sum: { tokensUsed: true },
+        _count: { id: true },
+      }),
+      this.prisma.aIRequest.count({ where: requestWhere }),
+      this.prisma.aIRequest.count({ where: { ...requestWhere, status: 'FAILED' } }),
     ]);
     return {
       requests,
@@ -51,21 +81,41 @@ export class AdminService {
     };
   }
 
-  async aiUsageBreakdown() {
+  async aiUsageBreakdown(params: Parameters<AdminService['aiUsage']>[0] = {}) {
+    const createdAt = {
+      ...(params.from ? { gte: new Date(params.from) } : {}),
+      ...(params.to ? { lte: new Date(params.to) } : {}),
+    };
+    const requestWhere = {
+      ...(Object.keys(createdAt).length ? { createdAt } : {}),
+      ...(params.provider ? { provider: params.provider } : {}),
+      ...(params.model ? { model: params.model } : {}),
+      ...(params.userId ? { userId: params.userId } : {}),
+      ...(params.projectId ? { scan: { projectId: params.projectId } } : {}),
+    };
+    const usageWhere = {
+      ...(Object.keys(createdAt).length ? { createdAt } : {}),
+      ...(params.model ? { model: params.model } : {}),
+      ...(params.userId ? { userId: params.userId } : {}),
+      ...(params.projectId ? { projectId: params.projectId } : {}),
+    };
     const [providers, users, projects] = await Promise.all([
       this.prisma.aIRequest.groupBy({
         by: ['provider'],
+        where: requestWhere,
         _count: { id: true },
         _sum: { totalTokens: true, cost: true },
         orderBy: { _count: { id: 'desc' } },
       }),
       this.prisma.aIUsage.groupBy({
         by: ['userId'],
+        where: usageWhere,
         _sum: { tokensUsed: true, requestCount: true },
         orderBy: { _sum: { tokensUsed: 'desc' } },
       }),
       this.prisma.aIUsage.groupBy({
         by: ['projectId'],
+        where: usageWhere,
         _sum: { tokensUsed: true, requestCount: true },
         orderBy: { _sum: { tokensUsed: 'desc' } },
       }),
@@ -209,15 +259,37 @@ export class AdminService {
     queueName: string,
     page = 1,
     limit = 20,
+    state?: string,
   ): Promise<{
     items: QueueJobSummary[];
     meta: { page: number; limit: number; total: number; pages: number };
   }> {
     this.assertQueue(queueName);
-    const result = await this.queues.listJobs(queueName as QueueName, page, limit);
+    const result = await this.queues.listJobs(
+      queueName as QueueName,
+      page,
+      limit,
+      state as QueueJobStatus | undefined,
+    );
     return {
       ...result,
       meta: { page, limit, total: result.total, pages: Math.ceil(result.total / limit) },
+    };
+  }
+
+  async queueJob(queueName: string, jobId: string): Promise<QueueJobSummary> {
+    this.assertQueue(queueName);
+    const job = await this.queues.getJob(queueName as QueueName, jobId);
+    if (!job) throw new NotFoundException('Queue job not found');
+    return {
+      id: String(job.id),
+      name: job.name,
+      state: (await job.getState()) as QueueJobStatus,
+      attemptsMade: job.attemptsMade,
+      createdAt: new Date(job.timestamp).toISOString(),
+      ...(job.processedOn ? { processedOn: new Date(job.processedOn).toISOString() } : {}),
+      ...(job.finishedOn ? { finishedOn: new Date(job.finishedOn).toISOString() } : {}),
+      ...(job.failedReason ? { failedReason: job.failedReason } : {}),
     };
   }
 

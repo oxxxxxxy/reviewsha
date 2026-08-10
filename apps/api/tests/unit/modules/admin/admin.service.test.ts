@@ -43,10 +43,31 @@ describe('AdminService', () => {
 
   it('returns paginated queue jobs', async () => {
     queues.listJobs.mockResolvedValue({ items: [{ id: 'job-1' }], total: 41 });
-    await expect(service.queueJobs('ai.queue', 2, 20)).resolves.toEqual({
+    await expect(service.queueJobs('ai.queue', 2, 20, 'failed')).resolves.toEqual({
       items: [{ id: 'job-1' }],
       total: 41,
       meta: { page: 2, limit: 20, total: 41, pages: 3 },
+    });
+    expect(queues.listJobs).toHaveBeenCalledWith('ai.queue', 2, 20, 'failed');
+  });
+
+  it('returns a safe queue job summary without exposing payload data', async () => {
+    queues.getJob.mockResolvedValue({
+      id: 'job-1',
+      name: 'analyze',
+      timestamp: Date.parse('2026-08-10T10:00:00.000Z'),
+      attemptsMade: 2,
+      getState: vi.fn().mockResolvedValue('failed'),
+      failedReason: 'provider timeout',
+      data: { secret: 'must-not-leak' },
+    });
+    await expect(service.queueJob('ai.queue', 'job-1')).resolves.toEqual({
+      id: 'job-1',
+      name: 'analyze',
+      state: 'failed',
+      attemptsMade: 2,
+      createdAt: '2026-08-10T10:00:00.000Z',
+      failedReason: 'provider timeout',
     });
   });
 

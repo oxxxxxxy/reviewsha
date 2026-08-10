@@ -95,15 +95,15 @@ export class QueueService implements OnModuleDestroy {
     queueName: QueueName,
     page = 1,
     limit = 20,
+    state?: QueueJobStatus,
   ): Promise<{ items: QueueJobSummary[]; total: number }> {
     const queue = this.queues[queueName];
+    const states: QueueJobStatus[] = state
+      ? [state]
+      : ['waiting', 'active', 'completed', 'failed', 'delayed', 'paused'];
     const [jobs, counts] = await Promise.all([
-      queue.getJobs(
-        ['waiting', 'active', 'completed', 'failed', 'delayed', 'paused'],
-        (page - 1) * limit,
-        page * limit - 1,
-      ),
-      queue.getJobCounts('waiting', 'active', 'completed', 'failed', 'delayed', 'paused'),
+      queue.getJobs(states, (page - 1) * limit, page * limit - 1),
+      queue.getJobCounts(...states),
     ]);
     const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
     const items = await Promise.all(

@@ -141,20 +141,20 @@
 ### Уже сделано
 
 - Queue metrics, jobs pagination, retry/remove и polling.
+- Server-side queue state filtering and a safe job-details endpoint (job payloads are never returned).
 - Persisted `AdminLog` с masking чувствительных данных.
 - Server-side logs pagination, search, level/service/date filters и masked details.
-- AI usage summary и backend breakdown по provider/user/project.
+- AI usage summary and backend breakdown by provider/user/project with date/provider/model/user/project filters.
 - Statistics endpoint с date range и UI period selector.
 - Admin API contracts и OpenAPI response schemas обновляются.
 
 ### Что доработать
 
-1. Queue: failed-only filter, полноценная pagination UI, job details page и
-   backend health status `HEALTHY/DEGRADED/ERROR`.
+1. Queue: complete pagination UX, job details page and backend health status
+   `HEALTHY/DEGRADED/ERROR`.
 2. Queue destructive actions перевести с `window.confirm` на общий accessible Modal.
 3. Logs: level enum control, copy stack trace, полный details/error UX и QA.
-4. AI Usage: date/provider/model/user/project filters, failures table, latency,
-   retry count и provider/model details.
+4. AI Usage: failures table, latency, retry count and provider/model details.
 5. Statistics: processing-stage metrics, success rate, average duration,
    useful charts и text alternative для accessibility.
 6. Добавить требуемые unit/integration/E2E и security tests; проверить отсутствие
