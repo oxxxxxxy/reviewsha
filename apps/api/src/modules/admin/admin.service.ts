@@ -62,6 +62,50 @@ export class AdminService {
     return { users, projects, analyses, completedAnalyses, failedAnalyses };
   }
 
+  async logs(params: {
+    page?: number;
+    limit?: number;
+    level?: string;
+    service?: string;
+    search?: string;
+  }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
+    const where = {
+      ...(params.level ? { level: params.level } : {}),
+      ...(params.service ? { service: params.service } : {}),
+      ...(params.search
+        ? {
+            OR: [
+              { message: { contains: params.search, mode: 'insensitive' as const } },
+              { context: { contains: params.search, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}),
+    };
+    const [items, total] = await Promise.all([
+      this.prisma.adminLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: {
+          id: true,
+          level: true,
+          service: true,
+          context: true,
+          message: true,
+          requestId: true,
+          traceId: true,
+          stack: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.adminLog.count({ where }),
+    ]);
+    return { items, meta: { page, limit, total, pages: Math.ceil(total / limit) } };
+  }
+
   async queueJobs(
     queueName: string,
     page = 1,

@@ -3,11 +3,12 @@ import { Global, Module } from '@nestjs/common';
 import { ApiLoggerService } from '../common/logger/api-logger.service';
 import { AppConfigModule } from '../config/config.module';
 import { PrismaService } from './prisma.service';
+import { AdminLogSink } from './admin-log-sink';
 
 @Global()
 @Module({
   imports: [AppConfigModule],
-  providers: [ApiLoggerService, PrismaService],
+  providers: [AdminLogSink, ApiLoggerService, PrismaService],
   exports: [PrismaService],
 })
 export class DatabaseModule {}

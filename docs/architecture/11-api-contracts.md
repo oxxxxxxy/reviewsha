@@ -838,3 +838,6 @@ the generated SDK remains the next migration boundary for stage 14.1.
 Operational metrics are also available through the protected
 `GET /admin/ai-usage` and `GET /admin/statistics` endpoints. Aggregation is
 performed by the backend from persisted usage and analysis records.
+
+`GET /admin/logs` provides paginated, server-side `level`, `service` and
+`search` filters over persisted masked `AdminLog` records.

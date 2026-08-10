@@ -35,6 +35,18 @@ export class AdminController {
     return this.admin.statistics();
   }
 
+  @Get('logs')
+  @ApiOperation({ summary: 'Search paginated masked system logs' })
+  logs(
+    @Query('page', new ParseIntPipe({ optional: true })) page = 1,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit = 20,
+    @Query('level') level?: string,
+    @Query('service') service?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.admin.logs({ page, limit, level, service, search });
+  }
+
   @Get('queues/:queueName/jobs')
   jobs(
     @Param('queueName') queueName: string,

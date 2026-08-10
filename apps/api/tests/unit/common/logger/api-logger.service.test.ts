@@ -17,4 +17,11 @@ describe('ApiLoggerService', () => {
     expect(logger.warn).toBeInstanceOf(Function);
     expect(logger.error).toBeInstanceOf(Function);
   });
+
+  it('masks credential-like values before persistence', () => {
+    const logger = new ApiLoggerService();
+    expect(logger['mask']('token=secret-value password=hunter2')).toBe(
+      'token=[REDACTED] password=[REDACTED]',
+    );
+  });
 });

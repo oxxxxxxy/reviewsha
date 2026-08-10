@@ -1092,3 +1092,7 @@ shared SSE SDK transport and exposes cancellation and user-facing stream errors.
 the shared SDK. The backend exposes RBAC-protected overview, queue jobs,
 retry and remove operations; queue polling is limited to five seconds and the
 UI provides loading, empty and error states.
+
+Admin operational views now use the protected SDK-backed AI usage and masked
+logs endpoints. Logs are paginated and filtered server-side; the frontend does
+not receive credentials, tokens or provider secrets.

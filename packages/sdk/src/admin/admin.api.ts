@@ -47,6 +47,18 @@ export interface AdminStatistics {
   readonly failedAnalyses: number;
 }
 
+export interface AdminLog {
+  readonly id: string;
+  readonly level: string;
+  readonly service: string;
+  readonly context?: string | null;
+  readonly message: string;
+  readonly requestId?: string | null;
+  readonly traceId?: string | null;
+  readonly stack?: string | null;
+  readonly createdAt: string;
+}
+
 export interface AdminUserListResponse {
   readonly items: readonly User[];
   readonly meta: { page: number; limit: number; total: number; pages: number };
@@ -74,6 +86,19 @@ export class AdminAPI {
 
   statistics(): Promise<AdminStatistics> {
     return this.client.get<AdminStatistics>('/admin/statistics');
+  }
+
+  logs(params?: {
+    page?: number;
+    limit?: number;
+    level?: string;
+    service?: string;
+    search?: string;
+  }): Promise<{
+    items: readonly AdminLog[];
+    meta: { page: number; limit: number; total: number; pages: number };
+  }> {
+    return this.client.get('/admin/logs', { params });
   }
 
   queueJobs(

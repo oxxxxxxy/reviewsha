@@ -9,6 +9,7 @@ describe('AdminService', () => {
     report: { count: vi.fn() },
     aIUsage: { aggregate: vi.fn() },
     aIRequest: { count: vi.fn() },
+    adminLog: { findMany: vi.fn(), count: vi.fn() },
   };
   const queues = {
     getAllQueueMetrics: vi.fn(),
@@ -58,6 +59,20 @@ describe('AdminService', () => {
       tokens: 1200,
       failures: 2,
     });
+  });
+
+  it('searches paginated logs server-side', async () => {
+    prisma.adminLog.findMany.mockResolvedValue([{ id: 'log-1', message: 'timeout' }]);
+    prisma.adminLog.count.mockResolvedValue(1);
+    await expect(
+      service.logs({ search: 'timeout', level: 'ERROR', page: 2, limit: 10 }),
+    ).resolves.toEqual({
+      items: [{ id: 'log-1', message: 'timeout' }],
+      meta: { page: 2, limit: 10, total: 1, pages: 1 },
+    });
+    expect(prisma.adminLog.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 10, take: 10 }),
+    );
   });
 
   it('rejects unknown queues before touching BullMQ', async () => {
