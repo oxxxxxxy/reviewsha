@@ -78,6 +78,9 @@ GitHub Actions для `30cb570` завершился успешно:
 3. Worker публикует chunks через Redis broker, API передаёт их SSE-клиенту.
 4. Assistant message/usage сохраняются до `complete` event.
 5. Disconnect публикует cancel control event и передаёт AbortSignal upstream.
+6. Controller aborts the upstream stream on client connection close; this
+   lifecycle is covered by a unit test in addition to service cancellation
+   tests.
 6. Повторная отправка с одинаковым `idempotencyKey` переиспользует существующий
    chat job вместо создания второго пользовательского сообщения/job.
 
