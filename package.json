@@ -68,7 +68,7 @@
     "ci:stage9": "yarn test:stage9",
     "test:stage10": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/api vitest run --coverage=false && yarn workspace @reviewsha/worker vitest run tests/unit/reporting tests/unit/processors/ai-report.processors.test.ts --coverage=false && vitest run tests/stage10 --coverage=false",
     "ci:stage10": "yarn test:stage10",
-    "test:stage11": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/api vitest run tests/unit/modules/chat tests/integration/modules/chat --coverage=false && yarn workspace @reviewsha/worker vitest run tests/unit/processors/chat.processor.test.ts tests/unit/processors/processor.registry.test.ts --coverage=false",
+    "test:stage11": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/api vitest run tests/unit/modules/chat tests/integration/modules/chat --coverage=false && yarn workspace @reviewsha/api vitest run tests/integration/modules/chat/chat.security.integration.test.ts --coverage=false && yarn workspace @reviewsha/worker vitest run tests/unit/processors/chat.processor.test.ts tests/unit/processors/processor.registry.test.ts --coverage=false",
     "ci:stage11": "yarn test:stage11",
     "test:stage12": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/api vitest run tests/unit/modules/auth tests/unit/modules/pipeline tests/integration/modules/chat --coverage=false && yarn workspace @reviewsha/web test && yarn workspace @reviewsha/admin test",
     "ci:stage12": "yarn test:stage12",

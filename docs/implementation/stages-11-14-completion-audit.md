@@ -44,7 +44,9 @@ manual QA из разделов ниже.
 1. Добавить полноценный acceptance matrix для всех conversation/message endpoints:
    create, list, get, send, history, delete/archive, ownership и malformed history.
 2. Добавить backend security tests для каждого endpoint с чужими `userId`,
-   `conversationId` и `projectId`, включая IDOR-проверки через HTTP.
+   `conversationId` и `projectId`, включая IDOR-проверки через HTTP. HTTP
+   project ownership checks for create/list are now covered with the real
+   `OwnershipGuard`; conversation-level database-backed IDOR remains.
 3. Реализовать idempotency key и backend deduplication для повторной отправки
    одного сообщения; API принимает `idempotencyKey`, а Queue job получает
    детерминированный ID.
