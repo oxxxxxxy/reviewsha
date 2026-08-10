@@ -1,0 +1,229 @@
+# Этапы 11–14 — Implementation Completion Audit
+
+Дата сверки: 2026-08-10  
+Последний проверенный коммит до этого аудита: `1fb30fa`
+
+Этот файл является рабочей сверкой по требованиям планов этапов 11–14. Статус
+`PARTIAL` означает, что базовая функциональность есть, но критерий полного
+закрытия этапа ещё не выполнен.
+
+## Сводка
+
+| Этап | Статус | Ключевой результат |
+| --- | --- | --- |
+| 11.1 Chat Module | PARTIAL | Conversation/message lifecycle, ownership, history, memory и API реализованы; полный acceptance QA не закрыт. |
+| 11.2 AI Context & Streaming | PARTIAL | Context, memory, cache и SSE есть; backend пока выдаёт готовый ответ порциями, а не передаёт токены провайдера напрямую. |
+| 12.1 Core Application | FUNCTIONAL / QA PARTIAL | UI Kit, auth, protected routes и Dashboard работают через реальный API; не закрыты требуемые объёмы тестов и ручной QA. |
+| 12.2 User Features | PARTIAL | Projects, upload, analysis, reports, chat и settings подключены; отсутствует полный пользовательский E2E и часть UX/API coverage. |
+| 13.1 Admin Core | PARTIAL | Отдельный Admin, RBAC, users/projects, overview и queue core есть; security matrix и полный E2E не закрыты. |
+| 13.2 Administration | PARTIAL | Queues, masked logs, AI usage и date-filtered statistics есть; расширенные filters/details/charts/failure views не завершены. |
+| 14.1 OpenAPI & SDK | PARTIAL | OpenAPI генерируется/валидируется, generated types и drift check есть; runtime SDK и все DTO ещё не полностью generated/единые. |
+| 14.2 Frontend Integration | PARTIAL | Web/Admin используют общий SDK client, auth/refresh централизованы; миграция, cancellation/race/contract coverage и critical E2E не завершены. |
+
+## 11.1 Chat Module
+
+### Уже сделано
+
+- `ChatModule` подключён в API и отделён от Worker AI processing.
+- Реализованы conversation/session и user/assistant message lifecycle.
+- Conversation и messages защищены ownership-проверками.
+- Реализованы history pagination, search, `before` и `after` параметры.
+- Реализованы context builder, memory, summary/compression, Redis cache и secret filtering.
+- Chat использует общий AI provider abstraction, а не отдельный DeepSeek client.
+- Есть SSE endpoint, сохранение assistant message и usage metadata.
+- Unit/integration tests Chat Module проходят.
+
+### Что доработать до COMPLETE
+
+1. Добавить полноценный acceptance matrix для всех conversation/message endpoints:
+   create, list, get, send, history, delete/archive, ownership и malformed history.
+2. Добавить backend security tests для каждого endpoint с чужими `userId`,
+   `conversationId` и `projectId`, включая IDOR-проверки через HTTP.
+3. Добавить idempotency key или backend deduplication для повторной отправки
+   одного сообщения; одной блокировки кнопки на Frontend недостаточно.
+4. Добавить полные E2E и manual QA сценарии из плана 11.
+
+## 11.2 AI Context & Streaming
+
+### Уже сделано
+
+- Контекст включает проект, анализ, report/findings, связанные файлы и историю.
+- Приоритеты контекста и ограничения размера реализованы на backend.
+- Реализованы `ChatMemoryService`, `ConversationSummaryService` и context cache.
+- История имеет пагинацию/поиск и не отправляется в модель целиком.
+- SSE transport, final event, ошибки и token usage API существуют.
+- Prompt отделяет system instructions, user message и project content.
+- Реальный локальный OmniRoute установлен в root через Yarn и запущен на
+  `http://localhost:20128`; API `/v1/models` и DeepSeek SSE проверены.
+
+### Критический незакрытый пункт
+
+Текущий Chat streaming получает полный ответ AI, затем разбивает его на слова
+и отправляет их через SSE. `AIService.stream()` не прокидывает provider stream,
+а `OmniRouterProvider` не имеет streaming-метода. Поэтому это ещё не настоящий
+provider-to-worker-to-API token streaming.
+
+### План доработки
+
+1. Добавить `stream()` в общий `AIProvider` contract.
+2. Реализовать чтение `text/event-stream` в `OmniRouterProvider` с обработкой
+   `data:` chunks, `[DONE]`, usage и provider errors.
+3. Передать async iterable из Worker processor в Chat streaming transport без
+   предварительной сборки полного ответа.
+4. Сохранять accumulated partial response по выбранной политике при disconnect.
+5. Передавать AbortSignal до provider request и отменять upstream при disconnect.
+6. Добавить real-provider integration tests и E2E streaming/disconnect/retry tests.
+
+## 12.1 Core Application
+
+### Уже сделано
+
+- `apps/web` на React/Vite с Router, layouts и protected routes.
+- Общий `packages/ui` и design tokens используются Web-приложением.
+- Login/register/logout/session restore/refresh реализованы через SDK.
+- Dashboard получает реальные project/analysis/report aggregates, имеет loading,
+  empty и error states.
+- Settings profile/security/preferences реализованы.
+- ErrorBoundary и базовые responsive/accessibility состояния присутствуют.
+
+### Что доработать
+
+1. Провести и зафиксировать manual QA на desktop/tablet/mobile и accessibility.
+2. Расширить тесты до acceptance coverage плана 12.1: UI Kit, Auth, Dashboard,
+   integration и E2E сценарии, а не только текущий smoke/component набор.
+3. Добавить отдельный backend dashboard statistics contract, если агрегаты из
+   списка проектов не соответствуют окончательному API contract.
+4. Проверить refresh/logout/cache cleanup в браузере с реальным истёкшим token.
+
+## 12.2 User Features
+
+### Уже сделано
+
+- Projects list/create/detail/edit/archive, search/sort/pagination и confirmation.
+- ZIP drag-and-drop, validation, progress, cancel и retry path.
+- Version list, start analysis, status polling и result states.
+- Reports list/detail, Markdown/PDF/JSON download и compare.
+- Chat sessions/history/input/stream UI, retry/cancel states и Markdown-ready view.
+- Settings profile, password/security и local preferences.
+- API operations проходят через SDK/API layer, а не через feature-level fetch.
+
+### Что доработать
+
+1. Завершить project versions/analysis navigation и показать все реальные backend
+   lifecycle states без выдуманного процента прогресса.
+2. Довести upload retry/cancel UX и восстановление после reload/navigation.
+3. Довести report history, compare diff и export error handling.
+4. Завершить Chat с настоящим provider streaming из раздела 11.2.
+5. Добавить полный acceptance E2E: Register → Project → Upload → Analysis →
+   Report → Export → Compare → Chat → Settings → Logout.
+6. Провести negative, responsive и accessibility QA и расширить тестовое покрытие
+   до критических сценариев плана.
+
+## 13.1 Admin Core
+
+### Уже сделано
+
+- Отдельное `apps/admin` с layout, routes и protected admin route.
+- Backend Admin API защищён JWT/RolesGuard, Frontend не является security boundary.
+- Admin login/session/refresh/logout.
+- Admin overview с реальными API metrics.
+- Users/projects list, server-side search/pagination и details pages.
+- Queue overview, jobs, retry/remove API и UI.
+
+### Что доработать
+
+1. Добавить user details: связанные projects и разрешённую activity summary.
+2. Добавить project details: versions, analyses и reports summary.
+3. Реализовывать block/unblock/role mutation только после наличия backend API.
+4. Создать HTTP security matrix: USER → 403 для каждого `/admin/*` endpoint,
+   включая mutations и прямые запросы с подменёнными IDs.
+5. Добавить полноценные Admin E2E и manual responsive/accessibility QA.
+
+## 13.2 Administration
+
+### Уже сделано
+
+- Queue metrics, jobs pagination, retry/remove и polling.
+- Persisted `AdminLog` с masking чувствительных данных.
+- Server-side logs pagination, search, level/service/date filters и masked details.
+- AI usage summary и backend breakdown по provider/user/project.
+- Statistics endpoint с date range и UI period selector.
+- Admin API contracts и OpenAPI response schemas обновляются.
+
+### Что доработать
+
+1. Queue: failed-only filter, полноценная pagination UI, job details page и
+   backend health status `HEALTHY/DEGRADED/ERROR`.
+2. Queue destructive actions перевести с `window.confirm` на общий accessible Modal.
+3. Logs: level enum control, copy stack trace, полный details/error UX и QA.
+4. AI Usage: date/provider/model/user/project filters, failures table, latency,
+   retry count и provider/model details.
+5. Statistics: processing-stage metrics, success rate, average duration,
+   useful charts и text alternative для accessibility.
+6. Добавить требуемые unit/integration/E2E и security tests; проверить отсутствие
+   secrets в реальных persisted logs.
+
+## 14.1 OpenAPI & SDK
+
+### Уже сделано
+
+- Canonical artifact: `docs/generated/openapi.json`.
+- `yarn docs:openapi`, `yarn openapi:validate`, `yarn sdk:generate`,
+  `yarn sdk:check` работают.
+- OpenAPI validation проверяет paths, refs и response schemas.
+- Generated OpenAPI TypeScript contract хранится в
+  `packages/sdk/src/generated/openapi.ts`.
+- Admin response DTOs и SDK Admin types связаны с generated schemas.
+- SDK client имеет base URL, auth headers, refresh и single-flight refresh.
+
+### Что доработать
+
+1. Выбрать и закрепить стратегию runtime generation: generated service methods
+   либо один документированный custom wrapper поверх generated types.
+2. Удалить/заменить ручные API DTO там, где уже есть generated schemas.
+3. Полностью описать error responses, upload/download и SSE response contracts.
+4. Добавить contract tests Backend → OpenAPI → SDK для Auth, Projects, Upload,
+   Reports, Chat и Admin.
+5. Увеличить SDK/OpenAPI/integration test coverage до acceptance requirements.
+6. Проверить reproducible regeneration на чистой установке и отсутствие drift.
+
+## 14.2 Frontend Integration
+
+### Уже сделано
+
+- Web и Admin используют `@reviewsha/sdk`.
+- Auth, base URL, headers, refresh и concurrent refresh централизованы.
+- SSE и upload low-level transport находятся в SDK/API layer.
+- Основные Web/Admin features используют typed SDK вместо feature-level fetch.
+- Typecheck, build/quality и app tests проходят.
+
+### Что доработать
+
+1. Провести автоматический audit всех `fetch`, `axios` и ручных DTO; оставить
+   только обоснованный transport внутри SDK.
+2. Перевести оставшиеся ручные response/request модели на generated/shared types.
+3. Добавить cancellation и race-condition tests для search, upload, analysis,
+   report downloads и chat stream.
+4. Проверить query keys/cache invalidation после каждой mutation.
+5. Добавить critical Web/Admin integration и E2E flows через реальный API.
+6. Проверить bundle, duplicate requests, polling и streaming render performance.
+
+## Обязательная последовательность закрытия
+
+1. Настоящий provider streaming и disconnect cancellation (11.2).
+2. Backend security matrix и IDOR tests для Chat/Admin.
+3. Доведение Admin Queues/Logs/AI Usage/Statistics до полного API contract.
+4. Полный OpenAPI error/upload/download/SSE contract и SDK drift verification.
+5. Удаление DTO/API duplication в Web/Admin.
+6. Полный test matrix: unit, integration, E2E, real OmniRoute/DeepSeek и manual QA.
+7. Обновление README/status только после прохождения всех проверок.
+8. Отдельный commit на каждый законченный блок; перед каждым commit запускать
+   тот же набор локальных CI-команд, затем push.
+
+## Критерий полного закрытия 11–14
+
+Считать этапы закрытыми только когда проходят все функциональные acceptance
+flows, security matrix, contract checks, real OmniRoute/DeepSeek streaming,
+unit/integration/E2E tests, manual responsive/accessibility QA и документация
+отражает фактическую реализацию. До этого статусы должны оставаться `PARTIAL` или
+`IN PROGRESS`.
