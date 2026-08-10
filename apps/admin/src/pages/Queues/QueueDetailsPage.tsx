@@ -2,6 +2,7 @@ import { Button, EmptyState, Loader, Modal, Select, Table } from '@reviewsha/ui'
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { adminSdk } from '../../api/client';
 
 export function QueueDetailsPage() {
@@ -66,7 +67,11 @@ export function QueueDetailsPage() {
           rows={jobs.data.items}
           getRowKey={(job) => job.id}
           columns={[
-            { key: 'id', header: 'Job ID', render: (job) => job.id },
+            {
+              key: 'id',
+              header: 'Job ID',
+              render: (job) => <Link to={`/queues/${queueName}/jobs/${job.id}`}>{job.id}</Link>,
+            },
             { key: 'state', header: 'Status', render: (job) => job.state },
             { key: 'attempts', header: 'Attempts', render: (job) => job.attemptsMade },
             { key: 'created', header: 'Created', render: (job) => job.createdAt },

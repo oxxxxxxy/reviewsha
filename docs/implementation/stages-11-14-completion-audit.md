@@ -16,7 +16,7 @@
 | 12.1 Core Application | FUNCTIONAL / QA PARTIAL | UI Kit, auth, protected routes и Dashboard работают через реальный API; не закрыты требуемые объёмы тестов и ручной QA. |
 | 12.2 User Features | PARTIAL | Projects, upload, analysis, reports, chat и settings подключены; отсутствует полный пользовательский E2E и часть UX/API coverage. |
 | 13.1 Admin Core | PARTIAL | Отдельный Admin, RBAC, users/projects, overview и queue core есть; security matrix и полный E2E не закрыты. |
-| 13.2 Administration | PARTIAL | Queues, masked logs, AI usage и date-filtered statistics есть; расширенные filters/details/charts/failure views не завершены. |
+| 13.2 Administration | PARTIAL | Queues с pagination, safe job details и backend ERROR handling, masked logs, AI usage и date-filtered statistics есть; расширенные filters/details/charts/QA не завершены. |
 | 14.1 OpenAPI & SDK | PARTIAL | OpenAPI генерируется/валидируется, generated types и drift check есть; runtime SDK и все DTO ещё не полностью generated/единые. |
 | 14.2 Frontend Integration | PARTIAL | Web/Admin используют общий SDK client, auth/refresh централизованы; миграция, cancellation/race/contract coverage и critical E2E не завершены. |
 
@@ -161,7 +161,7 @@
 
 ### Что доработать
 
-1. Queue: complete pagination UX, job details page and backend `ERROR` handling.
+1. Queue: complete pagination UX, safe job details page and backend `ERROR` handling are implemented; remaining work is destructive-action modal migration and QA.
 2. Queue destructive actions перевести с `window.confirm` на общий accessible Modal.
 3. Logs: level enum control, полный details/error UX и QA (copy stack trace уже есть).
 4. AI Usage: retry count requires a persisted retry/attempt field in the

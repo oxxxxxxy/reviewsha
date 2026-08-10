@@ -42,6 +42,7 @@ describe('AdminRouter', () => {
       '/projects/:id',
       '/queues',
       '/queues/:queueName',
+      '/queues/:queueName/jobs/:jobId',
       '/ai',
       '/logs',
       '/logs/:id',

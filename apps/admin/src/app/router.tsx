@@ -11,6 +11,7 @@ import { NotFoundPage } from '../pages/NotFound/NotFoundPage';
 import { ProjectsPage } from '../pages/Projects/ProjectsPage';
 import { QueuesPage } from '../pages/Queues/QueuesPage';
 import { QueueDetailsPage } from '../pages/Queues/QueueDetailsPage';
+import { JobDetailsPage } from '../pages/Queues/JobDetailsPage';
 import { SettingsPage } from '../pages/Settings/SettingsPage';
 import { UsersPage } from '../pages/Users/UsersPage';
 import { UserDetailsPage } from '../pages/Users/UserDetailsPage';
@@ -27,6 +28,7 @@ export const adminRoutes = [
   '/projects/:id',
   '/queues',
   '/queues/:queueName',
+  '/queues/:queueName/jobs/:jobId',
   '/ai',
   '/logs',
   '/logs/:id',
@@ -51,6 +53,7 @@ export function AdminRouter() {
           <Route path="/projects/:id" element={<ProjectDetailsPage />} />
           <Route path="/queues" element={<QueuesPage />} />
           <Route path="/queues/:queueName" element={<QueueDetailsPage />} />
+          <Route path="/queues/:queueName/jobs/:jobId" element={<JobDetailsPage />} />
           <Route path="/ai" element={<AIPage />} />
           <Route path="/logs" element={<LogsPage />} />
           <Route path="/logs/:id" element={<LogDetailsPage />} />
