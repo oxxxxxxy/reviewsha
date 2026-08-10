@@ -6,6 +6,7 @@ import { AdminService } from './admin.service';
 import {
   AdminActionResponseDto,
   AdminAiUsageResponseDto,
+  AdminAiUsageBreakdownResponseDto,
   AdminJobsQueryDto,
   AdminJobsResponseDto,
   AdminLogsQueryDto,
@@ -41,6 +42,13 @@ export class AdminController {
   @ApiOkResponse({ type: AdminAiUsageResponseDto })
   aiUsage() {
     return this.admin.aiUsage();
+  }
+
+  @Get('ai-usage/breakdown')
+  @ApiOperation({ summary: 'Get AI usage grouped by provider, user and project' })
+  @ApiOkResponse({ type: AdminAiUsageBreakdownResponseDto })
+  aiUsageBreakdown() {
+    return this.admin.aiUsageBreakdown();
   }
 
   @Get('statistics')

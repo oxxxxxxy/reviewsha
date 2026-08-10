@@ -18,6 +18,7 @@ export interface QueueJobSummary {
 }
 
 export type AdminAiUsage = components['schemas']['AdminAiUsageResponseDto'];
+export type AdminAiUsageBreakdown = components['schemas']['AdminAiUsageBreakdownResponseDto'];
 
 export type AdminStatistics = components['schemas']['AdminStatisticsResponseDto'];
 
@@ -46,6 +47,10 @@ export class AdminAPI {
 
   aiUsage(): Promise<AdminAiUsage> {
     return this.client.get<AdminAiUsage>('/admin/ai-usage');
+  }
+
+  aiUsageBreakdown(): Promise<AdminAiUsageBreakdown> {
+    return this.client.get<AdminAiUsageBreakdown>('/admin/ai-usage/breakdown');
   }
 
   statistics(): Promise<AdminStatistics> {

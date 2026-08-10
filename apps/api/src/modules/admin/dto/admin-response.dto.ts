@@ -39,6 +39,21 @@ export class AdminAiUsageResponseDto {
   @ApiProperty({ example: 142 }) failures!: number;
 }
 
+export class AdminAiUsageBreakdownItemDto {
+  @ApiProperty({ example: 'deepseek-chat' }) key!: string;
+  @ApiPropertyOptional({ type: String, nullable: true, example: 'developer@example.com' }) label?:
+    string | null;
+  @ApiProperty({ example: 420 }) requests!: number;
+  @ApiProperty({ example: 120000 }) tokens!: number;
+  @ApiProperty({ example: 1.25 }) cost!: number;
+}
+
+export class AdminAiUsageBreakdownResponseDto {
+  @ApiProperty({ type: [AdminAiUsageBreakdownItemDto] }) providers!: AdminAiUsageBreakdownItemDto[];
+  @ApiProperty({ type: [AdminAiUsageBreakdownItemDto] }) users!: AdminAiUsageBreakdownItemDto[];
+  @ApiProperty({ type: [AdminAiUsageBreakdownItemDto] }) projects!: AdminAiUsageBreakdownItemDto[];
+}
+
 export class AdminStatisticsResponseDto {
   @ApiProperty({ example: 1248 }) users!: number;
   @ApiProperty({ example: 356 }) projects!: number;

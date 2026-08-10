@@ -626,6 +626,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/ai-usage/breakdown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get AI usage grouped by provider, user and project */
+        get: operations["Admin_aiUsageBreakdown"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/statistics": {
         parameters: {
             query?: never;
@@ -1199,6 +1216,23 @@ export interface components {
             tokens: number;
             /** @example 142 */
             failures: number;
+        };
+        AdminAiUsageBreakdownItemDto: {
+            /** @example deepseek-chat */
+            key: string;
+            /** @example developer@example.com */
+            label?: string | null;
+            /** @example 420 */
+            requests: number;
+            /** @example 120000 */
+            tokens: number;
+            /** @example 1.25 */
+            cost: number;
+        };
+        AdminAiUsageBreakdownResponseDto: {
+            providers: components["schemas"]["AdminAiUsageBreakdownItemDto"][];
+            users: components["schemas"]["AdminAiUsageBreakdownItemDto"][];
+            projects: components["schemas"]["AdminAiUsageBreakdownItemDto"][];
         };
         AdminStatisticsResponseDto: {
             /** @example 1248 */
@@ -3557,6 +3591,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdminAiUsageResponseDto"];
+                };
+            };
+        };
+    };
+    Admin_aiUsageBreakdown: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAiUsageBreakdownResponseDto"];
                 };
             };
         };

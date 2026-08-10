@@ -852,6 +852,10 @@ Operational metrics are also available through the protected
 `GET /admin/ai-usage` and `GET /admin/statistics` endpoints. Aggregation is
 performed by the backend from persisted usage and analysis records.
 
+`GET /admin/ai-usage/breakdown` returns backend-aggregated provider, user and
+project usage rows. The Admin UI renders these rows and does not calculate
+tokens or costs from raw records in the browser.
+
 `GET /admin/logs` provides paginated, server-side `level`, `service` and
 `search` filters over persisted masked `AdminLog` records.
 

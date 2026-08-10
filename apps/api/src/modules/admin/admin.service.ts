@@ -51,6 +51,64 @@ export class AdminService {
     };
   }
 
+  async aiUsageBreakdown() {
+    const [providers, users, projects] = await Promise.all([
+      this.prisma.aIRequest.groupBy({
+        by: ['provider'],
+        _count: { id: true },
+        _sum: { totalTokens: true, cost: true },
+        orderBy: { _count: { id: 'desc' } },
+      }),
+      this.prisma.aIUsage.groupBy({
+        by: ['userId'],
+        _sum: { tokensUsed: true, requestCount: true },
+        orderBy: { _sum: { tokensUsed: 'desc' } },
+      }),
+      this.prisma.aIUsage.groupBy({
+        by: ['projectId'],
+        _sum: { tokensUsed: true, requestCount: true },
+        orderBy: { _sum: { tokensUsed: 'desc' } },
+      }),
+    ]);
+    const userIds = users.flatMap((item) => (item.userId ? [item.userId] : []));
+    const projectIds = projects.map((item) => item.projectId);
+    const [userRecords, projectRecords] = await Promise.all([
+      this.prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, email: true },
+      }),
+      this.prisma.project.findMany({
+        where: { id: { in: projectIds } },
+        select: { id: true, name: true },
+      }),
+    ]);
+    const userLabels = new Map(userRecords.map((user) => [user.id, user.email]));
+    const projectLabels = new Map(projectRecords.map((project) => [project.id, project.name]));
+    return {
+      providers: providers.map((item) => ({
+        key: item.provider,
+        label: item.provider,
+        requests: item._count.id,
+        tokens: item._sum.totalTokens ?? 0,
+        cost: Number(item._sum.cost ?? 0),
+      })),
+      users: users.map((item) => ({
+        key: item.userId ?? 'unknown',
+        label: item.userId ? (userLabels.get(item.userId) ?? null) : null,
+        requests: item._sum.requestCount ?? 0,
+        tokens: item._sum.tokensUsed ?? 0,
+        cost: 0,
+      })),
+      projects: projects.map((item) => ({
+        key: item.projectId,
+        label: projectLabels.get(item.projectId) ?? null,
+        requests: item._sum.requestCount ?? 0,
+        tokens: item._sum.tokensUsed ?? 0,
+        cost: 0,
+      })),
+    };
+  }
+
   async statistics() {
     const [users, projects, analyses, completedAnalyses, failedAnalyses] = await Promise.all([
       this.prisma.user.count({ where: { deletedAt: null } }),
