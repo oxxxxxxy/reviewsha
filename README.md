@@ -149,6 +149,34 @@ Admin:    http://localhost:5174
 MinIO UI: http://localhost:9001
 ```
 
+### OmniRoute
+
+OmniRoute подключён как root-зависимость монорепозитория и запускается через
+Yarn. Он предоставляет локальную web-панель и OpenAI-compatible API для
+Worker:
+
+```bash
+yarn omniroute:setup   # первичная настройка провайдеров и API-ключей
+yarn dev:omniroute
+```
+
+После запуска:
+
+```txt
+OmniRoute UI:  http://localhost:20128/dashboard
+OmniRoute API: http://localhost:20128/v1
+```
+
+Для Reviewsha Worker используется:
+
+```env
+OMNIROUTE_BASE_URL=http://localhost:20128/v1
+AI_MODEL=deepseek/deepseek-chat
+```
+
+`OMNIROUTE_API_KEY` — ключ, созданный в web-панели OmniRoute для доступа к
+локальному gateway.
+
 ---
 
 ## Основные команды
@@ -173,6 +201,9 @@ yarn test:stage2
 yarn test:stage3
 yarn test:stage4
 yarn test:e2e
+
+yarn omniroute:setup
+yarn dev:omniroute
 ```
 
 ## File Storage (MinIO)
