@@ -1,4 +1,4 @@
-import { Badge, Button, Card, EmptyState, Input, Loader, Textarea } from '@reviewsha/ui';
+import { Badge, Button, Card, EmptyState, Input, Loader, Modal, Textarea } from '@reviewsha/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -155,6 +155,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const uploadController = useRef<AbortController | undefined>(undefined);
   const [uploadError, setUploadError] = useState<string>();
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const uploads = useQuery({
     queryKey: ['uploads', projectId],
     queryFn: ({ signal }) => reviewshaSdk.uploads.list(projectId, signal),
@@ -272,12 +273,29 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         variant="secondary"
         disabled={item.status === 'ARCHIVED'}
         isLoading={archive.isPending}
-        onClick={() => {
-          if (window.confirm('Archive this project?')) archive.mutate();
-        }}
+        onClick={() => setArchiveOpen(true)}
       >
         Archive project
       </Button>
+      <Modal
+        isOpen={archiveOpen}
+        title="Archive this project?"
+        onClose={() => setArchiveOpen(false)}
+      >
+        <p>This project will become read-only according to the backend policy.</p>
+        <Button variant="secondary" onClick={() => setArchiveOpen(false)}>
+          Cancel
+        </Button>{' '}
+        <Button
+          isLoading={archive.isPending}
+          onClick={() => {
+            archive.mutate();
+            setArchiveOpen(false);
+          }}
+        >
+          Archive project
+        </Button>
+      </Modal>
       <section aria-label="Analysis">
         <h2>Analysis</h2>
         {analyses.data?.data[0] ? (

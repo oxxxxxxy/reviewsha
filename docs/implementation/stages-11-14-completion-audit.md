@@ -161,8 +161,8 @@
 
 ### Что доработать
 
-1. Queue: complete pagination UX, safe job details page and backend `ERROR` handling are implemented; remaining work is destructive-action modal migration and QA.
-2. Queue destructive actions перевести с `window.confirm` на общий accessible Modal.
+1. Queue: pagination UX, safe job details page, backend `ERROR` handling and accessible destructive-action confirmation are implemented; remaining work is broader operational QA.
+2. Continue operational QA for queue retry/remove, failed-job recovery and concurrent admin sessions.
 3. Logs: level enum control, полный details/error UX и QA (copy stack trace уже есть).
 4. AI Usage: retry count requires a persisted retry/attempt field in the
    backend schema; current failure table, latency and provider/model details are
