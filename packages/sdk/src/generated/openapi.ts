@@ -1111,19 +1111,19 @@ export interface components {
             /** @example upload-uuid */
             uploadId: string;
             /** @example ANALYZE */
-            currentStep: Record<string, never> | null;
+            currentStep: string | null;
             /** @example RUNNING */
-            status: Record<string, never> | null;
+            status: string | null;
             /** @example 70 */
             progress: number;
             /** @example AI_TIMEOUT */
-            errorCode?: Record<string, never>;
+            errorCode?: string | null;
             /** @example AI provider timed out */
-            errorMessage?: Record<string, never>;
+            errorMessage?: string | null;
             /** @example 2026-08-06T00:00:00.000Z */
-            startedAt?: Record<string, never>;
+            startedAt?: string | null;
             /** @example 2026-08-06T00:05:00.000Z */
-            finishedAt?: Record<string, never>;
+            finishedAt?: string | null;
         };
         AnalysisResponseDto: {
             /** Format: uuid */
@@ -1131,15 +1131,14 @@ export interface components {
             /** Format: uuid */
             projectId: string;
             /** Format: uuid */
-            uploadId?: Record<string, never> | null;
-            status: string;
-            pipelineStatus: Record<string, never>;
-            currentStep?: Record<string, never> | null;
+            uploadId?: string | null;
+            status: string | null;
+            pipelineStatus: string | null;
+            currentStep?: string | null;
             progress: number;
-            errorMessage?: Record<string, never> | null;
-            /** Format: date-time */
+            errorMessage?: string | null;
             createdAt?: string | null;
-            finishedAt?: Record<string, never> | null;
+            finishedAt?: string | null;
         };
         AnalysesListResponseDto: {
             data: components["schemas"]["AnalysisResponseDto"][];

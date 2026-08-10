@@ -7,28 +7,28 @@ export class AnalysisResponseDto {
   @ApiProperty({ format: 'uuid' })
   projectId!: string;
 
-  @ApiPropertyOptional({ format: 'uuid', nullable: true })
+  @ApiPropertyOptional({ type: String, format: 'uuid', nullable: true })
   uploadId!: string | null;
 
-  @ApiProperty()
-  status!: string;
+  @ApiProperty({ type: String, nullable: true })
+  status!: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, nullable: true })
   pipelineStatus!: string | null;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({ type: String, nullable: true })
   currentStep!: string | null;
 
   @ApiProperty()
   progress!: number;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({ type: String, nullable: true })
   errorMessage!: string | null;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({ type: String, nullable: true })
   createdAt!: Date;
 
-  @ApiPropertyOptional({ nullable: true })
+  @ApiPropertyOptional({ type: String, nullable: true })
   finishedAt!: Date | null;
 }
 

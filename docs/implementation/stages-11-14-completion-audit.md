@@ -195,6 +195,8 @@
 - Report issue/detail/list contracts теперь используют generated OpenAPI
   schemas; report pagination metadata and nullable fields are explicitly
   documented in the backend DTO.
+- Upload and Analysis SDK response contracts now use generated OpenAPI schemas;
+  nullable pipeline fields are explicitly typed in the backend DTO metadata.
 
 ### Что доработать
 

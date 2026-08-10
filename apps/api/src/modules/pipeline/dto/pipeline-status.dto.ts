@@ -10,24 +10,24 @@ export class PipelineStatusDto {
   @ApiProperty({ example: 'upload-uuid' })
   uploadId!: string;
 
-  @ApiProperty({ example: 'ANALYZE', nullable: true })
+  @ApiProperty({ example: 'ANALYZE', type: String, nullable: true })
   currentStep!: string | null;
 
-  @ApiProperty({ example: 'RUNNING', nullable: true })
+  @ApiProperty({ example: 'RUNNING', type: String, nullable: true })
   status!: string | null;
 
   @ApiProperty({ example: 70 })
   progress!: number;
 
-  @ApiPropertyOptional({ example: 'AI_TIMEOUT' })
+  @ApiPropertyOptional({ example: 'AI_TIMEOUT', type: String, nullable: true })
   errorCode?: string | null;
 
-  @ApiPropertyOptional({ example: 'AI provider timed out' })
+  @ApiPropertyOptional({ example: 'AI provider timed out', type: String, nullable: true })
   errorMessage?: string | null;
 
-  @ApiPropertyOptional({ example: '2026-08-06T00:00:00.000Z' })
+  @ApiPropertyOptional({ example: '2026-08-06T00:00:00.000Z', type: String, nullable: true })
   startedAt?: Date | null;
 
-  @ApiPropertyOptional({ example: '2026-08-06T00:05:00.000Z' })
+  @ApiPropertyOptional({ example: '2026-08-06T00:05:00.000Z', type: String, nullable: true })
   finishedAt?: Date | null;
 }

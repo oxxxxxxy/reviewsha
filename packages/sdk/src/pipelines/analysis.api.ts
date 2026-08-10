@@ -1,22 +1,8 @@
 import type { ApiClient } from '../client/api-client.js';
+import type { components } from '../generated/openapi.js';
 
-export interface Analysis {
-  readonly id: string;
-  readonly projectId: string;
-  readonly uploadId: string | null;
-  readonly status: string;
-  readonly pipelineStatus: string | null;
-  readonly currentStep: string | null;
-  readonly progress: number;
-  readonly errorMessage: string | null;
-  readonly createdAt: string;
-  readonly finishedAt: string | null;
-}
-
-export interface AnalysesResponse {
-  readonly data: readonly Analysis[];
-  readonly meta: { page: number; limit: number; total: number; totalPages: number };
-}
+export type Analysis = components['schemas']['AnalysisResponseDto'];
+export type AnalysesResponse = components['schemas']['AnalysesListResponseDto'];
 
 export class AnalysisAPI {
   constructor(private readonly client: ApiClient) {}

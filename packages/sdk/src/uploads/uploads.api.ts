@@ -1,16 +1,8 @@
 import type { ApiClient } from '../client/api-client.js';
+import type { components } from '../generated/openapi.js';
 
-export interface UploadResponse {
-  readonly id: string;
-  readonly status: string;
-  readonly version: number;
-  readonly size: number;
-  readonly checksum: string;
-  readonly createdAt: string;
-}
-export interface UploadListResponse {
-  readonly data: readonly UploadResponse[];
-}
+export type UploadResponse = components['schemas']['UploadResponseDto'];
+export type UploadListResponse = components['schemas']['UploadListResponseDto'];
 
 export class UploadsAPI {
   constructor(private readonly client: ApiClient) {}
