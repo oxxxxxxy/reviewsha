@@ -178,4 +178,31 @@ describe('ChatService', () => {
     expect(repository.saveMessage).not.toHaveBeenCalled();
     expect(queues.addJob).not.toHaveBeenCalled();
   });
+
+  it('coalesces concurrent requests with the same idempotency key', async () => {
+    queues.getJob.mockResolvedValue(undefined);
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    queues.addJob.mockImplementationOnce(async () => {
+      await gate;
+      return { id: 'job-1' };
+    });
+
+    const first = service.send(user, 'session-1', {
+      message: 'Question',
+      idempotencyKey: 'same-key',
+    });
+    const second = service.send(user, 'session-1', {
+      message: 'Question',
+      idempotencyKey: 'same-key',
+    });
+    await Promise.resolve();
+    release();
+
+    await expect(Promise.all([first, second])).resolves.toHaveLength(2);
+    expect(repository.saveMessage).toHaveBeenCalledOnce();
+    expect(queues.addJob).toHaveBeenCalledOnce();
+  });
 });

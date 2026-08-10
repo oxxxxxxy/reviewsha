@@ -29,7 +29,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 
 | Этап | Статус | Ключевой результат |
 | --- | --- | --- |
-| 11.1 Chat Module | PARTIAL | Conversation/message lifecycle, ownership, history, memory и API реализованы; полный acceptance QA не закрыт. |
+| 11.1 Chat Module | PARTIAL | Conversation/message lifecycle, ownership, history, memory и API реализованы; HTTP acceptance/security matrix расширена, стандартный `Idempotency-Key` подключён, а конкурентные повторы coalesce-ятся; полный acceptance QA не закрыт. |
 | 11.2 AI Context & Streaming | PARTIAL | Provider-to-Worker-to-API streaming реализован через OmniRouter SSE и Redis broker; real end-to-end/disconnect QA ещё не закрыты. |
 | 12.1 Core Application | FUNCTIONAL / QA PARTIAL | UI Kit, auth, protected routes и Dashboard работают через реальный API; не закрыты требуемые объёмы тестов и ручной QA. |
 | 12.2 User Features | PARTIAL | Projects, upload, analysis, reports, chat и settings подключены; отсутствует полный пользовательский E2E и часть UX/API coverage. |

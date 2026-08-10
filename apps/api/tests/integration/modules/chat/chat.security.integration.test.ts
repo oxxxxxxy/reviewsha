@@ -78,6 +78,10 @@ describe('Chat HTTP ownership integration', () => {
     await request(app.getHttpServer()).get(`/api/projects/${foreignProjectId}/chat`).expect(403);
   });
 
+  it('denies malformed project identifiers without invoking the session service', async () => {
+    await request(app.getHttpServer()).post('/api/projects/not-a-uuid/chat').send({}).expect(403);
+  });
+
   it('never calls the session service for a foreign project', async () => {
     const create = vi.mocked(app.get(ChatSessionService).create);
     await request(app.getHttpServer())

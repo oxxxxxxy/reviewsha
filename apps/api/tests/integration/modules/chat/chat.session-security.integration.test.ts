@@ -93,4 +93,15 @@ describe('Chat session HTTP authorization', () => {
       sort: undefined,
     });
   });
+
+  it('rejects sending to a foreign session before queueing AI work', async () => {
+    await request(app.getHttpServer())
+      .post(`/api/chat/${sessionId}/messages`)
+      .send({ message: 'Should not be processed' })
+      .expect(403);
+  });
+
+  it('rejects deleting a foreign session', async () => {
+    await request(app.getHttpServer()).delete(`/api/chat/${sessionId}`).expect(403);
+  });
 });

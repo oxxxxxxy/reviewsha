@@ -23,6 +23,12 @@ import { ChatMemoryService } from './chat-memory.service';
 
 @Injectable()
 export class ChatService {
+  /**
+   * Closes the in-process race between duplicate retries. BullMQ's stable job
+   * id remains the durable deduplication boundary after a process restart.
+   */
+  private readonly enqueueInFlight = new Map<string, Promise<{ requestId: string }>>();
+
   constructor(
     @Inject(ChatRepository) private readonly repository: ChatRepository,
     @Inject(ChatSessionService) private readonly sessions: ChatSessionService,
@@ -121,6 +127,33 @@ export class ChatService {
   }
 
   private async enqueue(
+    user: AuthenticatedUser,
+    sessionId: string,
+    message: string,
+    streamId?: string,
+    idempotencyKey?: string,
+  ): Promise<{ requestId: string }> {
+    const normalizedKey = idempotencyKey?.trim();
+    const lockKey = normalizedKey ? `${user.id}:${sessionId}:${normalizedKey}` : undefined;
+    if (lockKey) {
+      const inFlight = this.enqueueInFlight.get(lockKey);
+      if (inFlight) return inFlight;
+
+      const promise = this.enqueueOnce(user, sessionId, message, streamId, normalizedKey);
+      this.enqueueInFlight.set(lockKey, promise);
+      try {
+        return await promise;
+      } finally {
+        if (this.enqueueInFlight.get(lockKey) === promise) {
+          this.enqueueInFlight.delete(lockKey);
+        }
+      }
+    }
+
+    return this.enqueueOnce(user, sessionId, message, streamId, normalizedKey);
+  }
+
+  private async enqueueOnce(
     user: AuthenticatedUser,
     sessionId: string,
     message: string,

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Param,
@@ -116,8 +117,12 @@ export class ChatController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Body() dto: SendMessageDto,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ) {
-    return this.chat.send(user, sessionId, dto);
+    return this.chat.send(user, sessionId, {
+      ...dto,
+      idempotencyKey: dto.idempotencyKey?.trim() || idempotencyKey?.trim() || undefined,
+    });
   }
 
   @Post('chat/:sessionId/stream')
@@ -128,6 +133,7 @@ export class ChatController {
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Body() dto: SendMessageDto,
     @Res() response: Response,
+    @Headers('idempotency-key') idempotencyKey?: string,
   ): Promise<void> {
     response.status(200);
     response.setHeader('Content-Type', 'text/event-stream');
@@ -137,7 +143,11 @@ export class ChatController {
     const abort = new AbortController();
     response.on('close', () => abort.abort());
     try {
-      for await (const item of this.streaming.stream(user, sessionId, dto, abort.signal)) {
+      const request = {
+        ...dto,
+        idempotencyKey: dto.idempotencyKey?.trim() || idempotencyKey?.trim() || undefined,
+      };
+      for await (const item of this.streaming.stream(user, sessionId, request, abort.signal)) {
         response.write(`event: ${item.event}\ndata: ${JSON.stringify(item.data)}\n\n`);
       }
     } catch (error) {

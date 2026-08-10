@@ -211,6 +211,32 @@ describe('Chat HTTP integration', () => {
       .expect(201);
   });
 
+  it('accepts the standard Idempotency-Key header', async () => {
+    await request(app.getHttpServer())
+      .post(`/api/chat/${sessionId}/messages`)
+      .set('Idempotency-Key', ' retry-key ')
+      .send({ message: 'Why JWT?' })
+      .expect(201);
+    expect(chat.send).toHaveBeenCalledWith(
+      user,
+      sessionId,
+      expect.objectContaining({ message: 'Why JWT?', idempotencyKey: 'retry-key' }),
+    );
+  });
+
+  it('prefers a body idempotency key over the HTTP header', async () => {
+    await request(app.getHttpServer())
+      .post(`/api/chat/${sessionId}/messages`)
+      .set('Idempotency-Key', 'header-key')
+      .send({ message: 'Why JWT?', idempotencyKey: ' body-key ' })
+      .expect(201);
+    expect(chat.send).toHaveBeenCalledWith(
+      user,
+      sessionId,
+      expect.objectContaining({ idempotencyKey: 'body-key' }),
+    );
+  });
+
   it('returns the assistant message contract', async () => {
     await request(app.getHttpServer())
       .post(`/api/chat/${sessionId}/messages`)
@@ -230,6 +256,14 @@ describe('Chat HTTP integration', () => {
       .post(`/api/chat/${sessionId}/messages`)
       .send({ message: 'Hi', context: 'injected' })
       .expect(400);
+  });
+
+  it('rejects malformed session identifiers before reaching the service', async () => {
+    await request(app.getHttpServer())
+      .post('/api/chat/not-a-uuid/messages')
+      .send({ message: 'Question' })
+      .expect(400);
+    expect(chat.send).not.toHaveBeenCalled();
   });
 
   it('streams an SSE answer', async () => {
