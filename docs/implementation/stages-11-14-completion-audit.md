@@ -192,6 +192,9 @@
 - Web и Admin используют `@reviewsha/sdk`.
 - Auth, base URL, headers, refresh и concurrent refresh централизованы.
 - SSE и upload low-level transport находятся в SDK/API layer.
+- SDK propagates `AbortSignal` through project/search, upload, analysis, report,
+  chat history and report-download requests; Web query functions pass TanStack
+  Query cancellation signals.
 - Основные Web/Admin features используют typed SDK вместо feature-level fetch.
 - Typecheck, build/quality и app tests проходят.
 
@@ -200,8 +203,8 @@
 1. Провести автоматический audit всех `fetch`, `axios` и ручных DTO; оставить
    только обоснованный transport внутри SDK.
 2. Перевести оставшиеся ручные response/request модели на generated/shared types.
-3. Добавить cancellation и race-condition tests для search, upload, analysis,
-   report downloads и chat stream.
+3. Расширить cancellation и race-condition tests для upload, analysis, report
+   downloads и chat stream (SDK signal propagation smoke test уже добавлен).
 4. Проверить query keys/cache invalidation после каждой mutation.
 5. Добавить critical Web/Admin integration и E2E flows через реальный API.
 6. Проверить bundle, duplicate requests, polling и streaming render performance.

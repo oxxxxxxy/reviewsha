@@ -20,7 +20,8 @@ function ProjectsList() {
   const navigate = useNavigate();
   const projects = useQuery({
     queryKey: ['projects', search, page, sort],
-    queryFn: () => reviewshaSdk.projects.list({ search, page, limit: 20, sort, order: 'desc' }),
+    queryFn: ({ signal }) =>
+      reviewshaSdk.projects.list({ search, page, limit: 20, sort, order: 'desc' }, signal),
   });
   const updateSearch = (value: string) => {
     setSearch(value);
@@ -141,7 +142,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   const client = useQueryClient();
   const project = useQuery({
     queryKey: ['project', projectId],
-    queryFn: () => reviewshaSdk.projects.get(projectId),
+    queryFn: ({ signal }) => reviewshaSdk.projects.get(projectId, signal),
   });
   const archive = useMutation({
     mutationFn: () => reviewshaSdk.projects.archive(projectId),
@@ -156,11 +157,11 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   const [uploadError, setUploadError] = useState<string>();
   const uploads = useQuery({
     queryKey: ['uploads', projectId],
-    queryFn: () => reviewshaSdk.uploads.list(projectId),
+    queryFn: ({ signal }) => reviewshaSdk.uploads.list(projectId, signal),
   });
   const history = useQuery({
     queryKey: ['project-history', projectId],
-    queryFn: () => reviewshaSdk.projects.history(projectId),
+    queryFn: ({ signal }) => reviewshaSdk.projects.history(projectId, signal),
   });
   const update = useMutation({
     mutationFn: () =>
@@ -197,7 +198,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   });
   const analyses = useQuery({
     queryKey: ['analyses', projectId],
-    queryFn: () => reviewshaSdk.analyses.list(projectId),
+    queryFn: ({ signal }) => reviewshaSdk.analyses.list(projectId, 1, 20, signal),
     refetchInterval: (query) => {
       const status = query.state.data?.data[0]?.pipelineStatus;
       return status === 'RUNNING' || status === 'PENDING' ? 3000 : false;

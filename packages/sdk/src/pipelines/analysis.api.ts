@@ -21,9 +21,10 @@ export interface AnalysesResponse {
 export class AnalysisAPI {
   constructor(private readonly client: ApiClient) {}
 
-  list(projectId: string, page = 1, limit = 20): Promise<AnalysesResponse> {
+  list(projectId: string, page = 1, limit = 20, signal?: AbortSignal): Promise<AnalysesResponse> {
     return this.client.get<AnalysesResponse>(`/projects/${projectId}/analyses`, {
       params: { page, limit },
+      signal,
     });
   }
 

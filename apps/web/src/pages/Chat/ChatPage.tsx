@@ -16,7 +16,7 @@ export function ChatPage() {
   const sessions = useQuery({
     enabled: Boolean(projectId),
     queryKey: ['chat-sessions', projectId],
-    queryFn: () => reviewshaSdk.chat.list(projectId!),
+    queryFn: ({ signal }) => reviewshaSdk.chat.list(projectId!, signal),
   });
   const create = useMutation({
     mutationFn: () => reviewshaSdk.chat.create(projectId!),
@@ -29,7 +29,7 @@ export function ChatPage() {
   const messages = useQuery({
     enabled: Boolean(sessionId),
     queryKey: ['chat-messages', sessionId],
-    queryFn: () => reviewshaSdk.chat.getMessages(sessionId!),
+    queryFn: ({ signal }) => reviewshaSdk.chat.getMessages(sessionId!, signal),
   });
   const stream = async () => {
     if (!sessionId || !message.trim() || streaming) return;

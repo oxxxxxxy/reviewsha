@@ -63,4 +63,24 @@ describe('@reviewsha/sdk public API', () => {
     ]);
     fetchMock.mockRestore();
   });
+
+  it('passes AbortSignal through list and report download transports', async () => {
+    const sdk = createReviewshaSDK({ baseURL: 'http://localhost/api/v1' });
+    const signal = new AbortController().signal;
+    vi.spyOn(sdk.client.http, 'get').mockResolvedValue({ data: { data: [], meta: {} } } as never);
+
+    await sdk.projects.list({ page: 1 }, signal);
+    await sdk.reports.download('report-id', 'pdf', signal);
+
+    expect(sdk.client.http.get).toHaveBeenNthCalledWith(
+      1,
+      '/projects',
+      expect.objectContaining({ signal }),
+    );
+    expect(sdk.client.http.get).toHaveBeenNthCalledWith(
+      2,
+      '/reports/report-id/export/pdf',
+      expect.objectContaining({ signal, responseType: 'blob' }),
+    );
+  });
 });

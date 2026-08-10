@@ -61,12 +61,12 @@ export interface ProjectHistoryResponse {
 export class ProjectsAPI {
   constructor(private readonly client: ApiClient) {}
 
-  list(params?: ProjectListParams): Promise<ProjectsListResponse> {
-    return this.client.get<ProjectsListResponse>('/projects', { params });
+  list(params?: ProjectListParams, signal?: AbortSignal): Promise<ProjectsListResponse> {
+    return this.client.get<ProjectsListResponse>('/projects', { params, signal });
   }
 
-  get(projectId: string): Promise<ProjectEnvelope> {
-    return this.client.get<ProjectEnvelope>(`/projects/${projectId}`);
+  get(projectId: string, signal?: AbortSignal): Promise<ProjectEnvelope> {
+    return this.client.get<ProjectEnvelope>(`/projects/${projectId}`, { signal });
   }
 
   create(payload: CreateProjectRequest): Promise<ProjectEnvelope> {
@@ -88,8 +88,8 @@ export class ProjectsAPI {
     return this.client.post<ProjectEnvelope>(`/projects/${projectId}/restore`);
   }
 
-  history(projectId: string): Promise<ProjectHistoryResponse> {
-    return this.client.get<ProjectHistoryResponse>(`/projects/${projectId}/history`);
+  history(projectId: string, signal?: AbortSignal): Promise<ProjectHistoryResponse> {
+    return this.client.get<ProjectHistoryResponse>(`/projects/${projectId}/history`, { signal });
   }
 
   remove(projectId: string): Promise<void> {

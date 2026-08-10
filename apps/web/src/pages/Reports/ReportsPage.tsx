@@ -15,7 +15,7 @@ function ReportsList({ projectId }: { projectId?: string }) {
   const reports = useQuery({
     enabled: Boolean(projectId),
     queryKey: ['reports', projectId],
-    queryFn: () => reviewshaSdk.reports.list(projectId!),
+    queryFn: ({ signal }) => reviewshaSdk.reports.list(projectId!, 1, 50, signal),
   });
   const [selected, setSelected] = useState<string[]>([]);
   const compare = useQuery({
@@ -108,7 +108,7 @@ function ReportsList({ projectId }: { projectId?: string }) {
 function ReportDetails({ reportId }: { reportId: string }) {
   const report = useQuery({
     queryKey: ['report', reportId],
-    queryFn: () => reviewshaSdk.reports.get(reportId),
+    queryFn: ({ signal }) => reviewshaSdk.reports.get(reportId, signal),
   });
   if (report.isLoading)
     return (

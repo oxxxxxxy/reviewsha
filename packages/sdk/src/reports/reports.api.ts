@@ -24,14 +24,20 @@ export interface ReportDetail extends Report {
 export class ReportsAPI {
   constructor(private readonly client: ApiClient) {}
 
-  list(projectId: string, page = 1, limit = 50): Promise<PaginatedResponse<Report>> {
+  list(
+    projectId: string,
+    page = 1,
+    limit = 50,
+    signal?: AbortSignal,
+  ): Promise<PaginatedResponse<Report>> {
     return this.client.get<PaginatedResponse<Report>>(`/projects/${projectId}/reports`, {
       params: { page, limit },
+      signal,
     });
   }
 
-  get(reportId: string): Promise<ReportDetail> {
-    return this.client.get<ReportDetail>(`/reports/${reportId}`);
+  get(reportId: string, signal?: AbortSignal): Promise<ReportDetail> {
+    return this.client.get<ReportDetail>(`/reports/${reportId}`, { signal });
   }
 
   compare(
@@ -50,9 +56,9 @@ export class ReportsAPI {
     });
   }
 
-  download(reportId: string, format: ReportExportFormat): Promise<Blob> {
+  download(reportId: string, format: ReportExportFormat, signal?: AbortSignal): Promise<Blob> {
     return this.client.http
-      .get(`/reports/${reportId}/export/${format}`, { responseType: 'blob' })
+      .get(`/reports/${reportId}/export/${format}`, { responseType: 'blob', signal })
       .then((response) => response.data as Blob);
   }
 }

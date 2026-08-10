@@ -34,11 +34,13 @@ export class ChatAPI {
     });
   }
 
-  list(projectId: string): Promise<ChatListResponse> {
-    return this.client.get<ChatListResponse>(`/projects/${projectId}/chat`);
+  list(projectId: string, signal?: AbortSignal): Promise<ChatListResponse> {
+    return this.client.get<ChatListResponse>(`/projects/${projectId}/chat`, { signal });
   }
-  getMessages(sessionId: string): Promise<{ data: readonly ChatMessage[] }> {
-    return this.client.get<{ data: readonly ChatMessage[] }>(`/chat/${sessionId}/messages`);
+  getMessages(sessionId: string, signal?: AbortSignal): Promise<{ data: readonly ChatMessage[] }> {
+    return this.client.get<{ data: readonly ChatMessage[] }>(`/chat/${sessionId}/messages`, {
+      signal,
+    });
   }
 
   sendMessage(sessionId: string, payload: ChatMessageRequest): Promise<ChatMessageResponse> {

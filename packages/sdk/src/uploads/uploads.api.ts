@@ -33,7 +33,7 @@ export class UploadsAPI {
       .then((response) => response.data);
   }
 
-  list(projectId: string): Promise<UploadListResponse> {
-    return this.client.get<UploadListResponse>(`/projects/${projectId}/uploads`);
+  list(projectId: string, signal?: AbortSignal): Promise<UploadListResponse> {
+    return this.client.get<UploadListResponse>(`/projects/${projectId}/uploads`, { signal });
   }
 }
