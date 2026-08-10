@@ -151,6 +151,9 @@
 - Server-side logs pagination, search, level/service/date filters и masked details.
 - Log details include a browser copy action for stack traces.
 - AI usage summary and backend breakdown by provider/user/project with date/provider/model/user/project filters.
+- AI failure diagnostics table with provider/model/error/project/timestamp and
+  persisted response latency when available; retry count remains unavailable in
+  the current `AIRequest` schema and is not fabricated by the UI.
 - Statistics endpoint с date range и UI period selector.
 - Admin API contracts и OpenAPI response schemas обновляются.
 
@@ -159,7 +162,9 @@
 1. Queue: complete pagination UX, job details page and backend `ERROR` handling.
 2. Queue destructive actions перевести с `window.confirm` на общий accessible Modal.
 3. Logs: level enum control, полный details/error UX и QA (copy stack trace уже есть).
-4. AI Usage: failures table, latency, retry count and provider/model details.
+4. AI Usage: retry count requires a persisted retry/attempt field in the
+   backend schema; current failure table, latency and provider/model details are
+   implemented without inventing that metric.
 5. Statistics: processing-stage metrics, success rate and average duration are
    now backend-owned; useful charts and text alternative for accessibility remain.
 6. Добавить требуемые unit/integration/E2E и security tests; проверить отсутствие
