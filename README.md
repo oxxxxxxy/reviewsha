@@ -4,48 +4,48 @@ AI SaaS platform for automated code review.
 
 ## Текущее состояние проекта
 
-| Этап                               | Статус         | Результат                                                                                                                            |
-| ---------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Этап 1. Проектирование системы     | ✅ COMPLETE    | Архитектура, backend/frontend/worker/storage/queue/database проектирование, draw.io диаграммы                                        |
-| 2.1 Yarn Workspaces                | ✅ COMPLETE    | Инициализирован Yarn Classic monorepo                                                                                                |
-| 2.2 Создание приложений            | ✅ COMPLETE    | Созданы `api`, `web`, `admin`, `worker`                                                                                              |
-| 2.3 Shared Packages                | ✅ COMPLETE    | Созданы `config`, `types`, `sdk`, `ui`                                                                                               |
-| 2.4 Docker Compose                 | ✅ COMPLETE    | Локальная инфраструктура PostgreSQL, Redis, MinIO                                                                                    |
-| 2.5 Базовая инфраструктура проекта | ✅ COMPLETE    | ENV, config, logging, errors, aliases, hooks, IDE, standards                                                                         |
-| 2.6 CI/CD — GitHub Actions         | ✅ COMPLETE    | Автоматические проверки на push, pull request и ручной запуск                                                                        |
-| 3.1 Prisma Schema                  | ✅ COMPLETE    | Полная Prisma-схема, первая миграция, seed, Prisma Client и Stage 3 acceptance tests                                                 |
-| 3.2 Миграции                       | ✅ COMPLETE    | Prisma Migrate workflow, reset/deploy/dev scripts, CI checks и документация                                                          |
-| 3.3 Seed                           | ✅ COMPLETE    | Модульный deterministic seed для dev/test/demo данных                                                                                |
-| 3.4 Prisma Client                  | ✅ COMPLETE    | Единый PrismaService, DatabaseModule, health check PostgreSQL и транзакции                                                           |
-| 3.5 Repository Layer               | ✅ COMPLETE    | Репозитории для MVP-сущностей, интерфейсы, DI и unit-тесты                                                                           |
-| 4.1 Users Module                   | ✅ COMPLETE    | CRUD пользователей, DTO validation, Swagger, поиск, пагинация и сортировка                                                           |
-| 4.2 Auth Module                    | ✅ COMPLETE    | JWT auth, Argon2 passwords, refresh rotation, guards, roles and sessions                                                             |
-| 4.3 JWT Infrastructure             | ✅ COMPLETE    | Централизованный TokenService, JwtConfig, verify/decode/hash и TokenService-backed guards                                            |
-| 4.4 Refresh Token & Sessions       | ✅ COMPLETE    | SessionModule, SessionService, rotation, reuse detection, session list/revoke and cleanup                                            |
-| 4.5 Guards                         | ✅ COMPLETE    | Common auth guards/decorators, global JWT protection, roles, ownership and API key guard                                             |
-| 4.6 Roles & Authorization          | ✅ COMPLETE    | Centralized RBAC role constants, authorization policies, explicit endpoint access rules                                              |
-| 4.7 Swagger & API Documentation    | ✅ COMPLETE    | OpenAPI 3.1, Swagger UI, Bearer auth, DTO/errors/examples and CI contract generation                                                 |
-| 5.1 Projects Module                | ✅ COMPLETE    | Ownership-aware Projects API, repository queries, lifecycle events, DTOs, mapper and tests                                           |
-| 5.2 Управление проектами           | ✅ COMPLETE    | CRUD, soft delete, archive/restore, tags, filters, statistics, history and lifecycle events                                          |
-| 6.1 File Storage (MinIO)           | ✅ COMPLETE    | StorageModule, MinioProvider, bucket strategy, streaming operations and presigned URLs                                               |
-| 6.2 Upload Pipeline                | ✅ COMPLETE    | ZIP upload API, validation, checksum, ownership, MinIO persistence and versioning                                                    |
-| 7.1 Queue Infrastructure           | ✅ COMPLETE    | Redis/BullMQ queues, job envelope, retry policy, QueueService, health check and CI integration                                       |
-| 7.2 Job Pipeline                   | ✅ COMPLETE    | UploadCompleted trigger, Worker-owned eight-step orchestration, retries, progress, terminal cleanup and dead-letter queue            |
-| 8.1 Worker Infrastructure          | ✅ COMPLETE    | Standalone Nest application context, BullMQ consumers, processors, DB/storage adapters, workspaces and graceful shutdown             |
-| 8.2 Processing Jobs                | ✅ COMPLETE    | Download, safe ZIP extraction, project parsing, context merge and idempotent cleanup                                                 |
-| 9.1 AI Processing Pipeline         | ✅ COMPLETE    | Project classification, token-aware chunks, context selection and structured prompts                                                 |
-| 9.2 AI Integration                 | ✅ COMPLETE    | OmniRouter/DeepSeek, retry/timeout/quota/concurrency, secret redaction and persisted usage                                           |
-| 9.3 Report Generation              | ✅ COMPLETE    | Issue normalization/similarity deduplication, weighted scoring, findings, Markdown and JSON                                          |
-| 10.1 Reports Module                | ✅ COMPLETE    | Ownership-aware report API, status, project history and deletion                                                                     |
-| 10.2 Reports & History             | ✅ COMPLETE    | Persistent MinIO Markdown/JSON/PDF exports, pagination and report comparison                                                         |
-| 11.1 Chat Module                   | ✅ COMPLETE    | Project chat sessions, ownership, persisted history, AI context and shared Worker AI provider                                        |
-| 11.2 AI Context & Streaming        | ✅ COMPLETE    | Related context, Redis cache, memory compression, searchable history, SSE and token usage                                            |
-| 12.1 Core Application              | ✅ COMPLETE    | Shared UI Kit/tokens, protected Web auth, refresh/logout flow, real API Dashboard and responsive application layout                  |
-| 12.2 User Features                 | 🟡 IN PROGRESS | Projects, ZIP versions, analysis start/status, report details/exports/compare, project chat streaming and Settings API               |
-| 13.1 Admin Core                    | 🟡 IN PROGRESS | Admin RBAC boundary, real overview/AI metrics, queue monitoring API, retry/remove operations, user/project details and statistics UI |
-| 13.2 Administration                | 🟡 IN PROGRESS | Queue metrics/jobs, AI usage/statistics and persisted masked log search API; filters and remaining operational views continue        |
-| 14.1 OpenAPI & SDK                 | 🟡 IN PROGRESS | Canonical OpenAPI generation/validation, documented Admin response schemas and reproducible generated contract types checked in CI   |
-| 14.2 Frontend Integration          | 🟡 IN PROGRESS | Web/Admin share configured SDK clients with centralized auth/refresh; complete feature migration and contract coverage continue      |
+| Этап                               | Статус         | Результат                                                                                                                                           |
+| ---------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Этап 1. Проектирование системы     | ✅ COMPLETE    | Архитектура, backend/frontend/worker/storage/queue/database проектирование, draw.io диаграммы                                                       |
+| 2.1 Yarn Workspaces                | ✅ COMPLETE    | Инициализирован Yarn Classic monorepo                                                                                                               |
+| 2.2 Создание приложений            | ✅ COMPLETE    | Созданы `api`, `web`, `admin`, `worker`                                                                                                             |
+| 2.3 Shared Packages                | ✅ COMPLETE    | Созданы `config`, `types`, `sdk`, `ui`                                                                                                              |
+| 2.4 Docker Compose                 | ✅ COMPLETE    | Локальная инфраструктура PostgreSQL, Redis, MinIO                                                                                                   |
+| 2.5 Базовая инфраструктура проекта | ✅ COMPLETE    | ENV, config, logging, errors, aliases, hooks, IDE, standards                                                                                        |
+| 2.6 CI/CD — GitHub Actions         | ✅ COMPLETE    | Автоматические проверки на push, pull request и ручной запуск                                                                                       |
+| 3.1 Prisma Schema                  | ✅ COMPLETE    | Полная Prisma-схема, первая миграция, seed, Prisma Client и Stage 3 acceptance tests                                                                |
+| 3.2 Миграции                       | ✅ COMPLETE    | Prisma Migrate workflow, reset/deploy/dev scripts, CI checks и документация                                                                         |
+| 3.3 Seed                           | ✅ COMPLETE    | Модульный deterministic seed для dev/test/demo данных                                                                                               |
+| 3.4 Prisma Client                  | ✅ COMPLETE    | Единый PrismaService, DatabaseModule, health check PostgreSQL и транзакции                                                                          |
+| 3.5 Repository Layer               | ✅ COMPLETE    | Репозитории для MVP-сущностей, интерфейсы, DI и unit-тесты                                                                                          |
+| 4.1 Users Module                   | ✅ COMPLETE    | CRUD пользователей, DTO validation, Swagger, поиск, пагинация и сортировка                                                                          |
+| 4.2 Auth Module                    | ✅ COMPLETE    | JWT auth, Argon2 passwords, refresh rotation, guards, roles and sessions                                                                            |
+| 4.3 JWT Infrastructure             | ✅ COMPLETE    | Централизованный TokenService, JwtConfig, verify/decode/hash и TokenService-backed guards                                                           |
+| 4.4 Refresh Token & Sessions       | ✅ COMPLETE    | SessionModule, SessionService, rotation, reuse detection, session list/revoke and cleanup                                                           |
+| 4.5 Guards                         | ✅ COMPLETE    | Common auth guards/decorators, global JWT protection, roles, ownership and API key guard                                                            |
+| 4.6 Roles & Authorization          | ✅ COMPLETE    | Centralized RBAC role constants, authorization policies, explicit endpoint access rules                                                             |
+| 4.7 Swagger & API Documentation    | ✅ COMPLETE    | OpenAPI 3.1, Swagger UI, Bearer auth, DTO/errors/examples and CI contract generation                                                                |
+| 5.1 Projects Module                | ✅ COMPLETE    | Ownership-aware Projects API, repository queries, lifecycle events, DTOs, mapper and tests                                                          |
+| 5.2 Управление проектами           | ✅ COMPLETE    | CRUD, soft delete, archive/restore, tags, filters, statistics, history and lifecycle events                                                         |
+| 6.1 File Storage (MinIO)           | ✅ COMPLETE    | StorageModule, MinioProvider, bucket strategy, streaming operations and presigned URLs                                                              |
+| 6.2 Upload Pipeline                | ✅ COMPLETE    | ZIP upload API, validation, checksum, ownership, MinIO persistence and versioning                                                                   |
+| 7.1 Queue Infrastructure           | ✅ COMPLETE    | Redis/BullMQ queues, job envelope, retry policy, QueueService, health check and CI integration                                                      |
+| 7.2 Job Pipeline                   | ✅ COMPLETE    | UploadCompleted trigger, Worker-owned eight-step orchestration, retries, progress, terminal cleanup and dead-letter queue                           |
+| 8.1 Worker Infrastructure          | ✅ COMPLETE    | Standalone Nest application context, BullMQ consumers, processors, DB/storage adapters, workspaces and graceful shutdown                            |
+| 8.2 Processing Jobs                | ✅ COMPLETE    | Download, safe ZIP extraction, project parsing, context merge and idempotent cleanup                                                                |
+| 9.1 AI Processing Pipeline         | ✅ COMPLETE    | Project classification, token-aware chunks, context selection and structured prompts                                                                |
+| 9.2 AI Integration                 | ✅ COMPLETE    | OmniRouter/DeepSeek, retry/timeout/quota/concurrency, secret redaction and persisted usage                                                          |
+| 9.3 Report Generation              | ✅ COMPLETE    | Issue normalization/similarity deduplication, weighted scoring, findings, Markdown and JSON                                                         |
+| 10.1 Reports Module                | ✅ COMPLETE    | Ownership-aware report API, status, project history and deletion                                                                                    |
+| 10.2 Reports & History             | ✅ COMPLETE    | Persistent MinIO Markdown/JSON/PDF exports, pagination and report comparison                                                                        |
+| 11.1 Chat Module                   | ✅ COMPLETE    | Project chat sessions, ownership, persisted history, AI context and shared Worker AI provider                                                       |
+| 11.2 AI Context & Streaming        | ✅ COMPLETE    | Related context, Redis cache, memory compression, searchable history, SSE and token usage                                                           |
+| 12.1 Core Application              | ✅ COMPLETE    | Shared UI Kit/tokens, protected Web auth, refresh/logout flow, real API Dashboard and responsive application layout                                 |
+| 12.2 User Features                 | 🟡 IN PROGRESS | Projects search/sort/pagination, ZIP drag-drop validation/progress/cancel, analysis status, report exports/compare, chat streaming and Settings API |
+| 13.1 Admin Core                    | 🟡 IN PROGRESS | Admin RBAC boundary, real overview/AI metrics, queue monitoring API, retry/remove operations, user/project details, search and pagination UI        |
+| 13.2 Administration                | 🟡 IN PROGRESS | Queue metrics/jobs, AI usage/statistics and persisted masked log search API; filters and remaining operational views continue                       |
+| 14.1 OpenAPI & SDK                 | 🟡 IN PROGRESS | Canonical OpenAPI generation/validation, documented Admin response schemas and reproducible generated contract types checked in CI                  |
+| 14.2 Frontend Integration          | 🟡 IN PROGRESS | Web/Admin share configured SDK clients with centralized auth/refresh; complete feature migration and contract coverage continue                     |
 
 Текущий статус:
 

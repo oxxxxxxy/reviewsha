@@ -1,12 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Badge, EmptyState, Loader, Table } from '@reviewsha/ui';
+import { Badge, Button, EmptyState, Input, Loader, Table } from '@reviewsha/ui';
+import { useState } from 'react';
 import { adminSdk } from '../../api/client';
 
 export function UsersPage() {
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const users = useQuery({
-    queryKey: ['admin', 'users'],
-    queryFn: () => adminSdk.admin.users({ limit: 20 }),
+    queryKey: ['admin', 'users', search, page],
+    queryFn: () => adminSdk.admin.users({ limit: 20, page, search: search || undefined }),
   });
   if (users.isLoading)
     return (
@@ -28,6 +31,15 @@ export function UsersPage() {
   return (
     <section className="page">
       <h1>Users</h1>
+      <Input
+        aria-label="Search users"
+        placeholder="Search users"
+        value={search}
+        onChange={(event) => {
+          setSearch(event.target.value);
+          setPage(1);
+        }}
+      />
       {rows.length ? (
         <Table
           rows={rows}
@@ -45,6 +57,27 @@ export function UsersPage() {
       ) : (
         <EmptyState title="No users found" />
       )}
+      {users.data && users.data.meta.pages > 1 ? (
+        <nav aria-label="User pages">
+          <Button
+            variant="secondary"
+            disabled={page <= 1}
+            onClick={() => setPage((value) => value - 1)}
+          >
+            Previous
+          </Button>{' '}
+          <span>
+            Page {page} of {users.data.meta.pages}
+          </span>{' '}
+          <Button
+            variant="secondary"
+            disabled={page >= users.data.meta.pages}
+            onClick={() => setPage((value) => value + 1)}
+          >
+            Next
+          </Button>
+        </nav>
+      ) : null}
     </section>
   );
 }

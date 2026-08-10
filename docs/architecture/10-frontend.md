@@ -90,6 +90,17 @@ Bearer header и single-flight refresh: параллельные `401` ждут 
 `/reports`, `/chat`, `/settings`. Защищённые маршруты проходят через
 `ProtectedRoute`, а API URL задаётся через `VITE_API_URL`.
 
+Project list queries use server-side search, sorting and pagination. Project
+details support ZIP drag-and-drop, client-side extension/100 MB validation,
+progress reporting, cancellation through `AbortController`, retry after an
+error, upload version refresh and analysis polling. Dashboard counters map
+`analysesCount` and `reportsCount` to their corresponding cards; they are
+derived from the real project response rather than hardcoded values.
+
+Admin users and projects use the same server-side search/pagination boundary.
+Operational logs expose server-side search, level and service filters. These
+filters are query state and do not load the full collection into the browser.
+
 ---
 
 # 4. Архитектура приложения

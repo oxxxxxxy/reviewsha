@@ -36,13 +36,13 @@ export function DashboardPage() {
         <Card>
           <h2>Analyses</h2>
           <strong>
-            {items.reduce((total, item) => total + (item.stats?.reportsCount ?? 0), 0)}
+            {items.reduce((total, item) => total + (item.stats?.analysesCount ?? 0), 0)}
           </strong>
         </Card>
         <Card>
           <h2>Reports</h2>
           <strong>
-            {items.reduce((total, item) => total + (item.stats?.analysesCount ?? 0), 0)}
+            {items.reduce((total, item) => total + (item.stats?.reportsCount ?? 0), 0)}
           </strong>
         </Card>
       </Grid>

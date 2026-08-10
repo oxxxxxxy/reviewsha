@@ -11,16 +11,21 @@ export function ProjectsPage() {
 
 function ProjectsList() {
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<'updatedAt' | 'name'>('updatedAt');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
   const client = useQueryClient();
   const navigate = useNavigate();
   const projects = useQuery({
-    queryKey: ['projects', search],
-    queryFn: () =>
-      reviewshaSdk.projects.list({ search, limit: 50, sort: 'updatedAt', order: 'desc' }),
+    queryKey: ['projects', search, page, sort],
+    queryFn: () => reviewshaSdk.projects.list({ search, page, limit: 20, sort, order: 'desc' }),
   });
+  const updateSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
   const create = useMutation({
     mutationFn: () =>
       reviewshaSdk.projects.create({
@@ -43,10 +48,23 @@ function ProjectsList() {
       <div className="form">
         <Input
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => updateSearch(event.target.value)}
           placeholder="Search projects"
           aria-label="Search projects"
         />
+        <label>
+          Sort
+          <select
+            value={sort}
+            onChange={(event) => {
+              setSort(event.target.value as typeof sort);
+              setPage(1);
+            }}
+          >
+            <option value="updatedAt">Recently updated</option>
+            <option value="name">Name</option>
+          </select>
+        </label>
         <Input
           value={name}
           onChange={(event) => setName(event.target.value)}
@@ -94,6 +112,27 @@ function ProjectsList() {
       ) : (
         <EmptyState title="No projects yet" description="Create your first project." />
       )}
+      {projects.data && projects.data.meta.pages > 1 ? (
+        <nav aria-label="Project pages">
+          <Button
+            variant="secondary"
+            disabled={page <= 1}
+            onClick={() => setPage((value) => value - 1)}
+          >
+            Previous
+          </Button>{' '}
+          <span>
+            Page {page} of {projects.data.meta.pages}
+          </span>{' '}
+          <Button
+            variant="secondary"
+            disabled={page >= projects.data.meta.pages}
+            onClick={() => setPage((value) => value + 1)}
+          >
+            Next
+          </Button>
+        </nav>
+      ) : null}
     </section>
   );
 }
@@ -113,6 +152,8 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   const [editDescription, setEditDescription] = useState('');
   const [editTags, setEditTags] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const uploadController = useRef<AbortController | undefined>(undefined);
+  const [uploadError, setUploadError] = useState<string>();
   const uploads = useQuery({
     queryKey: ['uploads', projectId],
     queryFn: () => reviewshaSdk.uploads.list(projectId),
@@ -134,8 +175,25 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     onSuccess: () => void client.invalidateQueries({ queryKey: ['project', projectId] }),
   });
   const upload = useMutation({
-    mutationFn: (file: File) => reviewshaSdk.uploads.upload(projectId, file, setUploadProgress),
-    onSuccess: () => setUploadProgress(100),
+    mutationFn: (file: File) => {
+      uploadController.current = new AbortController();
+      return reviewshaSdk.uploads.upload(
+        projectId,
+        file,
+        setUploadProgress,
+        uploadController.current.signal,
+      );
+    },
+    onSuccess: () => {
+      setUploadProgress(100);
+      uploadController.current = undefined;
+      void client.invalidateQueries({ queryKey: ['uploads', projectId] });
+    },
+    onError: (error) => {
+      uploadController.current = undefined;
+      if ((error as Error).name !== 'CanceledError')
+        setUploadError('Upload failed. Check ZIP file and try again.');
+    },
   });
   const analyses = useQuery({
     queryKey: ['analyses', projectId],
@@ -162,6 +220,18 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     setEditName(item.name);
     setEditDescription(item.description ?? '');
     setEditTags(projectTags.join(', '));
+  };
+  const uploadFile = (file: File) => {
+    setUploadError(undefined);
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+      setUploadError('Only ZIP archives are supported.');
+      return;
+    }
+    if (file.size > 100 * 1024 * 1024) {
+      setUploadError('The ZIP file is too large. Maximum size: 100 MB.');
+      return;
+    }
+    upload.mutate(file);
   };
   return (
     <section className="page">
@@ -201,7 +271,9 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         variant="secondary"
         disabled={item.status === 'ARCHIVED'}
         isLoading={archive.isPending}
-        onClick={() => archive.mutate()}
+        onClick={() => {
+          if (window.confirm('Archive this project?')) archive.mutate();
+        }}
       >
         Archive project
       </Button>
@@ -233,6 +305,18 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       </section>
       <section className="upload-panel">
         <h2>Upload ZIP</h2>
+        <div
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault();
+            const file = event.dataTransfer.files[0];
+            if (file) uploadFile(file);
+          }}
+          role="region"
+          aria-label="ZIP upload drop zone"
+        >
+          Drop ZIP here or choose a file
+        </div>
         <input
           ref={fileRef}
           type="file"
@@ -240,14 +324,17 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           onChange={(event) => {
             const file = event.target.files?.[0];
             if (!file) return;
-            if (!file.name.toLowerCase().endsWith('.zip')) return;
-            if (file.size > 100 * 1024 * 1024) return;
-            upload.mutate(file);
+            if (file) uploadFile(file);
           }}
         />
         {upload.isPending ? <p>Uploading: {uploadProgress ?? 0}%</p> : null}
+        {upload.isPending ? (
+          <Button variant="secondary" onClick={() => uploadController.current?.abort()}>
+            Cancel upload
+          </Button>
+        ) : null}
         {upload.isSuccess ? <p>Upload complete</p> : null}
-        {upload.isError ? <p role="alert">Upload failed. Check ZIP file and try again.</p> : null}
+        {uploadError ? <p role="alert">{uploadError}</p> : null}
       </section>
       <section className="project-list" aria-label="Upload versions">
         <h2>Versions</h2>
