@@ -79,8 +79,8 @@ export class AdminAPI {
     return this.client.get('/admin/logs', { params });
   }
 
-  log(id: string): Promise<AdminLog> {
-    return this.client.get<AdminLog>(`/admin/logs/${id}`);
+  log(id: string, signal?: AbortSignal): Promise<AdminLog> {
+    return this.client.get<AdminLog>(`/admin/logs/${id}`, { signal });
   }
 
   queueJobs(
