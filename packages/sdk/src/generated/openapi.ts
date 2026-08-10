@@ -1149,6 +1149,133 @@ export interface components {
             /** @example Почему AI отметил JWT? */
             message: string;
         };
+        AdminOverviewResponseDto: {
+            /** @example 1248 */
+            users: number;
+            /** @example 142 */
+            activeUsers: number;
+            /** @example 356 */
+            projects: number;
+            /** @example 28 */
+            archivedProjects: number;
+            /** @example 420 */
+            analyses: number;
+            /** @example 390 */
+            reports: number;
+            /** @example 12420 */
+            aiRequests: number;
+            /** @example 3200000 */
+            aiTokens: number;
+        };
+        QueueMetricsResponseDto: {
+            /** @example 12 */
+            waiting: number;
+            /** @example 3 */
+            active: number;
+            /** @example 145 */
+            completed: number;
+            /** @example 2 */
+            failed: number;
+            /** @example 0 */
+            delayed: number;
+            /** @example 0 */
+            paused: number;
+        };
+        QueueOverviewResponseDto: {
+            scan: components["schemas"]["QueueMetricsResponseDto"];
+            file: components["schemas"]["QueueMetricsResponseDto"];
+            ai: components["schemas"]["QueueMetricsResponseDto"];
+            chat: components["schemas"]["QueueMetricsResponseDto"];
+            report: components["schemas"]["QueueMetricsResponseDto"];
+            notification: components["schemas"]["QueueMetricsResponseDto"];
+            deadLetter: components["schemas"]["QueueMetricsResponseDto"];
+        };
+        AdminAiUsageResponseDto: {
+            /** @example 12420 */
+            requests: number;
+            /** @example 12420 */
+            usageRecords: number;
+            /** @example 3200000 */
+            tokens: number;
+            /** @example 142 */
+            failures: number;
+        };
+        AdminStatisticsResponseDto: {
+            /** @example 1248 */
+            users: number;
+            /** @example 356 */
+            projects: number;
+            /** @example 420 */
+            analyses: number;
+            /** @example 390 */
+            completedAnalyses: number;
+            /** @example 30 */
+            failedAnalyses: number;
+        };
+        AdminLogResponseDto: {
+            /** Format: uuid */
+            id: string;
+            /** @example ERROR */
+            level: string;
+            /** @example API */
+            service: string;
+            context?: string | null;
+            message: string;
+            requestId?: string | null;
+            traceId?: string | null;
+            stack?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AdminLogsMetaDto: {
+            /** @example 1 */
+            page: number;
+            /** @example 20 */
+            limit: number;
+            /** @example 100 */
+            total: number;
+            /** @example 5 */
+            pages: number;
+        };
+        AdminLogsResponseDto: {
+            items: components["schemas"]["AdminLogResponseDto"][];
+            meta: components["schemas"]["AdminLogsMetaDto"];
+        };
+        AdminJobResponseDto: {
+            /** @example job-123 */
+            id: string;
+            /** @example analyze */
+            name: string;
+            /** @example failed */
+            state: string;
+            /** @example 3 */
+            attemptsMade: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            processedOn?: string;
+            /** Format: date-time */
+            finishedOn?: string;
+            failedReason?: string;
+        };
+        AdminJobsMetaDto: {
+            /** @example 1 */
+            page: number;
+            /** @example 20 */
+            limit: number;
+            /** @example 100 */
+            total: number;
+            /** @example 5 */
+            pages: number;
+        };
+        AdminJobsResponseDto: {
+            items: components["schemas"]["AdminJobResponseDto"][];
+            meta: components["schemas"]["AdminJobsMetaDto"];
+        };
+        AdminActionResponseDto: {
+            /** @example true */
+            ok: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -3390,7 +3517,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminOverviewResponseDto"];
+                };
             };
         };
     };
@@ -3407,7 +3536,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["QueueOverviewResponseDto"];
+                };
             };
         };
     };
@@ -3424,7 +3555,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminAiUsageResponseDto"];
+                };
             };
         };
     };
@@ -3441,16 +3574,20 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminStatisticsResponseDto"];
+                };
             };
         };
     };
     Admin_logs: {
         parameters: {
-            query: {
-                level: string;
-                service: string;
-                search: string;
+            query?: {
+                page?: number;
+                limit?: number;
+                level?: string;
+                service?: string;
+                search?: string;
             };
             header?: never;
             path?: never;
@@ -3462,13 +3599,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminLogsResponseDto"];
+                };
             };
         };
     };
     Admin_jobs: {
         parameters: {
-            query?: never;
+            query?: {
+                page?: number;
+                limit?: number;
+            };
             header?: never;
             path: {
                 queueName: string;
@@ -3481,7 +3623,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminJobsResponseDto"];
+                };
             };
         };
     };
@@ -3497,11 +3641,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            201: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["AdminActionResponseDto"];
+                };
             };
         };
     };

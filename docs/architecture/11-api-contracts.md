@@ -827,13 +827,18 @@ an explicitly selected upload via `uploadId`). Profile and password settings use
 `PATCH /auth/me` and `POST /auth/change-password`.
 
 Administrative operations are exposed under `/admin` and require the `ADMIN`
-role: `GET /admin/overview`, `GET /admin/queues`, paginated
-`GET /admin/queues/:queueName/jobs`, `POST .../retry` and `DELETE .../:jobId`.
+role. Overview, queue metrics, AI usage, statistics and masked logs have typed
+OpenAPI response schemas. Queue jobs are paginated and support retry/remove
+operations: `GET /admin/overview`, `GET /admin/queues`,
+`GET /admin/queues/:queueName/jobs?page&limit`, `POST .../retry` and
+`DELETE .../:jobId`.
 The frontend never accesses BullMQ or Redis directly.
 
 The canonical schema is generated at `docs/generated/openapi.json` by
-`yarn docs:openapi` and checked by `yarn openapi:validate`. CI runs both steps;
-the generated SDK remains the next migration boundary for stage 14.1.
+`yarn docs:openapi` and checked by `yarn openapi:validate`. CI runs both steps.
+The generated TypeScript contract is written to
+`packages/sdk/src/generated/openapi.ts`; `yarn sdk:check` regenerates it and
+fails when the committed artifact drifts from the Backend schema.
 
 `yarn sdk:generate` regenerates `packages/sdk/src/generated/openapi.ts` with
 `openapi-typescript`; `yarn sdk:check` fails when the committed generated
