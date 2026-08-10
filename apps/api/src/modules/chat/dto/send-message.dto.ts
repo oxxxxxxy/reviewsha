@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class SendMessageDto {
-  @ApiProperty({ example: 'Почему AI отметил JWT?' })
+  @ApiProperty({ type: String, example: 'Почему AI отметил JWT?' })
   @IsString()
   @IsNotEmpty()
   @Matches(/\S/u, { message: 'message must contain a non-whitespace character' })

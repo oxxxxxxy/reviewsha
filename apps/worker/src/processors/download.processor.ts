@@ -21,7 +21,7 @@ export class DownloadProcessor implements JobHandler {
   constructor(
     @Inject(WorkerDatabaseService) private readonly db: WorkerDatabaseService,
     @Inject(WorkerStorageService) private readonly storage: WorkerStorageService,
-    private readonly workspace: WorkspaceService,
+    @Inject(WorkspaceService) private readonly workspace: WorkspaceService,
     @Inject(QueueService) private readonly queue: QueueService,
     private readonly logger: WorkerLoggerService,
   ) {}

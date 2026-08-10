@@ -16,13 +16,13 @@ export class UpdateUserDto {
   @Length(USER_DISPLAY_NAME_MIN_LENGTH, USER_DISPLAY_NAME_MAX_LENGTH)
   displayName?: string;
 
-  @ApiPropertyOptional({ example: 'https://cdn.reviewsha.local/avatars/user.png' })
+  @ApiPropertyOptional({ type: String, example: 'https://cdn.reviewsha.local/avatars/user.png' })
   @IsOptional()
   @IsUrl({ require_protocol: true })
   @MaxLength(2048)
   avatarUrl?: string;
 
-  @ApiPropertyOptional({ example: true })
+  @ApiPropertyOptional({ type: Boolean, example: true })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;

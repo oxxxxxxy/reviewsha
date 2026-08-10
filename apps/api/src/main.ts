@@ -33,7 +33,9 @@ async function bootstrap(): Promise<void> {
     }),
   );
 
-  setupSwagger(app, appConfig.apiPrefix);
+  if (process.env.DISABLE_SWAGGER !== 'true') {
+    setupSwagger(app, appConfig.apiPrefix);
+  }
 
   await app.listen(appConfig.port, appConfig.host);
 

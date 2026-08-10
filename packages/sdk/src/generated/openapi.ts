@@ -875,9 +875,15 @@ export interface components {
             role: "USER" | "ADMIN" | "SUPER_ADMIN";
             /** @example true */
             isActive: boolean;
-            /** @example 2026-08-02T12:00:00.000Z */
+            /**
+             * Format: date-time
+             * @example 2026-08-02T12:00:00.000Z
+             */
             createdAt: string;
-            /** @example 2026-08-02T12:00:00.000Z */
+            /**
+             * Format: date-time
+             * @example 2026-08-02T12:00:00.000Z
+             */
             updatedAt: string;
         };
         UsersListMetaDto: {
@@ -947,26 +953,20 @@ export interface components {
             /** @example 00000000-0000-4000-8000-000000000101 */
             userId: string;
             /** @example Chrome on Linux */
-            device?: Record<string, never>;
+            device?: string;
             /** @example 127.0.0.1 */
-            ip?: Record<string, never>;
+            ip?: string;
             /** @example Mozilla/5.0 ... */
-            userAgent?: Record<string, never>;
+            userAgent?: string;
             /** @example Chrome */
-            browser?: Record<string, never>;
+            browser?: string;
             /** @example Linux */
-            os?: Record<string, never>;
-            /**
-             * Format: date-time
-             * @example 2026-08-02T19:00:00.000Z
-             */
+            os?: string;
+            /** @example 2026-08-02T19:00:00.000Z */
             createdAt: string;
             /** @example 2026-08-02T19:30:00.000Z */
-            lastUsedAt?: Record<string, never>;
-            /**
-             * Format: date-time
-             * @example 2026-09-01T19:00:00.000Z
-             */
+            lastUsedAt?: string;
+            /** @example 2026-09-01T19:00:00.000Z */
             expiresAt: string;
             /** @example false */
             current: boolean;
@@ -2591,7 +2591,7 @@ export interface operations {
                 search?: string;
                 language?: string;
                 /** @description Comma-separated tag names. */
-                tags?: string[];
+                tags?: string;
                 createdFrom?: string;
                 createdTo?: string;
                 status?: "ACTIVE" | "ARCHIVED" | "DELETED";

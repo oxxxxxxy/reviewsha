@@ -3,13 +3,13 @@ import { ProjectStatus, Visibility } from '@prisma/client';
 import { ProjectHistoryAction } from '@prisma/client';
 
 export class ProjectStatsDto {
-  @ApiProperty({ example: 3 })
+  @ApiProperty({ type: Number, example: 3 })
   analysesCount!: number;
 
-  @ApiProperty({ example: 2 })
+  @ApiProperty({ type: Number, example: 2 })
   uploadsCount!: number;
 
-  @ApiProperty({ example: 2 })
+  @ApiProperty({ type: Number, example: 2 })
   reportsCount!: number;
 
   @ApiPropertyOptional({ type: String, example: '2026-08-05T12:00:00.000Z', nullable: true })
@@ -17,13 +17,13 @@ export class ProjectStatsDto {
 }
 
 export class ProjectResponseDto {
-  @ApiProperty({ example: '00000000-0000-4000-8000-000000000001' })
+  @ApiProperty({ type: String, example: '00000000-0000-4000-8000-000000000001' })
   id!: string;
 
-  @ApiProperty({ example: '00000000-0000-4000-8000-000000000002' })
+  @ApiProperty({ type: String, example: '00000000-0000-4000-8000-000000000002' })
   ownerId!: string;
 
-  @ApiProperty({ example: 'Reviewsha API' })
+  @ApiProperty({ type: String, example: 'Reviewsha API' })
   name!: string;
 
   @ApiPropertyOptional({ type: String, example: 'Automated code review backend.', nullable: true })
@@ -44,10 +44,10 @@ export class ProjectResponseDto {
   @ApiPropertyOptional({ type: String, example: null, nullable: true })
   archivedAt!: string | null;
 
-  @ApiProperty({ example: '2026-08-05T12:00:00.000Z' })
+  @ApiProperty({ type: String, example: '2026-08-05T12:00:00.000Z' })
   createdAt!: string;
 
-  @ApiProperty({ example: '2026-08-05T12:00:00.000Z' })
+  @ApiProperty({ type: String, example: '2026-08-05T12:00:00.000Z' })
   updatedAt!: string;
 
   @ApiProperty({ type: () => ProjectStatsDto })
@@ -55,16 +55,16 @@ export class ProjectResponseDto {
 }
 
 export class ProjectsListMetaDto {
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ type: Number, example: 1 })
   page!: number;
 
-  @ApiProperty({ example: 20 })
+  @ApiProperty({ type: Number, example: 20 })
   limit!: number;
 
-  @ApiProperty({ example: 2 })
+  @ApiProperty({ type: Number, example: 2 })
   total!: number;
 
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ type: Number, example: 1 })
   pages!: number;
 }
 
@@ -82,22 +82,26 @@ export class ProjectsListResponseDto {
 }
 
 export class ProjectHistoryResponseDto {
-  @ApiProperty({ example: '00000000-0000-4000-8000-000000000020' })
+  @ApiProperty({ type: String, example: '00000000-0000-4000-8000-000000000020' })
   id!: string;
 
   @ApiProperty({ enum: ProjectHistoryAction, example: ProjectHistoryAction.UPDATED })
   action!: ProjectHistoryAction;
 
-  @ApiProperty({ example: '00000000-0000-4000-8000-000000000001' })
+  @ApiProperty({ type: String, example: '00000000-0000-4000-8000-000000000001' })
   actorId!: string;
 
-  @ApiProperty({ example: 'developer@reviewsha.local' })
+  @ApiProperty({ type: String, example: 'developer@reviewsha.local' })
   actorEmail!: string;
 
-  @ApiPropertyOptional({ example: { name: { from: 'Old', to: 'New' } }, nullable: true })
+  @ApiPropertyOptional({
+    type: Object,
+    example: { name: { from: 'Old', to: 'New' } },
+    nullable: true,
+  })
   changedFields!: Record<string, unknown> | null;
 
-  @ApiProperty({ example: '2026-08-05T12:00:00.000Z' })
+  @ApiProperty({ type: String, example: '2026-08-05T12:00:00.000Z' })
   createdAt!: string;
 }
 

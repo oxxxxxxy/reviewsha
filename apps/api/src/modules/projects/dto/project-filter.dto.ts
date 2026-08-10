@@ -29,17 +29,21 @@ export class ProjectFilterDto {
   @Max(PROJECT_MAX_LIMIT)
   limit: number = PROJECT_DEFAULT_LIMIT;
 
-  @ApiPropertyOptional({ example: 'typescript' })
+  @ApiPropertyOptional({ type: String, example: 'typescript' })
   @IsOptional()
   @IsString()
   search?: string;
 
-  @ApiPropertyOptional({ example: 'TypeScript' })
+  @ApiPropertyOptional({ type: String, example: 'TypeScript' })
   @IsOptional()
   @IsString()
   language?: string;
 
-  @ApiPropertyOptional({ example: 'backend,mvp', description: 'Comma-separated tag names.' })
+  @ApiPropertyOptional({
+    type: String,
+    example: 'backend,mvp',
+    description: 'Comma-separated tag names.',
+  })
   @IsOptional()
   @Transform(({ value }) =>
     typeof value === 'string'
@@ -52,12 +56,12 @@ export class ProjectFilterDto {
   @IsString({ each: true })
   tags?: string[];
 
-  @ApiPropertyOptional({ example: '2026-01-01T00:00:00.000Z' })
+  @ApiPropertyOptional({ type: String, example: '2026-01-01T00:00:00.000Z' })
   @IsOptional()
   @IsDateString()
   createdFrom?: string;
 
-  @ApiPropertyOptional({ example: '2026-12-31T23:59:59.999Z' })
+  @ApiPropertyOptional({ type: String, example: '2026-12-31T23:59:59.999Z' })
   @IsOptional()
   @IsDateString()
   createdTo?: string;

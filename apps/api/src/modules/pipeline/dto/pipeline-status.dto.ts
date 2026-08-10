@@ -1,33 +1,33 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PipelineStatusDto {
-  @ApiProperty({ example: 'scan-uuid' })
+  @ApiProperty({ type: String, example: 'scan-uuid' })
   id!: string;
 
-  @ApiProperty({ example: 'project-uuid' })
+  @ApiProperty({ type: String, example: 'project-uuid' })
   projectId!: string;
 
-  @ApiProperty({ example: 'upload-uuid' })
+  @ApiProperty({ type: String, example: 'upload-uuid' })
   uploadId!: string;
 
-  @ApiProperty({ example: 'ANALYZE', type: String, nullable: true })
+  @ApiProperty({ type: String, example: 'ANALYZE', nullable: true })
   currentStep!: string | null;
 
-  @ApiProperty({ example: 'RUNNING', type: String, nullable: true })
+  @ApiProperty({ type: String, example: 'RUNNING', nullable: true })
   status!: string | null;
 
-  @ApiProperty({ example: 70 })
+  @ApiProperty({ type: Number, example: 70 })
   progress!: number;
 
-  @ApiPropertyOptional({ example: 'AI_TIMEOUT', type: String, nullable: true })
+  @ApiPropertyOptional({ type: String, example: 'AI_TIMEOUT', nullable: true })
   errorCode?: string | null;
 
-  @ApiPropertyOptional({ example: 'AI provider timed out', type: String, nullable: true })
+  @ApiPropertyOptional({ type: String, example: 'AI provider timed out', nullable: true })
   errorMessage?: string | null;
 
-  @ApiPropertyOptional({ example: '2026-08-06T00:00:00.000Z', type: String, nullable: true })
+  @ApiPropertyOptional({ type: String, example: '2026-08-06T00:00:00.000Z', nullable: true })
   startedAt?: Date | null;
 
-  @ApiPropertyOptional({ example: '2026-08-06T00:05:00.000Z', type: String, nullable: true })
+  @ApiPropertyOptional({ type: String, example: '2026-08-06T00:05:00.000Z', nullable: true })
   finishedAt?: Date | null;
 }

@@ -19,19 +19,32 @@ import {
 } from '../constants/projects.constants';
 
 export class CreateProjectDto {
-  @ApiProperty({ example: 'Reviewsha API', minLength: 1, maxLength: PROJECT_MAX_NAME_LENGTH })
+  @ApiProperty({
+    type: String,
+    example: 'Reviewsha API',
+    minLength: 1,
+    maxLength: PROJECT_MAX_NAME_LENGTH,
+  })
   @IsString()
   @MinLength(1)
   @MaxLength(PROJECT_MAX_NAME_LENGTH)
   name!: string;
 
-  @ApiPropertyOptional({ example: 'Automated code review backend.', maxLength: 5_000 })
+  @ApiPropertyOptional({
+    type: String,
+    example: 'Automated code review backend.',
+    maxLength: 5_000,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(PROJECT_MAX_DESCRIPTION_LENGTH)
   description?: string;
 
-  @ApiPropertyOptional({ example: 'TypeScript', maxLength: PROJECT_MAX_LANGUAGE_LENGTH })
+  @ApiPropertyOptional({
+    type: String,
+    example: 'TypeScript',
+    maxLength: PROJECT_MAX_LANGUAGE_LENGTH,
+  })
   @IsOptional()
   @IsString()
   @MaxLength(PROJECT_MAX_LANGUAGE_LENGTH)

@@ -1,14 +1,14 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiExtraModels, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 
 export class UserResponseDto {
-  @ApiProperty({ example: '00000000-0000-4000-8000-000000000001' })
+  @ApiProperty({ type: String, example: '00000000-0000-4000-8000-000000000001' })
   id!: string;
 
-  @ApiProperty({ example: 'developer@reviewsha.local' })
+  @ApiProperty({ type: String, example: 'developer@reviewsha.local' })
   email!: string;
 
-  @ApiProperty({ example: 'Developer' })
+  @ApiProperty({ type: String, example: 'Developer' })
   displayName!: string;
 
   @ApiPropertyOptional({
@@ -18,37 +18,38 @@ export class UserResponseDto {
   })
   avatarUrl!: string | null;
 
-  @ApiProperty({ enum: Role, example: Role.USER })
+  @ApiProperty({ type: String, enum: Role, example: Role.USER })
   role!: Role;
 
-  @ApiProperty({ example: true })
+  @ApiProperty({ type: Boolean, example: true })
   isActive!: boolean;
 
-  @ApiProperty({ example: '2026-08-02T12:00:00.000Z' })
+  @ApiProperty({ type: String, format: 'date-time', example: '2026-08-02T12:00:00.000Z' })
   createdAt!: string;
 
-  @ApiProperty({ example: '2026-08-02T12:00:00.000Z' })
+  @ApiProperty({ type: String, format: 'date-time', example: '2026-08-02T12:00:00.000Z' })
   updatedAt!: string;
 }
 
 export class UsersListMetaDto {
-  @ApiProperty({ example: 1 })
+  @ApiProperty({ type: Number, example: 1 })
   page!: number;
 
-  @ApiProperty({ example: 20 })
+  @ApiProperty({ type: Number, example: 20 })
   limit!: number;
 
-  @ApiProperty({ example: 135 })
+  @ApiProperty({ type: Number, example: 135 })
   total!: number;
 
-  @ApiProperty({ example: 7 })
+  @ApiProperty({ type: Number, example: 7 })
   pages!: number;
 }
 
+@ApiExtraModels(UserResponseDto, UsersListMetaDto)
 export class UsersListResponseDto {
-  @ApiProperty({ type: [UserResponseDto] })
+  @ApiProperty({ type: () => [UserResponseDto] })
   items!: UserResponseDto[];
 
-  @ApiProperty({ type: UsersListMetaDto })
+  @ApiProperty({ type: () => UsersListMetaDto })
   meta!: UsersListMetaDto;
 }

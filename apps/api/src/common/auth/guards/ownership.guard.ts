@@ -1,4 +1,10 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
@@ -11,9 +17,9 @@ import { ProjectRepository } from '../../../repositories/project/project.reposit
 @Injectable()
 export class OwnershipGuard implements CanActivate {
   constructor(
-    private readonly reflector: Reflector,
-    private readonly logger: ApiLoggerService,
-    private readonly projects: ProjectRepository,
+    @Inject(Reflector) private readonly reflector: Reflector,
+    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
+    @Inject(ProjectRepository) private readonly projects: ProjectRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

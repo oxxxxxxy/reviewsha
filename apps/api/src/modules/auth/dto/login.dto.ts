@@ -7,7 +7,11 @@ import {
 } from '../../users/constants/users.constants';
 
 export class LoginDto {
-  @ApiProperty({ example: 'developer@reviewsha.local', maxLength: USER_EMAIL_MAX_LENGTH })
+  @ApiProperty({
+    type: String,
+    example: 'developer@reviewsha.local',
+    maxLength: USER_EMAIL_MAX_LENGTH,
+  })
   @IsEmail()
   @MaxLength(USER_EMAIL_MAX_LENGTH)
   email!: string;

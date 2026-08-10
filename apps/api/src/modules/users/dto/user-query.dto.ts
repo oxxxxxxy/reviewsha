@@ -28,7 +28,7 @@ export class UserQueryDto {
   @Max(USER_MAX_LIMIT)
   limit: number = USER_DEFAULT_LIMIT;
 
-  @ApiPropertyOptional({ example: 'developer' })
+  @ApiPropertyOptional({ type: String, example: 'developer' })
   @IsOptional()
   @IsString()
   search?: string;
@@ -42,7 +42,7 @@ export class UserQueryDto {
   @IsIn(['createdAt', 'displayName', 'email'])
   sort: 'createdAt' | 'displayName' | 'email' = 'createdAt';
 
-  @ApiPropertyOptional({ example: 'desc', default: 'desc', enum: ['asc', 'desc'] })
+  @ApiPropertyOptional({ type: String, example: 'desc', default: 'desc', enum: ['asc', 'desc'] })
   @IsOptional()
   @IsIn(['asc', 'desc'])
   order: 'asc' | 'desc' = 'desc';

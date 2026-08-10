@@ -5,14 +5,14 @@ import { ProjectResponseDto } from '../../projects/dto/project-response.dto';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
 
 export class AdminOverviewResponseDto {
-  @ApiProperty({ example: 1248 }) users!: number;
-  @ApiProperty({ example: 142 }) activeUsers!: number;
-  @ApiProperty({ example: 356 }) projects!: number;
-  @ApiProperty({ example: 28 }) archivedProjects!: number;
-  @ApiProperty({ example: 420 }) analyses!: number;
-  @ApiProperty({ example: 390 }) reports!: number;
-  @ApiProperty({ example: 12420 }) aiRequests!: number;
-  @ApiProperty({ example: 3200000 }) aiTokens!: number;
+  @ApiProperty({ type: Number, example: 1248 }) users!: number;
+  @ApiProperty({ type: Number, example: 142 }) activeUsers!: number;
+  @ApiProperty({ type: Number, example: 356 }) projects!: number;
+  @ApiProperty({ type: Number, example: 28 }) archivedProjects!: number;
+  @ApiProperty({ type: Number, example: 420 }) analyses!: number;
+  @ApiProperty({ type: Number, example: 390 }) reports!: number;
+  @ApiProperty({ type: Number, example: 12420 }) aiRequests!: number;
+  @ApiProperty({ type: Number, example: 3200000 }) aiTokens!: number;
 }
 
 export class AdminUserDetailsResponseDto {
@@ -22,15 +22,15 @@ export class AdminUserDetailsResponseDto {
 }
 
 export class AdminProjectVersionDto {
-  @ApiProperty({ example: 3 }) version!: number;
-  @ApiProperty({ example: 1048576 }) size!: number;
-  @ApiProperty({ example: 'READY' }) status!: string;
+  @ApiProperty({ type: Number, example: 3 }) version!: number;
+  @ApiProperty({ type: Number, example: 1048576 }) size!: number;
+  @ApiProperty({ type: String, example: 'READY' }) status!: string;
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
 }
 
 export class AdminProjectAnalysisDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
-  @ApiProperty({ example: 'COMPLETED' }) status!: string;
+  @ApiProperty({ type: String, example: 'COMPLETED' }) status!: string;
   @ApiProperty({ type: Number, example: 87, nullable: true }) score!: number | null;
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
   @ApiProperty({ type: String, format: 'date-time', nullable: true }) finishedAt!: string | null;
@@ -46,12 +46,12 @@ export class AdminProjectDetailsResponseDto {
 export class QueueMetricsResponseDto {
   @ApiProperty({ enum: ['HEALTHY', 'DEGRADED', 'ERROR'] })
   status!: 'HEALTHY' | 'DEGRADED' | 'ERROR';
-  @ApiProperty({ example: 12 }) waiting!: number;
-  @ApiProperty({ example: 3 }) active!: number;
-  @ApiProperty({ example: 145 }) completed!: number;
-  @ApiProperty({ example: 2 }) failed!: number;
-  @ApiProperty({ example: 0 }) delayed!: number;
-  @ApiProperty({ example: 0 }) paused!: number;
+  @ApiProperty({ type: Number, example: 12 }) waiting!: number;
+  @ApiProperty({ type: Number, example: 3 }) active!: number;
+  @ApiProperty({ type: Number, example: 145 }) completed!: number;
+  @ApiProperty({ type: Number, example: 2 }) failed!: number;
+  @ApiProperty({ type: Number, example: 0 }) delayed!: number;
+  @ApiProperty({ type: Number, example: 0 }) paused!: number;
 }
 
 export class QueueOverviewResponseDto {
@@ -65,17 +65,17 @@ export class QueueOverviewResponseDto {
 }
 
 export class AdminAiUsageResponseDto {
-  @ApiProperty({ example: 12420 }) requests!: number;
-  @ApiProperty({ example: 12420 }) usageRecords!: number;
-  @ApiProperty({ example: 3200000 }) tokens!: number;
-  @ApiProperty({ example: 142 }) failures!: number;
+  @ApiProperty({ type: Number, example: 12420 }) requests!: number;
+  @ApiProperty({ type: Number, example: 12420 }) usageRecords!: number;
+  @ApiProperty({ type: Number, example: 3200000 }) tokens!: number;
+  @ApiProperty({ type: Number, example: 142 }) failures!: number;
   @ApiProperty({ type: () => [AdminAiFailureDto] }) failuresList!: AdminAiFailureDto[];
 }
 
 export class AdminAiFailureDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
-  @ApiProperty({ example: 'omniroute' }) provider!: string;
-  @ApiProperty({ example: 'deepseek-chat' }) model!: string;
+  @ApiProperty({ type: String, example: 'omniroute' }) provider!: string;
+  @ApiProperty({ type: String, example: 'deepseek-chat' }) model!: string;
   @ApiPropertyOptional({ type: String, nullable: true }) error!: string | null;
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
   @ApiPropertyOptional({ type: Number, nullable: true, example: 1200 }) latencyMs!: number | null;
@@ -93,12 +93,12 @@ export class AdminAiUsageQueryDto {
   @IsDateString()
   to?: string;
 
-  @ApiPropertyOptional({ example: 'opencode-zen' })
+  @ApiPropertyOptional({ type: String, example: 'opencode-zen' })
   @IsOptional()
   @IsString()
   provider?: string;
 
-  @ApiPropertyOptional({ example: 'deepseek-v4-flash-free' })
+  @ApiPropertyOptional({ type: String, example: 'deepseek-v4-flash-free' })
   @IsOptional()
   @IsString()
   model?: string;
@@ -115,12 +115,12 @@ export class AdminAiUsageQueryDto {
 }
 
 export class AdminAiUsageBreakdownItemDto {
-  @ApiProperty({ example: 'deepseek-chat' }) key!: string;
+  @ApiProperty({ type: String, example: 'deepseek-chat' }) key!: string;
   @ApiPropertyOptional({ type: String, nullable: true, example: 'developer@example.com' }) label?:
     string | null;
-  @ApiProperty({ example: 420 }) requests!: number;
-  @ApiProperty({ example: 120000 }) tokens!: number;
-  @ApiProperty({ example: 1.25 }) cost!: number;
+  @ApiProperty({ type: Number, example: 420 }) requests!: number;
+  @ApiProperty({ type: Number, example: 120000 }) tokens!: number;
+  @ApiProperty({ type: Number, example: 1.25 }) cost!: number;
 }
 
 export class AdminAiUsageBreakdownResponseDto {
@@ -130,23 +130,23 @@ export class AdminAiUsageBreakdownResponseDto {
 }
 
 export class AdminStatisticsResponseDto {
-  @ApiProperty({ example: 1248 }) users!: number;
-  @ApiProperty({ example: 356 }) projects!: number;
-  @ApiProperty({ example: 420 }) analyses!: number;
-  @ApiProperty({ example: 390 }) completedAnalyses!: number;
-  @ApiProperty({ example: 30 }) failedAnalyses!: number;
-  @ApiProperty({ example: 92.8 }) successRate!: number;
-  @ApiProperty({ example: 48000 }) averageDurationMs!: number;
+  @ApiProperty({ type: Number, example: 1248 }) users!: number;
+  @ApiProperty({ type: Number, example: 356 }) projects!: number;
+  @ApiProperty({ type: Number, example: 420 }) analyses!: number;
+  @ApiProperty({ type: Number, example: 390 }) completedAnalyses!: number;
+  @ApiProperty({ type: Number, example: 30 }) failedAnalyses!: number;
+  @ApiProperty({ type: Number, example: 92.8 }) successRate!: number;
+  @ApiProperty({ type: Number, example: 48000 }) averageDurationMs!: number;
   @ApiProperty({ type: () => [AdminProcessingStatisticDto] })
   processing!: AdminProcessingStatisticDto[];
 }
 
 export class AdminProcessingStatisticDto {
-  @ApiProperty({ example: 'PARSE' }) type!: string;
-  @ApiProperty({ example: 100 }) total!: number;
-  @ApiProperty({ example: 95 }) completed!: number;
-  @ApiProperty({ example: 3 }) failed!: number;
-  @ApiProperty({ example: 2 }) running!: number;
+  @ApiProperty({ type: String, example: 'PARSE' }) type!: string;
+  @ApiProperty({ type: Number, example: 100 }) total!: number;
+  @ApiProperty({ type: Number, example: 95 }) completed!: number;
+  @ApiProperty({ type: Number, example: 3 }) failed!: number;
+  @ApiProperty({ type: Number, example: 2 }) running!: number;
 }
 
 export class AdminStatisticsQueryDto {
@@ -177,17 +177,17 @@ export class AdminLogsQueryDto {
   @Max(100)
   limit = 20;
 
-  @ApiPropertyOptional({ example: 'ERROR' })
+  @ApiPropertyOptional({ type: String, example: 'ERROR' })
   @IsOptional()
   @IsString()
   level?: string;
 
-  @ApiPropertyOptional({ example: 'API' })
+  @ApiPropertyOptional({ type: String, example: 'API' })
   @IsOptional()
   @IsString()
   service?: string;
 
-  @ApiPropertyOptional({ example: 'timeout' })
+  @ApiPropertyOptional({ type: String, example: 'timeout' })
   @IsOptional()
   @IsString()
   search?: string;
@@ -205,8 +205,8 @@ export class AdminLogsQueryDto {
 
 export class AdminLogResponseDto {
   @ApiProperty({ format: 'uuid' }) id!: string;
-  @ApiProperty({ example: 'ERROR' }) level!: string;
-  @ApiProperty({ example: 'API' }) service!: string;
+  @ApiProperty({ type: String, example: 'ERROR' }) level!: string;
+  @ApiProperty({ type: String, example: 'API' }) service!: string;
   @ApiPropertyOptional({ type: String, nullable: true }) context!: string | null;
   @ApiProperty() message!: string;
   @ApiPropertyOptional({ type: String, nullable: true }) requestId!: string | null;
@@ -216,10 +216,10 @@ export class AdminLogResponseDto {
 }
 
 export class AdminLogsMetaDto {
-  @ApiProperty({ example: 1 }) page!: number;
-  @ApiProperty({ example: 20 }) limit!: number;
-  @ApiProperty({ example: 100 }) total!: number;
-  @ApiProperty({ example: 5 }) pages!: number;
+  @ApiProperty({ type: Number, example: 1 }) page!: number;
+  @ApiProperty({ type: Number, example: 20 }) limit!: number;
+  @ApiProperty({ type: Number, example: 100 }) total!: number;
+  @ApiProperty({ type: Number, example: 5 }) pages!: number;
 }
 
 export class AdminLogsResponseDto {
@@ -250,10 +250,10 @@ export class AdminJobsQueryDto {
 }
 
 export class AdminJobResponseDto {
-  @ApiProperty({ example: 'job-123' }) id!: string;
-  @ApiProperty({ example: 'analyze' }) name!: string;
-  @ApiProperty({ example: 'failed' }) state!: string;
-  @ApiProperty({ example: 3 }) attemptsMade!: number;
+  @ApiProperty({ type: String, example: 'job-123' }) id!: string;
+  @ApiProperty({ type: String, example: 'analyze' }) name!: string;
+  @ApiProperty({ type: String, example: 'failed' }) state!: string;
+  @ApiProperty({ type: Number, example: 3 }) attemptsMade!: number;
   @ApiProperty({ format: 'date-time' }) createdAt!: string;
   @ApiPropertyOptional({ format: 'date-time' }) processedOn?: string;
   @ApiPropertyOptional({ format: 'date-time' }) finishedOn?: string;
@@ -261,10 +261,10 @@ export class AdminJobResponseDto {
 }
 
 export class AdminJobsMetaDto {
-  @ApiProperty({ example: 1 }) page!: number;
-  @ApiProperty({ example: 20 }) limit!: number;
-  @ApiProperty({ example: 100 }) total!: number;
-  @ApiProperty({ example: 5 }) pages!: number;
+  @ApiProperty({ type: Number, example: 1 }) page!: number;
+  @ApiProperty({ type: Number, example: 20 }) limit!: number;
+  @ApiProperty({ type: Number, example: 100 }) total!: number;
+  @ApiProperty({ type: Number, example: 5 }) pages!: number;
 }
 
 export class AdminJobsResponseDto {
@@ -273,5 +273,5 @@ export class AdminJobsResponseDto {
 }
 
 export class AdminActionResponseDto {
-  @ApiProperty({ example: true }) ok!: true;
+  @ApiProperty({ type: Boolean, example: true }) ok!: true;
 }

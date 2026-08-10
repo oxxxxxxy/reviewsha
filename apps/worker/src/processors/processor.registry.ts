@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Job } from 'bullmq';
 import { AnalyzeProcessor } from './analyze.processor';
 import { CleanupProcessor } from './cleanup.processor';
@@ -16,15 +16,15 @@ export class ProcessorRegistry {
   private readonly handlers: ReadonlyMap<string, JobHandler>;
 
   constructor(
-    extract: ExtractProcessor,
-    download: DownloadProcessor,
-    parse: ParseProcessor,
-    analyze: AnalyzeProcessor,
-    merge: MergeProcessor,
-    report: ReportProcessor,
-    notify: NotifyProcessor,
-    cleanup: CleanupProcessor,
-    chat: ChatProcessor,
+    @Inject(ExtractProcessor) extract: ExtractProcessor,
+    @Inject(DownloadProcessor) download: DownloadProcessor,
+    @Inject(ParseProcessor) parse: ParseProcessor,
+    @Inject(AnalyzeProcessor) analyze: AnalyzeProcessor,
+    @Inject(MergeProcessor) merge: MergeProcessor,
+    @Inject(ReportProcessor) report: ReportProcessor,
+    @Inject(NotifyProcessor) notify: NotifyProcessor,
+    @Inject(CleanupProcessor) cleanup: CleanupProcessor,
+    @Inject(ChatProcessor) chat: ChatProcessor,
   ) {
     this.handlers = new Map<string, JobHandler>([
       [extract.type, extract],

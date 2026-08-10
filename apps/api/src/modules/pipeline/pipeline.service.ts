@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   PipelineStatus,
   PipelineStep as PrismaPipelineStep,
@@ -36,12 +36,12 @@ export interface PipelineResult {
 @Injectable()
 export class PipelineService {
   constructor(
-    private readonly scans: ScanRepository,
-    private readonly queues: QueueService,
-    private readonly uploadEvents: UploadEvents,
-    private readonly queueEvents: QueueEvents,
-    private readonly events: PipelineEvents,
-    private readonly logger: ApiLoggerService,
+    @Inject(ScanRepository) private readonly scans: ScanRepository,
+    @Inject(QueueService) private readonly queues: QueueService,
+    @Inject(UploadEvents) private readonly uploadEvents: UploadEvents,
+    @Inject(QueueEvents) private readonly queueEvents: QueueEvents,
+    @Inject(PipelineEvents) private readonly events: PipelineEvents,
+    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
   ) {}
 
   onModuleInit(): void {

@@ -53,6 +53,11 @@ AI SaaS platform for automated code review.
 Текущие этапы: 11.1–11.2 Chat, 12 Frontend, 13 Admin Panel и 14.1–14.2 SDK/Frontend Integration
 ```
 
+Локальный запуск проверен 11 августа 2026: Web доступен на `http://localhost:5173`,
+Admin на `http://localhost:5174`, API на `http://localhost:3000/api/v1`, Worker
+подключается к PostgreSQL/Redis/MinIO. Для текущей dev-сессии Swagger отключается
+через `DISABLE_SWAGGER=true` до исправления DTO metadata.
+
 ---
 
 ## Структура монорепозитория

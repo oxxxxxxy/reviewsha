@@ -1,36 +1,36 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SessionResponseDto {
-  @ApiProperty({ example: '00000000-0000-4000-8000-000000000001' })
+  @ApiProperty({ type: String, example: '00000000-0000-4000-8000-000000000001' })
   id!: string;
 
-  @ApiProperty({ example: '00000000-0000-4000-8000-000000000101' })
+  @ApiProperty({ type: String, example: '00000000-0000-4000-8000-000000000101' })
   userId!: string;
 
-  @ApiPropertyOptional({ example: 'Chrome on Linux' })
+  @ApiPropertyOptional({ type: String, example: 'Chrome on Linux' })
   device?: string | null;
 
-  @ApiPropertyOptional({ example: '127.0.0.1' })
+  @ApiPropertyOptional({ type: String, example: '127.0.0.1' })
   ip?: string | null;
 
-  @ApiPropertyOptional({ example: 'Mozilla/5.0 ...' })
+  @ApiPropertyOptional({ type: String, example: 'Mozilla/5.0 ...' })
   userAgent?: string | null;
 
-  @ApiPropertyOptional({ example: 'Chrome' })
+  @ApiPropertyOptional({ type: String, example: 'Chrome' })
   browser?: string | null;
 
-  @ApiPropertyOptional({ example: 'Linux' })
+  @ApiPropertyOptional({ type: String, example: 'Linux' })
   os?: string | null;
 
-  @ApiProperty({ example: '2026-08-02T19:00:00.000Z' })
+  @ApiProperty({ type: String, example: '2026-08-02T19:00:00.000Z' })
   createdAt!: Date;
 
-  @ApiPropertyOptional({ example: '2026-08-02T19:30:00.000Z' })
+  @ApiPropertyOptional({ type: String, example: '2026-08-02T19:30:00.000Z' })
   lastUsedAt?: Date | null;
 
-  @ApiProperty({ example: '2026-09-01T19:00:00.000Z' })
+  @ApiProperty({ type: String, example: '2026-09-01T19:00:00.000Z' })
   expiresAt!: Date;
 
-  @ApiProperty({ example: false })
+  @ApiProperty({ type: Boolean, example: false })
   current!: boolean;
 }
