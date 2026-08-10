@@ -13,6 +13,7 @@ import {
   AdminLogsResponseDto,
   AdminOverviewResponseDto,
   AdminStatisticsResponseDto,
+  AdminStatisticsQueryDto,
   QueueOverviewResponseDto,
 } from './dto/admin-response.dto';
 
@@ -54,8 +55,8 @@ export class AdminController {
   @Get('statistics')
   @ApiOperation({ summary: 'Get system statistics' })
   @ApiOkResponse({ type: AdminStatisticsResponseDto })
-  statistics() {
-    return this.admin.statistics();
+  statistics(@Query() query: AdminStatisticsQueryDto) {
+    return this.admin.statistics(query);
   }
 
   @Get('logs')

@@ -109,13 +109,25 @@ export class AdminService {
     };
   }
 
-  async statistics() {
+  async statistics(params: { from?: string; to?: string } = {}) {
+    const createdAt = {
+      ...(params.from ? { gte: new Date(params.from) } : {}),
+      ...(params.to ? { lte: new Date(params.to) } : {}),
+    };
     const [users, projects, analyses, completedAnalyses, failedAnalyses] = await Promise.all([
-      this.prisma.user.count({ where: { deletedAt: null } }),
-      this.prisma.project.count({ where: { deletedAt: null } }),
-      this.prisma.scan.count(),
-      this.prisma.scan.count({ where: { status: 'COMPLETED' } }),
-      this.prisma.scan.count({ where: { status: 'FAILED' } }),
+      this.prisma.user.count({
+        where: { deletedAt: null, ...(Object.keys(createdAt).length ? { createdAt } : {}) },
+      }),
+      this.prisma.project.count({
+        where: { deletedAt: null, ...(Object.keys(createdAt).length ? { createdAt } : {}) },
+      }),
+      this.prisma.scan.count({ where: Object.keys(createdAt).length ? { createdAt } : undefined }),
+      this.prisma.scan.count({
+        where: { status: 'COMPLETED', ...(Object.keys(createdAt).length ? { createdAt } : {}) },
+      }),
+      this.prisma.scan.count({
+        where: { status: 'FAILED', ...(Object.keys(createdAt).length ? { createdAt } : {}) },
+      }),
     ]);
     return { users, projects, analyses, completedAnalyses, failedAnalyses };
   }

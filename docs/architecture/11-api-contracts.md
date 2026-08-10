@@ -857,7 +857,9 @@ project usage rows. The Admin UI renders these rows and does not calculate
 tokens or costs from raw records in the browser.
 
 `GET /admin/logs` provides paginated, server-side `level`, `service` and
-`search` filters over persisted masked `AdminLog` records.
+`search` filters over persisted masked `AdminLog` records. Statistics accepts
+optional ISO-8601 `from` and `to` query parameters and aggregates the selected
+period in the backend.
 
 Admin detail reads use the existing ownership-aware `GET /users/:id` and
 `GET /projects/:id` resources; the `ADMIN` role is enforced by the backend.

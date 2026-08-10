@@ -53,8 +53,8 @@ export class AdminAPI {
     return this.client.get<AdminAiUsageBreakdown>('/admin/ai-usage/breakdown');
   }
 
-  statistics(): Promise<AdminStatistics> {
-    return this.client.get<AdminStatistics>('/admin/statistics');
+  statistics(params?: { from?: string; to?: string }): Promise<AdminStatistics> {
+    return this.client.get<AdminStatistics>('/admin/statistics', { params });
   }
 
   logs(params?: {

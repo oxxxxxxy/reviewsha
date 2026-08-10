@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class AdminOverviewResponseDto {
   @ApiProperty({ example: 1248 }) users!: number;
@@ -60,6 +60,18 @@ export class AdminStatisticsResponseDto {
   @ApiProperty({ example: 420 }) analyses!: number;
   @ApiProperty({ example: 390 }) completedAnalyses!: number;
   @ApiProperty({ example: 30 }) failedAnalyses!: number;
+}
+
+export class AdminStatisticsQueryDto {
+  @ApiPropertyOptional({ format: 'date-time', example: '2026-08-01T00:00:00.000Z' })
+  @IsOptional()
+  @IsDateString()
+  from?: string;
+
+  @ApiPropertyOptional({ format: 'date-time', example: '2026-08-10T23:59:59.999Z' })
+  @IsOptional()
+  @IsDateString()
+  to?: string;
 }
 
 export class AdminLogsQueryDto {
