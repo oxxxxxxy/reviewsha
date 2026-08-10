@@ -161,7 +161,29 @@ export class QueueService implements OnModuleDestroy {
 
   async getAllQueueMetrics(): Promise<Record<QueueName, QueueMetrics>> {
     const entries = await Promise.all(
-      this.registry.getAll().map(async (name) => [name, await this.getQueueMetrics(name)] as const),
+      this.registry.getAll().map(async (name) => {
+        try {
+          return [name, await this.getQueueMetrics(name)] as const;
+        } catch (error) {
+          this.logger.error(
+            `Queue metrics unavailable: ${name}`,
+            error instanceof Error ? error.stack : undefined,
+            'QueueService',
+          );
+          return [
+            name,
+            {
+              waiting: 0,
+              active: 0,
+              completed: 0,
+              failed: 0,
+              delayed: 0,
+              paused: 0,
+              status: 'ERROR',
+            },
+          ] as const;
+        }
+      }),
     );
     return Object.fromEntries(entries) as Record<QueueName, QueueMetrics>;
   }

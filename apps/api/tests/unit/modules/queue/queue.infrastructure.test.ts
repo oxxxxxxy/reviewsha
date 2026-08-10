@@ -27,7 +27,7 @@ function setup() {
     makeQueue(),
     makeQueue(),
   ];
-  const logger = { log: vi.fn() };
+  const logger = { log: vi.fn(), error: vi.fn() };
   const config = { getOrThrow: vi.fn(() => 'redis://localhost:6379') };
   const service = new QueueService(
     queues[0] as never,
@@ -179,6 +179,14 @@ describe('Queue infrastructure', () => {
       failed: 2,
       status: 'DEGRADED',
     });
+  });
+
+  it('reports unavailable queue metrics as ERROR without failing the overview', async () => {
+    const { service, queues } = setup();
+    queues[0]!.getJobCounts.mockRejectedValue(new Error('redis unavailable'));
+    const metrics = await service.getAllQueueMetrics();
+    expect(metrics[QUEUE_NAMES.scan]).toMatchObject({ status: 'ERROR' });
+    expect(metrics[QUEUE_NAMES.file]).toMatchObject({ status: 'HEALTHY' });
   });
 
   it('closes every queue during shutdown', async () => {
