@@ -1,25 +1,10 @@
 import type { Project, QueueJob, User } from '@reviewsha/types';
 import type { ApiClient } from '../client/api-client.js';
+import type { components } from '../generated/openapi.js';
 
-export interface AdminOverview {
-  readonly users: number;
-  readonly activeUsers: number;
-  readonly projects: number;
-  readonly archivedProjects: number;
-  readonly analyses: number;
-  readonly reports: number;
-  readonly aiRequests: number;
-  readonly aiTokens: number;
-}
+export type AdminOverview = components['schemas']['AdminOverviewResponseDto'];
 
-export interface QueueMetrics {
-  readonly waiting: number;
-  readonly active: number;
-  readonly completed: number;
-  readonly failed: number;
-  readonly delayed: number;
-  readonly paused: number;
-}
+export type QueueMetrics = components['schemas']['QueueMetricsResponseDto'];
 
 export interface QueueJobSummary {
   readonly id: string;
@@ -32,32 +17,11 @@ export interface QueueJobSummary {
   readonly failedReason?: string;
 }
 
-export interface AdminAiUsage {
-  readonly requests: number;
-  readonly usageRecords: number;
-  readonly tokens: number;
-  readonly failures: number;
-}
+export type AdminAiUsage = components['schemas']['AdminAiUsageResponseDto'];
 
-export interface AdminStatistics {
-  readonly users: number;
-  readonly projects: number;
-  readonly analyses: number;
-  readonly completedAnalyses: number;
-  readonly failedAnalyses: number;
-}
+export type AdminStatistics = components['schemas']['AdminStatisticsResponseDto'];
 
-export interface AdminLog {
-  readonly id: string;
-  readonly level: string;
-  readonly service: string;
-  readonly context?: string | null;
-  readonly message: string;
-  readonly requestId?: string | null;
-  readonly traceId?: string | null;
-  readonly stack?: string | null;
-  readonly createdAt: string;
-}
+export type AdminLog = components['schemas']['AdminLogResponseDto'];
 
 export interface AdminUserListResponse {
   readonly items: readonly User[];

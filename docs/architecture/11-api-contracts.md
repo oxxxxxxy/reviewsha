@@ -840,9 +840,13 @@ The generated TypeScript contract is written to
 `packages/sdk/src/generated/openapi.ts`; `yarn sdk:check` regenerates it and
 fails when the committed artifact drifts from the Backend schema.
 
-`yarn sdk:generate` regenerates `packages/sdk/src/generated/openapi.ts` with
-`openapi-typescript`; `yarn sdk:check` fails when the committed generated
-contract drifts from Backend OpenAPI.
+SDK domain APIs consume generated `components.schemas` types for the Admin
+responses instead of maintaining a second copy of those API models. Runtime
+transport remains centralized in `ApiClient`, including auth refresh and SSE.
+
+The same `yarn sdk:generate` command uses `openapi-typescript`;
+`yarn sdk:check` fails when the committed generated contract drifts from
+Backend OpenAPI.
 
 Operational metrics are also available through the protected
 `GET /admin/ai-usage` and `GET /admin/statistics` endpoints. Aggregation is
