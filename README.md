@@ -44,7 +44,7 @@ AI SaaS platform for automated code review.
 | 12.2 User Features                 | 🟡 IN PROGRESS | Projects search/sort/pagination, ZIP drag-drop validation/progress/cancel, analysis status, report details/exports/compare, chat streaming and profile/security/preferences                           |
 | 13.1 Admin Core                    | 🟡 IN PROGRESS | Admin RBAC boundary, real overview/AI metrics, queue monitoring API, retry/remove operations, detailed user/project summaries, search and pagination UI                                               |
 | 13.2 Administration                | 🟡 IN PROGRESS | Queue health/state filters, pagination, safe job details, accessible destructive confirmations, AI failure diagnostics, processing metrics and server-side logs are implemented; charts and QA remain |
-| 14.1 OpenAPI & SDK                 | 🟡 IN PROGRESS | Canonical OpenAPI generation/validation, typed Admin response schemas and SDK Admin models sourced from reproducible generated contract types                                                         |
+| 14.1 OpenAPI & SDK                 | 🟡 IN PROGRESS | Canonical OpenAPI generation/validation; Auth, Projects, Chat, Reports, Upload and Analysis SDK request/response contracts now derive from generated schemas, while full runtime migration continues  |
 | 14.2 Frontend Integration          | 🟡 IN PROGRESS | Web/Admin share configured SDK clients with centralized auth/refresh; complete feature migration and contract coverage continue                                                                       |
 
 Текущий статус:
