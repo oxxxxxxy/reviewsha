@@ -1152,8 +1152,8 @@ export interface components {
             title: string;
             description: string;
             filePath: string;
-            line?: Record<string, never> | null;
-            recommendation?: Record<string, never> | null;
+            line?: number | null;
+            recommendation?: string | null;
         };
         ReportExportDto: {
             /** @enum {string} */
@@ -1168,8 +1168,8 @@ export interface components {
             projectId: string;
             /** @enum {string} */
             status: "GENERATING" | "READY" | "FAILED";
-            score?: Record<string, never> | null;
-            summary?: Record<string, never> | null;
+            score?: number | null;
+            summary?: string | null;
             /** @enum {string} */
             format: "MD" | "PDF" | "JSON";
             tokensUsed: number;
@@ -1179,9 +1179,15 @@ export interface components {
             recommendations: string[];
             exports: components["schemas"]["ReportExportDto"][];
         };
+        ReportsListMetaDto: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+        };
         ReportsListDto: {
             data: components["schemas"]["ReportResponseDto"][];
-            meta: Record<string, never>;
+            meta: components["schemas"]["ReportsListMetaDto"];
         };
         CreateChatDto: {
             /** @example JWT findings */

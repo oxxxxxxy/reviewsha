@@ -8,8 +8,8 @@ export class ReportIssueDto {
   @ApiProperty() title!: string;
   @ApiProperty() description!: string;
   @ApiProperty() filePath!: string;
-  @ApiPropertyOptional({ nullable: true }) line!: number | null;
-  @ApiPropertyOptional({ nullable: true }) recommendation!: string | null;
+  @ApiPropertyOptional({ type: Number, nullable: true }) line!: number | null;
+  @ApiPropertyOptional({ type: String, nullable: true }) recommendation!: string | null;
 }
 
 export class ReportExportDto {
@@ -23,8 +23,8 @@ export class ReportResponseDto {
   @ApiProperty() scanId!: string;
   @ApiProperty() projectId!: string;
   @ApiProperty({ enum: ['GENERATING', 'READY', 'FAILED'] }) status!: string;
-  @ApiPropertyOptional({ nullable: true }) score!: number | null;
-  @ApiPropertyOptional({ nullable: true }) summary!: string | null;
+  @ApiPropertyOptional({ type: Number, nullable: true }) score!: number | null;
+  @ApiPropertyOptional({ type: String, nullable: true }) summary!: string | null;
   @ApiProperty({ enum: ReportFormat }) format!: ReportFormat;
   @ApiProperty() tokensUsed!: number;
   @ApiProperty() createdAt!: Date;
@@ -33,12 +33,14 @@ export class ReportResponseDto {
   @ApiProperty({ type: [ReportExportDto] }) exports!: ReportExportDto[];
 }
 
+export class ReportsListMetaDto {
+  @ApiProperty() page!: number;
+  @ApiProperty() limit!: number;
+  @ApiProperty() total!: number;
+  @ApiProperty() totalPages!: number;
+}
+
 export class ReportsListDto {
   @ApiProperty({ type: [ReportResponseDto] }) data!: ReportResponseDto[];
-  @ApiProperty() meta!: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+  @ApiProperty({ type: ReportsListMetaDto }) meta!: ReportsListMetaDto;
 }

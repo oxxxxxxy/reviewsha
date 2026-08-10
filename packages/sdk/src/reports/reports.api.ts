@@ -1,25 +1,11 @@
-import type { PaginatedResponse, Report } from '@reviewsha/types';
 import type { ApiClient } from '../client/api-client.js';
+import type { components } from '../generated/openapi.js';
 
 export type ReportExportFormat = 'md' | 'json' | 'pdf';
 
-export interface ReportIssue {
-  readonly id: string;
-  readonly severity: string;
-  readonly category: string;
-  readonly title: string;
-  readonly description: string;
-  readonly filePath: string;
-  readonly line: number | null;
-  readonly recommendation: string | null;
-}
-
-export interface ReportDetail extends Report {
-  readonly status: string;
-  readonly issues: readonly ReportIssue[];
-  readonly recommendations: readonly string[];
-  readonly exports: readonly { format: string; size: number; createdAt: string }[];
-}
+export type ReportIssue = components['schemas']['ReportIssueDto'];
+export type ReportDetail = components['schemas']['ReportResponseDto'];
+export type ReportsListResponse = components['schemas']['ReportsListDto'];
 
 export class ReportsAPI {
   constructor(private readonly client: ApiClient) {}
@@ -29,8 +15,8 @@ export class ReportsAPI {
     page = 1,
     limit = 50,
     signal?: AbortSignal,
-  ): Promise<PaginatedResponse<Report>> {
-    return this.client.get<PaginatedResponse<Report>>(`/projects/${projectId}/reports`, {
+  ): Promise<ReportsListResponse> {
+    return this.client.get<ReportsListResponse>(`/projects/${projectId}/reports`, {
       params: { page, limit },
       signal,
     });

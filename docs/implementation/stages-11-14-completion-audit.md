@@ -192,6 +192,9 @@
 - Project create/update request contracts теперь выводят поля из generated
   OpenAPI schemas; nullable description/language в OpenAPI исправлены на `string`.
 - Chat message request contract также выведен из generated `SendMessageDto`.
+- Report issue/detail/list contracts теперь используют generated OpenAPI
+  schemas; report pagination metadata and nullable fields are explicitly
+  documented in the backend DTO.
 
 ### Что доработать
 
