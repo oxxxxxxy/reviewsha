@@ -186,6 +186,9 @@
   `packages/sdk/src/generated/openapi.ts`.
 - Admin response DTOs и SDK Admin types связаны с generated schemas.
 - SDK client имеет base URL, auth headers, refresh и single-flight refresh.
+- Auth `LoginRequest` и `RegisterRequest` в SDK теперь напрямую выведены из
+  generated OpenAPI schemas; response/domain types сохраняются shared там, где
+  они используются приложениями.
 
 ### Что доработать
 

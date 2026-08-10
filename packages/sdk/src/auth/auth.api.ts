@@ -1,10 +1,9 @@
-import type { User } from '@reviewsha/types';
 import type { ApiClient } from '../client/api-client.js';
+import type { components } from '../generated/openapi.js';
+import type { User } from '@reviewsha/types';
 
-export interface LoginRequest {
-  readonly email: string;
-  readonly password: string;
-}
+/** Request contracts are derived from the canonical OpenAPI artifact. */
+export type LoginRequest = components['schemas']['LoginDto'];
 
 export interface LoginResponse {
   readonly user: User;
@@ -12,9 +11,7 @@ export interface LoginResponse {
   readonly refreshToken: string;
 }
 
-export interface RegisterRequest extends LoginRequest {
-  readonly displayName: string;
-}
+export type RegisterRequest = components['schemas']['RegisterDto'];
 
 export interface UpdateProfileRequest {
   readonly displayName?: string;
