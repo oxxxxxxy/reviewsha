@@ -5,7 +5,8 @@ describe('AdminService', () => {
   const prisma = {
     user: { count: vi.fn() },
     project: { count: vi.fn() },
-    scan: { count: vi.fn() },
+    scan: { count: vi.fn(), findMany: vi.fn() },
+    scanStep: { groupBy: vi.fn() },
     report: { count: vi.fn() },
     aIUsage: { aggregate: vi.fn() },
     aIRequest: { count: vi.fn() },
@@ -79,6 +80,29 @@ describe('AdminService', () => {
       usageRecords: 4,
       tokens: 1200,
       failures: 2,
+    });
+  });
+
+  it('returns backend-owned processing statistics and duration metrics', async () => {
+    prisma.user.count.mockResolvedValue(2);
+    prisma.project.count.mockResolvedValue(3);
+    prisma.scan.count.mockResolvedValueOnce(4).mockResolvedValueOnce(3).mockResolvedValueOnce(1);
+    prisma.scanStep.groupBy.mockResolvedValue([
+      { type: 'PARSE', status: 'COMPLETED', _count: { _all: 3 } },
+      { type: 'PARSE', status: 'FAILED', _count: { _all: 1 } },
+    ]);
+    prisma.scan.findMany.mockResolvedValue([
+      { startedAt: new Date('2026-08-10T10:00:00Z'), finishedAt: new Date('2026-08-10T10:00:10Z') },
+    ]);
+    await expect(service.statistics()).resolves.toMatchObject({
+      users: 2,
+      projects: 3,
+      analyses: 4,
+      completedAnalyses: 3,
+      failedAnalyses: 1,
+      successRate: 75,
+      averageDurationMs: 10_000,
+      processing: [{ type: 'PARSE', total: 4, completed: 3, failed: 1, running: 0 }],
     });
   });
 

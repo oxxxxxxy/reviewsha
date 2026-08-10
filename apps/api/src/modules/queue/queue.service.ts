@@ -24,6 +24,7 @@ export interface QueueMetrics {
   failed: number;
   delayed: number;
   paused: number;
+  status: 'HEALTHY' | 'DEGRADED' | 'ERROR';
 }
 
 export interface QueueJobSummary {
@@ -143,15 +144,19 @@ export class QueueService implements OnModuleDestroy {
     await Promise.all(this.registry.getAll().map((queue) => this.queues[queue].getJobCounts()));
   }
 
-  getQueueMetrics(queueName: QueueName): Promise<QueueMetrics> {
-    return this.queues[queueName].getJobCounts(
+  async getQueueMetrics(queueName: QueueName): Promise<QueueMetrics> {
+    const counts = await this.queues[queueName].getJobCounts(
       'waiting',
       'active',
       'completed',
       'failed',
       'delayed',
       'paused',
-    ) as unknown as Promise<QueueMetrics>;
+    );
+    return {
+      ...counts,
+      status: (counts.failed ?? 0) > 0 ? 'DEGRADED' : 'HEALTHY',
+    } as QueueMetrics;
   }
 
   async getAllQueueMetrics(): Promise<Record<QueueName, QueueMetrics>> {

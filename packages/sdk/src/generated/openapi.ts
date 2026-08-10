@@ -1203,6 +1203,8 @@ export interface components {
             aiTokens: number;
         };
         QueueMetricsResponseDto: {
+            /** @enum {string} */
+            status: "HEALTHY" | "DEGRADED" | "ERROR";
             /** @example 12 */
             waiting: number;
             /** @example 3 */
@@ -1252,6 +1254,18 @@ export interface components {
             users: components["schemas"]["AdminAiUsageBreakdownItemDto"][];
             projects: components["schemas"]["AdminAiUsageBreakdownItemDto"][];
         };
+        AdminProcessingStatisticDto: {
+            /** @example PARSE */
+            type: string;
+            /** @example 100 */
+            total: number;
+            /** @example 95 */
+            completed: number;
+            /** @example 3 */
+            failed: number;
+            /** @example 2 */
+            running: number;
+        };
         AdminStatisticsResponseDto: {
             /** @example 1248 */
             users: number;
@@ -1263,6 +1277,11 @@ export interface components {
             completedAnalyses: number;
             /** @example 30 */
             failedAnalyses: number;
+            /** @example 92.8 */
+            successRate: number;
+            /** @example 48000 */
+            averageDurationMs: number;
+            processing: components["schemas"]["AdminProcessingStatisticDto"][];
         };
         AdminLogResponseDto: {
             /** Format: uuid */

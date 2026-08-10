@@ -164,22 +164,62 @@ export class AdminService {
       ...(params.from ? { gte: new Date(params.from) } : {}),
       ...(params.to ? { lte: new Date(params.to) } : {}),
     };
-    const [users, projects, analyses, completedAnalyses, failedAnalyses] = await Promise.all([
-      this.prisma.user.count({
-        where: { deletedAt: null, ...(Object.keys(createdAt).length ? { createdAt } : {}) },
-      }),
-      this.prisma.project.count({
-        where: { deletedAt: null, ...(Object.keys(createdAt).length ? { createdAt } : {}) },
-      }),
-      this.prisma.scan.count({ where: Object.keys(createdAt).length ? { createdAt } : undefined }),
-      this.prisma.scan.count({
-        where: { status: 'COMPLETED', ...(Object.keys(createdAt).length ? { createdAt } : {}) },
-      }),
-      this.prisma.scan.count({
-        where: { status: 'FAILED', ...(Object.keys(createdAt).length ? { createdAt } : {}) },
-      }),
-    ]);
-    return { users, projects, analyses, completedAnalyses, failedAnalyses };
+    const [users, projects, analyses, completedAnalyses, failedAnalyses, steps, durations] =
+      await Promise.all([
+        this.prisma.user.count({
+          where: { deletedAt: null, ...(Object.keys(createdAt).length ? { createdAt } : {}) },
+        }),
+        this.prisma.project.count({
+          where: { deletedAt: null, ...(Object.keys(createdAt).length ? { createdAt } : {}) },
+        }),
+        this.prisma.scan.count({
+          where: Object.keys(createdAt).length ? { createdAt } : undefined,
+        }),
+        this.prisma.scan.count({
+          where: { status: 'COMPLETED', ...(Object.keys(createdAt).length ? { createdAt } : {}) },
+        }),
+        this.prisma.scan.count({
+          where: { status: 'FAILED', ...(Object.keys(createdAt).length ? { createdAt } : {}) },
+        }),
+        this.prisma.scanStep.groupBy({
+          by: ['type', 'status'],
+          where: Object.keys(createdAt).length ? { createdAt } : undefined,
+          _count: { _all: true },
+        }),
+        this.prisma.scan.findMany({
+          where: {
+            startedAt: { not: null },
+            finishedAt: { not: null },
+            ...(Object.keys(createdAt).length ? { createdAt } : {}),
+          },
+          select: { startedAt: true, finishedAt: true },
+        }),
+      ]);
+    const processing = [...new Set(steps.map((step) => step.type))].map((type) => {
+      const rows = steps.filter((step) => step.type === type);
+      return {
+        type,
+        total: rows.reduce((sum, row) => sum + row._count._all, 0),
+        completed: rows.find((row) => row.status === 'COMPLETED')?._count._all ?? 0,
+        failed: rows.find((row) => row.status === 'FAILED')?._count._all ?? 0,
+        running: rows.find((row) => row.status === 'RUNNING')?._count._all ?? 0,
+      };
+    });
+    const durationsMs = durations
+      .filter((item) => item.startedAt && item.finishedAt)
+      .map((item) => item.finishedAt!.getTime() - item.startedAt!.getTime());
+    return {
+      users,
+      projects,
+      analyses,
+      completedAnalyses,
+      failedAnalyses,
+      successRate: analyses ? Number(((completedAnalyses / analyses) * 100).toFixed(2)) : 0,
+      averageDurationMs: durationsMs.length
+        ? Math.round(durationsMs.reduce((sum, value) => sum + value, 0) / durationsMs.length)
+        : 0,
+      processing,
+    };
   }
 
   async logs(params: {

@@ -38,6 +38,7 @@ export function QueuesPage() {
               header: 'Queue',
               render: (row) => <Link to={`/queues/${row.name}`}>{row.name}</Link>,
             },
+            { key: 'status', header: 'Health', render: (row) => row.status },
             { key: 'waiting', header: 'Waiting', render: (row) => row.waiting },
             { key: 'active', header: 'Active', render: (row) => row.active },
             { key: 'failed', header: 'Failed', render: (row) => row.failed },

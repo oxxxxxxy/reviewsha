@@ -140,7 +140,7 @@
 
 ### Уже сделано
 
-- Queue metrics, jobs pagination, retry/remove и polling.
+- Queue metrics with backend HEALTHY/DEGRADED status, jobs pagination, retry/remove и polling.
 - Server-side queue state filtering and a safe job-details endpoint (job payloads are never returned).
 - Persisted `AdminLog` с masking чувствительных данных.
 - Server-side logs pagination, search, level/service/date filters и masked details.
@@ -150,13 +150,12 @@
 
 ### Что доработать
 
-1. Queue: complete pagination UX, job details page and backend health status
-   `HEALTHY/DEGRADED/ERROR`.
+1. Queue: complete pagination UX, job details page and backend `ERROR` handling.
 2. Queue destructive actions перевести с `window.confirm` на общий accessible Modal.
 3. Logs: level enum control, copy stack trace, полный details/error UX и QA.
 4. AI Usage: failures table, latency, retry count and provider/model details.
-5. Statistics: processing-stage metrics, success rate, average duration,
-   useful charts и text alternative для accessibility.
+5. Statistics: processing-stage metrics, success rate and average duration are
+   now backend-owned; useful charts and text alternative for accessibility remain.
 6. Добавить требуемые unit/integration/E2E и security tests; проверить отсутствие
    secrets в реальных persisted logs.
 

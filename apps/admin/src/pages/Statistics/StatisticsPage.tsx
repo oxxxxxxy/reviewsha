@@ -1,4 +1,4 @@
-import { Card, Loader } from '@reviewsha/ui';
+import { Card, EmptyState, Loader, Table } from '@reviewsha/ui';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { adminSdk } from '../../api/client';
@@ -31,6 +31,8 @@ export function StatisticsPage() {
     ['Analyses', statistics.data.analyses],
     ['Completed', statistics.data.completedAnalyses],
     ['Failed', statistics.data.failedAnalyses],
+    ['Success rate', `${statistics.data.successRate}%`],
+    ['Avg duration', `${statistics.data.averageDurationMs} ms`],
   ];
   return (
     <section className="page">
@@ -52,6 +54,22 @@ export function StatisticsPage() {
           </Card>
         ))}
       </div>
+      <h2>Processing stages</h2>
+      {statistics.data.processing.length ? (
+        <Table
+          rows={statistics.data.processing}
+          getRowKey={(row) => row.type ?? 'unknown'}
+          columns={[
+            { key: 'type', header: 'Stage', render: (row) => row.type },
+            { key: 'total', header: 'Total', render: (row) => row.total },
+            { key: 'completed', header: 'Completed', render: (row) => row.completed },
+            { key: 'failed', header: 'Failed', render: (row) => row.failed },
+            { key: 'running', header: 'Running', render: (row) => row.running },
+          ]}
+        />
+      ) : (
+        <EmptyState title="No processing statistics" />
+      )}
     </section>
   );
 }

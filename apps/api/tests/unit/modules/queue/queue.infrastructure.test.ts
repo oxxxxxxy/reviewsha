@@ -15,7 +15,7 @@ function setup() {
     remove: vi.fn(async () => 1),
     pause: vi.fn(async () => undefined),
     resume: vi.fn(async () => undefined),
-    getJobCounts: vi.fn(async () => ({ waiting: 0 })),
+    getJobCounts: vi.fn(async (): Promise<Record<string, number>> => ({ waiting: 0 })),
     close: vi.fn(async () => undefined),
   });
   const queues = [
@@ -163,6 +163,22 @@ describe('Queue infrastructure', () => {
     const { service, queues } = setup();
     await service.healthCheck();
     for (const queue of queues) expect(queue!.getJobCounts).toHaveBeenCalledOnce();
+  });
+
+  it('marks queues with failed jobs as degraded', async () => {
+    const { service, queues } = setup();
+    queues[0]!.getJobCounts.mockResolvedValue({
+      waiting: 1,
+      active: 0,
+      completed: 10,
+      failed: 2,
+      delayed: 0,
+      paused: 0,
+    });
+    await expect(service.getQueueMetrics(QUEUE_NAMES.scan)).resolves.toMatchObject({
+      failed: 2,
+      status: 'DEGRADED',
+    });
   });
 
   it('closes every queue during shutdown', async () => {

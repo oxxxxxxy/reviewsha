@@ -14,6 +14,8 @@ export class AdminOverviewResponseDto {
 }
 
 export class QueueMetricsResponseDto {
+  @ApiProperty({ enum: ['HEALTHY', 'DEGRADED', 'ERROR'] })
+  status!: 'HEALTHY' | 'DEGRADED' | 'ERROR';
   @ApiProperty({ example: 12 }) waiting!: number;
   @ApiProperty({ example: 3 }) active!: number;
   @ApiProperty({ example: 145 }) completed!: number;
@@ -92,6 +94,18 @@ export class AdminStatisticsResponseDto {
   @ApiProperty({ example: 420 }) analyses!: number;
   @ApiProperty({ example: 390 }) completedAnalyses!: number;
   @ApiProperty({ example: 30 }) failedAnalyses!: number;
+  @ApiProperty({ example: 92.8 }) successRate!: number;
+  @ApiProperty({ example: 48000 }) averageDurationMs!: number;
+  @ApiProperty({ type: () => [AdminProcessingStatisticDto] })
+  processing!: AdminProcessingStatisticDto[];
+}
+
+export class AdminProcessingStatisticDto {
+  @ApiProperty({ example: 'PARSE' }) type!: string;
+  @ApiProperty({ example: 100 }) total!: number;
+  @ApiProperty({ example: 95 }) completed!: number;
+  @ApiProperty({ example: 3 }) failed!: number;
+  @ApiProperty({ example: 2 }) running!: number;
 }
 
 export class AdminStatisticsQueryDto {
