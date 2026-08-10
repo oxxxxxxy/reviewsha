@@ -23,7 +23,7 @@ export function UsersPage() {
         </p>
       </section>
     );
-  const rows = users.data?.data ?? [];
+  const rows = users.data?.items ?? [];
   return (
     <section className="page">
       <h1>Users</h1>

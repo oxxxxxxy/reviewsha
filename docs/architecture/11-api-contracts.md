@@ -820,3 +820,8 @@ The admin application uses the same SDK client and auth/refresh mechanism as the
 web application. Admin user/project reads are routed through the existing
 authenticated API resources; the backend remains the RBAC boundary. The admin
 frontend never accesses Redis, PostgreSQL or storage directly.
+
+Analysis uses `GET /projects/:projectId/analyses` for paginated status history
+and `POST /projects/:projectId/analyses` to start the latest completed upload (or
+an explicitly selected upload via `uploadId`). Profile and password settings use
+`PATCH /auth/me` and `POST /auth/change-password`.

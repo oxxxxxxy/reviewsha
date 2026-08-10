@@ -23,6 +23,8 @@ describe('@reviewsha/sdk public API', () => {
     expect(sdk.auth.login).toBeTypeOf('function');
     expect(sdk.projects.list).toBeTypeOf('function');
     expect(sdk.pipelines.get).toBeTypeOf('function');
+    expect(sdk.analyses.list).toBeTypeOf('function');
+    expect(sdk.analyses.start).toBeTypeOf('function');
     expect(sdk.uploads.upload).toBeTypeOf('function');
     expect(sdk.reports.download).toBeTypeOf('function');
     expect(sdk.chat.create).toBeTypeOf('function');

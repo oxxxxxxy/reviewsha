@@ -1076,3 +1076,12 @@ forbidden users to the admin login. Admin users/projects tables use the SDK and
 TanStack Query with server-side pagination parameters and explicit loading,
 empty and error states. Logout clears the SDK token, refresh handler and admin
 cache state.
+
+## Stage 12.2 progress
+
+The Web project detail flow now uses the real analysis API for starting and
+polling an analysis, shows upload versions and project history, and links to
+reports and project chat. Reports support detailed findings plus Markdown, PDF
+and JSON downloads and two-report comparison. Settings updates the profile and
+changes the password through the authenticated API. Chat sends only through the
+shared SSE SDK transport and exposes cancellation and user-facing stream errors.

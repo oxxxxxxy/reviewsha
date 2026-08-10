@@ -1,8 +1,75 @@
+import { Button, Input, Loader } from '@reviewsha/ui';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { reviewshaSdk } from '../../api/client';
+import { useAuthStore } from '../../stores/auth.store';
+
 export function SettingsPage() {
+  const user = useAuthStore((state) => state.user);
+  const setUser = useAuthStore((state) => state._set);
+  const client = useQueryClient();
+  const [displayName, setDisplayName] = useState(user?.displayName ?? user?.name ?? '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const update = useMutation({
+    mutationFn: () => reviewshaSdk.auth.updateMe({ displayName: displayName.trim() }),
+    onSuccess: (next) => {
+      setUser({ user: next });
+      void client.invalidateQueries({ queryKey: ['current-user'] });
+    },
+  });
+  const changePassword = useMutation({
+    mutationFn: () => reviewshaSdk.auth.changePassword({ currentPassword, newPassword }),
+    onSuccess: () => {
+      setCurrentPassword('');
+      setNewPassword('');
+    },
+  });
+  if (!user) return <Loader label="Loading profile" />;
   return (
     <section className="page">
       <h1>Settings</h1>
-      <p>Профиль, настройки и предпочтения пользователя.</p>
+      <section className="form" aria-label="Profile settings">
+        <p>{user.email}</p>
+        <Input
+          value={displayName}
+          onChange={(event) => setDisplayName(event.target.value)}
+          aria-label="Display name"
+        />
+        <Button
+          disabled={!displayName.trim()}
+          isLoading={update.isPending}
+          onClick={() => update.mutate()}
+        >
+          Save profile
+        </Button>
+        {update.isSuccess ? <p role="status">Profile updated.</p> : null}
+        {update.isError ? <p role="alert">Unable to update profile.</p> : null}
+      </section>
+      <section className="form" aria-label="Security settings">
+        <h2>Security</h2>
+        <Input
+          type="password"
+          value={currentPassword}
+          onChange={(event) => setCurrentPassword(event.target.value)}
+          aria-label="Current password"
+        />
+        <Input
+          type="password"
+          value={newPassword}
+          onChange={(event) => setNewPassword(event.target.value)}
+          aria-label="New password"
+        />
+        <Button
+          disabled={currentPassword.length < 8 || newPassword.length < 8}
+          isLoading={changePassword.isPending}
+          onClick={() => changePassword.mutate()}
+        >
+          Change password
+        </Button>
+        {changePassword.isSuccess ? <p role="status">Password changed.</p> : null}
+        {changePassword.isError ? <p role="alert">Unable to change password.</p> : null}
+      </section>
     </section>
   );
 }

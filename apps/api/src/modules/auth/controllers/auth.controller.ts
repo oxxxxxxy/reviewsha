@@ -32,6 +32,7 @@ import { AuthResponseDto } from '../dto/auth-response.dto';
 import { LoginDto } from '../dto/login.dto';
 import { RefreshDto } from '../dto/refresh.dto';
 import { RegisterDto } from '../dto/register.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
 import { RefreshAuthGuard } from '../../../common/auth/guards/refresh-auth.guard';
 import { AuthService } from '../services/auth.service';
 import type {
@@ -144,6 +145,17 @@ export class AuthController {
     @Body() dto: UpdateUserDto,
   ): Promise<UserResponseDto> {
     return this.authService.updateMe(user, dto);
+  }
+
+  @Post('change-password')
+  @Roles(...AUTHORIZATION_POLICIES.auth.currentUser.roles)
+  @ApiBearerAuth('bearer')
+  @ApiOperation({ summary: 'Change the current user password and revoke sessions' })
+  async changePassword(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<void> {
+    await this.authService.changePassword(user, dto);
   }
 
   private toSessionContext(request: Request): SessionContext {

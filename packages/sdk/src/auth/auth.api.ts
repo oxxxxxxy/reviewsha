@@ -16,6 +16,16 @@ export interface RegisterRequest extends LoginRequest {
   readonly displayName: string;
 }
 
+export interface UpdateProfileRequest {
+  readonly displayName?: string;
+  readonly avatarUrl?: string | null;
+}
+
+export interface ChangePasswordRequest {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+}
+
 export class AuthAPI {
   constructor(private readonly client: ApiClient) {}
 
@@ -35,6 +45,14 @@ export class AuthAPI {
 
   me(): Promise<User> {
     return this.client.get<User>('/auth/me');
+  }
+
+  updateMe(payload: UpdateProfileRequest): Promise<User> {
+    return this.client.patch<User, UpdateProfileRequest>('/auth/me', payload);
+  }
+
+  changePassword(payload: ChangePasswordRequest): Promise<void> {
+    return this.client.post<void, ChangePasswordRequest>('/auth/change-password', payload);
   }
 
   logout(refreshToken: string): Promise<void> {

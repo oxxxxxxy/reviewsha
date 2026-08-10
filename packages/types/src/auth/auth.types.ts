@@ -10,6 +10,9 @@ export interface User {
   id: ID;
   email: string;
   name?: string;
+  displayName?: string;
+  avatarUrl?: string | null;
+  isActive?: boolean;
   role: Role;
   createdAt: ISODateString;
   updatedAt: ISODateString;

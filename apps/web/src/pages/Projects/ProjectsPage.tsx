@@ -1,4 +1,4 @@
-import { Button, Card, EmptyState, Input, Loader, Textarea } from '@reviewsha/ui';
+import { Badge, Button, Card, EmptyState, Input, Loader, Textarea } from '@reviewsha/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -137,6 +137,18 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     mutationFn: (file: File) => reviewshaSdk.uploads.upload(projectId, file, setUploadProgress),
     onSuccess: () => setUploadProgress(100),
   });
+  const analyses = useQuery({
+    queryKey: ['analyses', projectId],
+    queryFn: () => reviewshaSdk.analyses.list(projectId),
+    refetchInterval: (query) => {
+      const status = query.state.data?.data[0]?.pipelineStatus;
+      return status === 'RUNNING' || status === 'PENDING' ? 3000 : false;
+    },
+  });
+  const analyze = useMutation({
+    mutationFn: () => reviewshaSdk.analyses.start(projectId),
+    onSuccess: () => void client.invalidateQueries({ queryKey: ['analyses', projectId] }),
+  });
   if (project.isLoading) return <Loader label="Loading project" />;
   if (project.isError || !project.data)
     return (
@@ -193,6 +205,32 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       >
         Archive project
       </Button>
+      <section aria-label="Analysis">
+        <h2>Analysis</h2>
+        {analyses.data?.data[0] ? (
+          <Card>
+            <Badge tone={analyses.data.data[0].status === 'COMPLETED' ? 'success' : 'warning'}>
+              {analyses.data.data[0].status}
+            </Badge>
+            <p>
+              {analyses.data.data[0].currentStep ?? 'Queued'} · {analyses.data.data[0].progress}%
+            </p>
+            {analyses.data.data[0].status === 'FAILED' ? (
+              <p role="alert">{analyses.data.data[0].errorMessage ?? 'Analysis failed.'}</p>
+            ) : null}
+          </Card>
+        ) : (
+          <EmptyState title="Analysis hasn't started" />
+        )}
+        <Button
+          disabled={item.status === 'ARCHIVED' || analyze.isPending}
+          isLoading={analyze.isPending}
+          onClick={() => analyze.mutate()}
+        >
+          Analyze project
+        </Button>
+        {analyze.isError ? <p role="alert">Unable to start analysis.</p> : null}
+      </section>
       <section className="upload-panel">
         <h2>Upload ZIP</h2>
         <input

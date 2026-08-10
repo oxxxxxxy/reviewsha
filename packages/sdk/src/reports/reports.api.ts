@@ -3,6 +3,24 @@ import type { ApiClient } from '../client/api-client.js';
 
 export type ReportExportFormat = 'md' | 'json' | 'pdf';
 
+export interface ReportIssue {
+  readonly id: string;
+  readonly severity: string;
+  readonly category: string;
+  readonly title: string;
+  readonly description: string;
+  readonly filePath: string;
+  readonly line: number | null;
+  readonly recommendation: string | null;
+}
+
+export interface ReportDetail extends Report {
+  readonly status: string;
+  readonly issues: readonly ReportIssue[];
+  readonly recommendations: readonly string[];
+  readonly exports: readonly { format: string; size: number; createdAt: string }[];
+}
+
 export class ReportsAPI {
   constructor(private readonly client: ApiClient) {}
 
@@ -12,8 +30,24 @@ export class ReportsAPI {
     });
   }
 
-  get(reportId: string): Promise<Report> {
-    return this.client.get<Report>(`/reports/${reportId}`);
+  get(reportId: string): Promise<ReportDetail> {
+    return this.client.get<ReportDetail>(`/reports/${reportId}`);
+  }
+
+  compare(
+    oldReportId: string,
+    newReportId: string,
+  ): Promise<{
+    oldReportId: string;
+    newReportId: string;
+    scoreDiff: number;
+    newIssues: number;
+    resolvedIssues: number;
+    severityDiff: Record<string, number>;
+  }> {
+    return this.client.get(`/reports/compare`, {
+      params: { oldReportId, newReportId },
+    });
   }
 
   download(reportId: string, format: ReportExportFormat): Promise<Blob> {

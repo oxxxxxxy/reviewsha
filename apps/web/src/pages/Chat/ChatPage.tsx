@@ -10,6 +10,7 @@ export function ChatPage() {
   const [message, setMessage] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState('');
+  const [streamError, setStreamError] = useState<string>();
   const streamAbort = useRef<AbortController | undefined>(undefined);
   const client = useQueryClient();
   const sessions = useQuery({
@@ -30,19 +31,12 @@ export function ChatPage() {
     queryKey: ['chat-messages', sessionId],
     queryFn: () => reviewshaSdk.chat.getMessages(sessionId!),
   });
-  const send = useMutation({
-    mutationFn: () => reviewshaSdk.chat.sendMessage(sessionId!, { message }),
-    onSuccess: () => {
-      setMessage('');
-      void client.invalidateQueries({ queryKey: ['chat-messages', sessionId] });
-      void client.invalidateQueries({ queryKey: ['chat-sessions', projectId] });
-    },
-  });
   const stream = async () => {
     if (!sessionId || !message.trim() || streaming) return;
     const prompt = message.trim();
     setMessage('');
     setStreamText('');
+    setStreamError(undefined);
     setStreaming(true);
     streamAbort.current = new AbortController();
     try {
@@ -57,10 +51,22 @@ export function ChatPage() {
                 : String(data);
             setStreamText((current) => current + token);
           }
+          if (event === 'error') {
+            setStreamError(
+              typeof data === 'object' && data !== null && 'message' in data
+                ? String(data.message)
+                : 'AI is unavailable. Try again.',
+            );
+          }
         },
         streamAbort.current.signal,
       );
       void client.invalidateQueries({ queryKey: ['chat-messages', sessionId] });
+      void client.invalidateQueries({ queryKey: ['chat-sessions', projectId] });
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        setStreamError('AI is unavailable. Try again.');
+      }
     } finally {
       setStreaming(false);
       streamAbort.current = undefined;
@@ -119,7 +125,7 @@ export function ChatPage() {
                 placeholder="Ask about this project"
                 aria-label="Chat message"
               />
-              <Button type="submit" isLoading={streaming || send.isPending}>
+              <Button type="submit" isLoading={streaming}>
                 {streaming ? 'AI is typing…' : 'Send'}
               </Button>
               {streaming ? (
@@ -131,7 +137,7 @@ export function ChatPage() {
                   Cancel
                 </Button>
               ) : null}
-              {send.isError ? <p role="alert">AI is unavailable. Try again.</p> : null}
+              {streamError ? <p role="alert">{streamError}</p> : null}
             </form>
           ) : (
             <EmptyState

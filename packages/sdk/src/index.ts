@@ -5,6 +5,7 @@
  * constructing HTTP requests directly.
  */
 export * from './admin/admin.api.js';
+export * from './pipelines/analysis.api.js';
 export * from './auth/auth.api.js';
 export * from './chat/chat.api.js';
 export * from './client/api-client.js';
@@ -15,6 +16,7 @@ export * from './reports/reports.api.js';
 export * from './uploads/uploads.api.js';
 
 import { AdminAPI } from './admin/admin.api.js';
+import { AnalysisAPI } from './pipelines/analysis.api.js';
 import { AuthAPI } from './auth/auth.api.js';
 import { ChatAPI } from './chat/chat.api.js';
 import { ApiClient, type ApiClientOptions } from './client/api-client.js';
@@ -31,6 +33,7 @@ export function createReviewshaSDK(options?: ApiClientOptions) {
     auth: new AuthAPI(client),
     projects: new ProjectsAPI(client),
     pipelines: new PipelinesAPI(client),
+    analyses: new AnalysisAPI(client),
     uploads: new UploadsAPI(client),
     reports: new ReportsAPI(client),
     chat: new ChatAPI(client),

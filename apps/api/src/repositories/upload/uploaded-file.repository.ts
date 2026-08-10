@@ -64,6 +64,10 @@ export class UploadedFileRepository
     });
   }
 
+  override findById(id: string, options?: RepositoryOptions): Promise<UploadedFile | null> {
+    return this.getClient(options).uploadedFile.findFirst({ where: { id, deletedAt: null } });
+  }
+
   findLatestByProject(
     projectId: string,
     options?: RepositoryOptions,

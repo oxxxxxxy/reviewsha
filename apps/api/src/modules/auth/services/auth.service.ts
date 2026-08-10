@@ -14,6 +14,7 @@ import { UserMapper } from '../../users/mappers/user.mapper';
 import { UpdateUserDto } from '../../users/dto/update-user.dto';
 import type { UserResponseDto } from '../../users/dto/user-response.dto';
 import { LoginDto } from '../dto/login.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
 import { RegisterDto } from '../dto/register.dto';
 import type { AuthResponseDto } from '../dto/auth-response.dto';
 import type {
@@ -145,6 +146,17 @@ export class AuthService {
     const updated = await this.users.update(user.id, data);
     this.logger.log(`Current user profile updated: ${user.id}`, 'AuthService');
     return UserMapper.toResponse(updated);
+  }
+
+  async changePassword(user: AuthenticatedUser, dto: ChangePasswordDto): Promise<void> {
+    const dbUser = await this.users.findById(user.id);
+    if (!dbUser || !dbUser.isActive) throw new UnauthorizedException('User is not active');
+    if (!(await this.verifyPassword(dbUser.passwordHash, dto.currentPassword))) {
+      throw new UnauthorizedException('Current password is invalid');
+    }
+    await this.users.update(user.id, { passwordHash: await this.hashPassword(dto.newPassword) });
+    await this.sessions.revokeAllSessions(user.id);
+    this.logger.log(`User password changed: ${user.id}`, 'AuthService');
   }
 
   async hashPassword(password: string): Promise<string> {

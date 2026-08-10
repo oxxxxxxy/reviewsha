@@ -29,6 +29,10 @@ export class ScanRepository extends BaseRepository<Scan> implements IScanReposit
     });
   }
 
+  countByProject(projectId: string, options?: RepositoryOptions): Promise<number> {
+    return this.getClient(options).scan.count({ where: { projectId, deletedAt: null } });
+  }
+
   findBySourceFile(sourceFileId: string, options?: RepositoryOptions): Promise<Scan | null> {
     return this.getClient(options).scan.findFirst({
       where: { sourceFileId, deletedAt: null },
