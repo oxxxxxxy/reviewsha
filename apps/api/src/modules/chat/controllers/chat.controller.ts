@@ -1,8 +1,21 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiForbiddenResponse,
   ApiGatewayTimeoutResponse,
   ApiNotFoundResponse,
@@ -66,6 +79,19 @@ export class ChatController {
     @Query() query: ChatPaginationDto,
   ) {
     return this.sessions.list(user, projectId, query);
+  }
+
+  @Delete('chat/:sessionId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete an owned chat session' })
+  @ApiNoContentResponse()
+  @ApiForbiddenResponse({ description: 'The chat belongs to another user.' })
+  @ApiNotFoundResponse({ description: 'Chat session not found.' })
+  async remove(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ): Promise<void> {
+    await this.sessions.remove(user, sessionId);
   }
 
   @Get('chat/:sessionId/messages')

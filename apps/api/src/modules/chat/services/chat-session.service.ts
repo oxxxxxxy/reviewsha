@@ -42,6 +42,15 @@ export class ChatSessionService {
     };
   }
 
+  async remove(user: AuthenticatedUser, sessionId: string): Promise<void> {
+    const session = await this.requireOwned(user, sessionId);
+    await this.repository.deleteSession(session.id);
+    this.logger.log(
+      `Chat session deleted sessionId=${sessionId} userId=${user.id}`,
+      'ChatSessionService',
+    );
+  }
+
   async requireOwned(user: AuthenticatedUser, sessionId: string) {
     const session = await this.repository.findSession(sessionId);
     if (!session) throw new NotFoundException('Chat session not found');

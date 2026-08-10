@@ -44,6 +44,7 @@ describe('Chat HTTP integration', () => {
   let sessions: {
     create: ReturnType<typeof vi.fn>;
     list: ReturnType<typeof vi.fn>;
+    remove: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -54,6 +55,7 @@ describe('Chat HTTP integration', () => {
     sessions = {
       create: vi.fn(async () => session),
       list: vi.fn(async () => ({ data: [session], meta: { page: 1, limit: 50, total: 1 } })),
+      remove: vi.fn(async () => undefined),
     };
     const moduleRef = await Test.createTestingModule({
       controllers: [ChatController],
@@ -119,6 +121,11 @@ describe('Chat HTTP integration', () => {
 
   it('lists project chats', async () => {
     await request(app.getHttpServer()).get(`/api/projects/${projectId}/chat`).expect(200);
+  });
+
+  it('deletes a chat session through the ownership-aware service', async () => {
+    await request(app.getHttpServer()).delete(`/api/chat/${sessionId}`).expect(204);
+    expect(sessions.remove).toHaveBeenCalledWith(user, sessionId);
   });
 
   it('returns list metadata', async () => {

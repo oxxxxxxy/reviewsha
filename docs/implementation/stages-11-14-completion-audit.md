@@ -39,6 +39,7 @@ GitHub Actions для `30cb570` завершился успешно:
 - Реализованы conversation/session и user/assistant message lifecycle.
 - Conversation и messages защищены ownership-проверками.
 - Реализованы history pagination, search, `before` и `after` параметры.
+- Реализовано ownership-aware удаление chat session через `DELETE /chat/:sessionId`.
 - Реализованы context builder, memory, summary/compression, Redis cache и secret filtering.
 - Chat использует общий AI provider abstraction, а не отдельный DeepSeek client.
 - Есть SSE endpoint, сохранение assistant message и usage metadata.

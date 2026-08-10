@@ -23,6 +23,10 @@ export class ChatAPI {
   list(projectId: string, signal?: AbortSignal): Promise<ChatListResponse> {
     return this.client.get<ChatListResponse>(`/projects/${projectId}/chat`, { signal });
   }
+
+  remove(sessionId: string): Promise<void> {
+    return this.client.delete<void>(`/chat/${sessionId}`);
+  }
   getMessages(sessionId: string, signal?: AbortSignal): Promise<ChatMessageListResponse> {
     return this.client.get<ChatMessageListResponse>(`/chat/${sessionId}/messages`, { signal });
   }
