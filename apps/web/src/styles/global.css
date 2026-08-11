@@ -676,6 +676,9 @@ a {
 .finding-item h3 {
   margin: 0;
   font-size: 1rem;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.45;
 }
 .finding-description,
 .finding-recommendation {

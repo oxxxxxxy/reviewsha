@@ -487,9 +487,6 @@ function ReportDetails({ reportId }: { reportId: string }) {
                     context={(issue as typeof issue & { codeContext: CodeContext }).codeContext}
                   />
                 ) : null}
-                <div className="finding-description">
-                  <Markdown>{issue.description}</Markdown>
-                </div>
                 <div className="finding-recommendation">
                   <strong>Recommended fix</strong>
                   <Markdown>{issue.recommendation ?? 'No recommendation.'}</Markdown>
