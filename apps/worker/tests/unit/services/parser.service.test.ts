@@ -12,7 +12,7 @@ describe('ParserService', () => {
     await writeFile(join(root, 'README.md'), '# demo\n');
     const result = await new ParserService().parse(root);
     expect(result.files).toHaveLength(2);
-    expect(result.languages).toEqual(['TypeScript']);
+    expect(result.languages).toEqual(['Markdown', 'TypeScript']);
     expect(result.statistics.files).toBe(2);
     expect(result.statistics.lines).toBe(2);
     expect(result.files.find((file) => file.path === 'src/main.ts')?.hash).toHaveLength(64);

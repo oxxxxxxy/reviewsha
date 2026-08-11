@@ -6,3 +6,4 @@ yarn.lock
 *.drawio
 docs/**/*.md
 packages/sdk/src/generated/**
+helm/**/*.yaml

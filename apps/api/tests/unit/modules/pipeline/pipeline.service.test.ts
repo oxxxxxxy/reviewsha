@@ -66,8 +66,8 @@ describe('PipelineService', () => {
     expect(scans.create).toHaveBeenCalledOnce();
     expect(queues.addJob).toHaveBeenCalledWith(
       'file.queue',
-      'extract',
-      expect.objectContaining({ uploadId: 'upload-1' }),
+      'download',
+      expect.objectContaining({ uploadId: 'upload-1', step: 'extract' }),
     );
   });
 

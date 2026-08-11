@@ -34,9 +34,21 @@ function ReportsProjectChooser() {
       {projects.data?.data.length ? (
         <div className="project-list">
           {projects.data.data.map((project) => (
-            <Card key={project.id} role="link" tabIndex={0} onClick={() => (window.location.href = `/projects/${project.id}/reports`)}>
+            <Card
+              key={project.id}
+              role="link"
+              tabIndex={0}
+              onClick={() => (window.location.href = `/projects/${project.id}/reports`)}
+            >
               <h2>{project.name}</h2>
-              <Button onClick={(event) => { event.stopPropagation(); window.location.href = `/projects/${project.id}/reports`; }}>Open reports</Button>
+              <Button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  window.location.href = `/projects/${project.id}/reports`;
+                }}
+              >
+                Open reports
+              </Button>
             </Card>
           ))}
         </div>
@@ -138,7 +150,10 @@ function ReportsList({ projectId }: { projectId?: string }) {
                 />{' '}
                 Compare
               </label>
-              <h2>{(report.summary || 'Analysis report').slice(0, 180)}{(report.summary?.length ?? 0) > 180 ? '…' : ''}</h2>
+              <h2>
+                {(report.summary || 'Analysis report').slice(0, 180)}
+                {(report.summary?.length ?? 0) > 180 ? '…' : ''}
+              </h2>
               <Button
                 variant="secondary"
                 onClick={(event) => {

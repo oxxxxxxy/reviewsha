@@ -14,9 +14,16 @@ describe('WorkerLoggerService', () => {
   it('formats messages using the shared logging format', () => {
     const logger = new WorkerLoggerService();
 
-    expect(logger.format('INFO', 'Worker started', 'Bootstrap')).toContain(
-      'WORKER INFO Bootstrap Worker started',
-    );
+    const entry = JSON.parse(logger.format('INFO', 'Worker started', 'Bootstrap')) as Record<
+      string,
+      unknown
+    >;
+    expect(entry).toMatchObject({
+      service: 'WORKER',
+      level: 'INFO',
+      context: 'Bootstrap',
+      message: 'Worker started',
+    });
   });
 
   it('does not throw when logging messages', () => {

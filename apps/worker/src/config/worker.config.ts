@@ -42,7 +42,10 @@ export default (): { worker: WorkerConfig } => ({
     aiProvider: process.env.AI_PROVIDER ?? 'deepseek',
     aiApiKey: process.env.OMNIROUTER_API_KEY,
     aiBaseUrl: process.env.OMNIROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1',
-    aiModel: process.env.AI_MODEL ?? 'deepseek/deepseek-chat',
+    // OmniRoute's local gateway exposes the routing aliases rather than the
+    // remote provider model ids. The old fallback caused every AI job to sit
+    // at ANALYZE until the timeout with a 404 from OmniRoute.
+    aiModel: process.env.AI_MODEL ?? 'auto/best-coding',
     aiMaxTokens: Number(process.env.AI_MAX_TOKENS ?? 4000),
     aiTemperature: Number(process.env.AI_TEMPERATURE ?? 0.2),
     aiTimeoutMs: Number(process.env.AI_TIMEOUT_MS ?? 60000),

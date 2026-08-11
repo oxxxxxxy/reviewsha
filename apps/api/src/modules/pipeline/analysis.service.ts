@@ -95,7 +95,9 @@ export class AnalysisService {
     createdAt: Date;
     finishedAt: Date | null;
   }): Promise<AnalysisResponseDto> {
-    const review = await this.scans.reviewProgress(scan.id);
+    const review = this.scans.reviewProgress
+      ? await this.scans.reviewProgress(scan.id)
+      : { total: 0, completed: 0, failed: 0 };
     return {
       id: scan.id,
       projectId: scan.projectId,

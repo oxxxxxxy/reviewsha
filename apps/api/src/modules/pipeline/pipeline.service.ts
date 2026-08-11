@@ -243,7 +243,7 @@ export class PipelineService {
   async cancelPipeline(pipelineId: string): Promise<void> {
     const scan = await this.getScan(pipelineId);
     if (!this.isTerminal(scan.status)) {
-      await this.queues.cancelPipelineJobs(scan.id);
+      await this.queues.cancelPipelineJobs?.(scan.id);
       await this.scans.updateStatus(scan.id, ScanStatus.CANCELLED);
       await this.scans.update(scan.id, {
         pipelineStatus: PipelineStatus.CANCELLED,

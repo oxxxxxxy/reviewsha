@@ -359,8 +359,42 @@ export interface paths {
         /** List project upload versions */
         get: operations["Uploads_list"];
         put?: never;
-        /** Upload a ZIP archive for a project */
+        /** Upload a project archive, source file, document, or PDF */
         post: operations["Uploads_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{projectId}/uploads/{uploadId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a local project version */
+        delete: operations["Uploads_remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/projects/{projectId}/uploads/github": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import recent commits from a public GitHub repository as immutable versions */
+        post: operations["Uploads_importGithub"];
         delete?: never;
         options?: never;
         head?: never;
@@ -547,7 +581,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get an owned chat session */
+        get: operations["Chat_get"];
         put?: never;
         post?: never;
         /** Delete an owned chat session */
@@ -1120,6 +1155,12 @@ export interface components {
         UploadListResponseDto: {
             data: components["schemas"]["UploadResponseDto"][];
         };
+        GithubImportDto: {
+            /** @example https://github.com/owner/repository */
+            url: string;
+            /** @example main */
+            branch?: string;
+        };
         PipelineStatusDto: {
             /** @example scan-uuid */
             id: string;
@@ -1156,6 +1197,9 @@ export interface components {
             errorMessage?: string | null;
             createdAt?: string | null;
             finishedAt?: string | null;
+            reviewTotal: number;
+            reviewCompleted: number;
+            reviewFailed: number;
         };
         AnalysesListResponseDto: {
             data: components["schemas"]["AnalysisResponseDto"][];
@@ -1178,6 +1222,14 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        ReportFileDto: {
+            path: string;
+            issueCount: number;
+            status: string;
+            summary: string;
+            strengths: string[];
+            weaknesses: string[];
+        };
         ReportResponseDto: {
             id: string;
             scanId: string;
@@ -1194,6 +1246,7 @@ export interface components {
             issues: components["schemas"]["ReportIssueDto"][];
             recommendations: string[];
             exports: components["schemas"]["ReportExportDto"][];
+            files: components["schemas"]["ReportFileDto"][];
         };
         ReportsListMetaDto: {
             page: number;
@@ -1244,6 +1297,8 @@ export interface components {
              * @example 2f8b2f5e-8f1a-4d72-b2c5-5f0e4b3c8b1a
              */
             idempotencyKey?: string;
+            /** @enum {string} */
+            language?: "en" | "ru";
         };
         AdminOverviewResponseDto: {
             /** @example 1248 */
@@ -1400,9 +1455,14 @@ export interface components {
             /** @example API */
             service: string;
             context?: string | null;
+            event?: string | null;
             message: string;
             requestId?: string | null;
             traceId?: string | null;
+            userId?: string | null;
+            projectId?: string | null;
+            jobId?: string | null;
+            metadata?: Record<string, never> | null;
             stack?: string | null;
             /** Format: date-time */
             createdAt: string;
@@ -3282,6 +3342,49 @@ export interface operations {
             };
         };
     };
+    Uploads_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+                uploadId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    Uploads_importGithub: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                projectId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GithubImportDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     Pipeline_getStatus: {
         parameters: {
             query?: never;
@@ -3670,6 +3773,77 @@ export interface operations {
             };
         };
     };
+    Chat_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatSessionResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description The chat belongs to another user. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Chat session not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
     Chat_remove: {
         parameters: {
             query?: never;
@@ -3820,7 +3994,11 @@ export interface operations {
     Chat_send: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                "idempotency-key": string;
+                /** @description Stable client key used to safely retry the same message submission. */
+                "Idempotency-Key"?: string;
+            };
             path: {
                 sessionId: string;
             };
@@ -3840,14 +4018,12 @@ export interface operations {
                     "application/json": components["schemas"]["ChatMessageResponseDto"];
                 };
             };
-            /** @description Bad request. */
+            /** @description The message or idempotency key is invalid. */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
+                content?: never;
             };
             /** @description Authentication required. */
             401: {
@@ -3913,7 +4089,11 @@ export interface operations {
     Chat_stream: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                "idempotency-key": string;
+                /** @description Stable client key used to safely retry the same stream submission. */
+                "Idempotency-Key"?: string;
+            };
             path: {
                 sessionId: string;
             };
@@ -3925,20 +4105,12 @@ export interface operations {
             };
         };
         responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Bad request. */
+            /** @description The message or idempotency key is invalid. */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content: {
-                    "application/json": components["schemas"]["ApiErrorResponseDto"];
-                };
+                content?: never;
             };
             /** @description Authentication required. */
             401: {

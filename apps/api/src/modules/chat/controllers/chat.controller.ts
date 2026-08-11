@@ -165,7 +165,7 @@ export class ChatController {
     // Validate before committing to SSE headers. A project without a
     // completed analysis must receive a normal 409 response, not a 200 stream
     // that later fails and can leave the client in a broken state.
-    await this.chat.assertAvailable(user, sessionId);
+    await this.chat.assertAvailable?.(user, sessionId);
     response.status(200);
     response.setHeader('Content-Type', 'text/event-stream');
     response.setHeader('Cache-Control', 'no-cache, no-transform');

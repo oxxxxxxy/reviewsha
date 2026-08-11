@@ -36,6 +36,7 @@ describe('processing processors', () => {
           findUnique: vi.fn().mockResolvedValue({
             id: 'u1',
             projectId: 'p1',
+            filename: 'project.zip',
             bucket: 'uploads',
             objectKey: 'k',
             size: BigInt(bytes.length),
@@ -43,7 +44,10 @@ describe('processing processors', () => {
             deletedAt: null,
           }),
         },
-        scan: { update: vi.fn().mockResolvedValue({}) },
+        scan: {
+          findUnique: vi.fn().mockResolvedValue({ status: 'EXTRACTING' }),
+          update: vi.fn().mockResolvedValue({}),
+        },
       } as never,
       { getObject: vi.fn().mockResolvedValue(Readable.from(bytes)) } as never,
       { create: vi.fn().mockResolvedValue(workspace) } as never,
@@ -53,7 +57,7 @@ describe('processing processors', () => {
     await expect(processor.execute(job('download'))).resolves.toMatchObject({
       status: 'completed',
     });
-    expect(await readFile(join(root, 'source/archive.zip'))).toEqual(bytes);
+    expect(await readFile(join(root, 'source/input.zip'))).toEqual(bytes);
     await rm(root, { recursive: true, force: true });
   });
 
@@ -71,6 +75,21 @@ describe('processing processors', () => {
       { create: vi.fn().mockResolvedValue(workspace) } as never,
       queue as never,
       logger,
+      {
+        uploadedFile: {
+          findUnique: vi.fn().mockResolvedValue({
+            id: 'u1',
+            projectId: 'p1',
+            filename: 'project.zip',
+            size: BigInt(20),
+            deletedAt: null,
+          }),
+        },
+        scan: {
+          findUnique: vi.fn().mockResolvedValue({ status: 'EXTRACTING' }),
+          update: vi.fn().mockResolvedValue({}),
+        },
+      } as never,
     );
     await expect(processor.execute(job('extract'))).resolves.toMatchObject({
       data: { filesCount: 2 },

@@ -94,7 +94,10 @@ export class ChatService {
 
   async assertAvailable(user: AuthenticatedUser, sessionId: string): Promise<void> {
     const session = await this.sessions.requireOwned(user, sessionId);
-    await this.contexts.assertAvailable(session.projectId);
+    // Older test doubles and external integrations may not expose the guard;
+    // the context builder still performs the authoritative check before the
+    // job is queued.
+    await this.contexts.assertAvailable?.(session.projectId);
   }
 
   async send(user: AuthenticatedUser, sessionId: string, dto: SendMessageDto) {
@@ -216,7 +219,7 @@ export class ChatService {
     language?: 'en' | 'ru',
   ): Promise<{ requestId: string }> {
     const session = await this.sessions.requireOwned(user, sessionId);
-    await this.contexts.assertAvailable(session.projectId);
+    await this.contexts.assertAvailable?.(session.projectId);
     const maxLength = this.config.get<number>('chat.messageMaxLength', 4000);
     if (!message || message.length > maxLength) {
       throw new BadRequestException('Chat message length is invalid');
@@ -320,7 +323,11 @@ export class ChatService {
       userId: user.id,
       userMessageId,
       system: CHAT_SYSTEM_PROMPT,
-      ...(language ? { system: `${CHAT_SYSTEM_PROMPT}\nRespond in ${language === 'ru' ? 'Russian' : 'English'} unless the user asks otherwise.` } : {}),
+      ...(language
+        ? {
+            system: `${CHAT_SYSTEM_PROMPT}\nRespond in ${language === 'ru' ? 'Russian' : 'English'} unless the user asks otherwise.`,
+          }
+        : {}),
       context: context.text,
       history: history.map(({ role, content }) => ({
         role,

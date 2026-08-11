@@ -22,7 +22,11 @@ function NavIcon({ name }: { name: string }) {
     chat: 'M4 5h16v11H8l-4 4z',
     settings: 'M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',
   };
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d={paths[name] ?? paths.grid} /></svg>;
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d={paths[name] ?? paths.grid} />
+    </svg>
+  );
 }
 
 export function AppLayout() {

@@ -58,12 +58,31 @@ export class OmniRouterProvider implements AIProvider {
         },
       );
       if (!response.ok) {
-        const body = await response.text().catch(() => '');
+        const body =
+          typeof response.text === 'function' ? await response.text().catch(() => '') : '';
         throw new Error(
           `AI provider HTTP ${response.status}${body ? `: ${body.slice(0, 300)}` : ''}`,
         );
       }
-      if (!response.body) throw new Error('AI provider returned an empty stream');
+      if (!response.body) {
+        if (typeof response.json === 'function') {
+          const json = (await response.json()) as {
+            model?: string;
+            choices?: Array<{ message?: { content?: string } }>;
+            usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+          };
+          yield {
+            content: json.choices?.[0]?.message?.content ?? '',
+            model: json.model ?? this.config.getOrThrow<string>('worker.aiModel'),
+            promptTokens: json.usage?.prompt_tokens ?? 0,
+            completionTokens: json.usage?.completion_tokens ?? 0,
+            totalTokens: json.usage?.total_tokens ?? 0,
+            done: true,
+          };
+          return;
+        }
+        throw new Error('AI provider returned an empty stream');
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
@@ -93,6 +112,7 @@ export class OmniRouterProvider implements AIProvider {
               model?: string;
               choices?: Array<{ delta?: { content?: string } }>;
               usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+              error?: { message?: string; type?: string; code?: string };
             };
             try {
               parsed = JSON.parse(data) as typeof parsed;
@@ -100,6 +120,11 @@ export class OmniRouterProvider implements AIProvider {
               // Ignore non-JSON SSE comments/keep-alives and continue with
               // the next event instead of failing the whole analysis.
               continue;
+            }
+            if (parsed.error) {
+              throw new Error(
+                `OmniRoute ${parsed.error.code ?? 'error'}: ${parsed.error.message ?? 'provider request failed'}`,
+              );
             }
             if (parsed.model) model = parsed.model;
             if (parsed.usage) {

@@ -13,20 +13,7 @@ export class AIResponseValidator {
     try {
       value = JSON.parse(normalized);
     } catch {
-      // Models occasionally add a short preamble around the JSON despite the
-      // response_format request. Recover the first complete object instead
-      // of retrying the whole five-task analysis.
-      const start = normalized.indexOf('{');
-      const end = normalized.lastIndexOf('}');
-      if (start >= 0 && end > start) {
-        try {
-          value = JSON.parse(normalized.slice(start, end + 1));
-        } catch {
-          value = { issues: [], summary: normalized.slice(0, 500) };
-        }
-      } else {
-        value = { issues: [], summary: normalized.slice(0, 500) };
-      }
+      throw new Error('AI response is not valid JSON');
     }
     if (
       !value ||
@@ -34,8 +21,8 @@ export class AIResponseValidator {
       !Array.isArray((value as { issues?: unknown }).issues)
     )
       throw new Error('AI response must contain issues array');
-    const issues = (value as { issues: unknown[] }).issues.flatMap((issue) => {
-      if (!issue || typeof issue !== 'object') return [];
+    const issues = (value as { issues: unknown[] }).issues.map((issue) => {
+      if (!issue || typeof issue !== 'object') throw new Error('AI response has invalid fields');
       const item = issue as Record<string, unknown>;
       const categories = [
         'SECURITY',
@@ -56,7 +43,7 @@ export class AIResponseValidator {
         typeof problem !== 'string' ||
         typeof recommendation !== 'string'
       )
-        return [];
+        throw new Error('AI response has invalid fields');
       return [
         {
           ...item,

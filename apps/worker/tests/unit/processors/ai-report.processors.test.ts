@@ -60,7 +60,7 @@ describe('AI and report processors', () => {
 
   afterEach(async () => rm(root, { recursive: true, force: true }));
 
-  it('runs all five review tasks and persists usage', async () => {
+  it('runs project and per-file review tasks and persists usage', async () => {
     const requestCreate = vi.fn().mockResolvedValue({ id: 'request-1' });
     const requestUpdate = vi.fn().mockResolvedValue({});
     const queue = { enqueueJob: vi.fn().mockResolvedValue({}) };
@@ -97,16 +97,16 @@ describe('AI and report processors', () => {
       logger,
     );
     const result = await processor.execute(job('analyze'));
-    expect(ai.analyze).toHaveBeenCalledTimes(5);
-    expect(requestCreate).toHaveBeenCalledTimes(5);
-    expect(requestUpdate).toHaveBeenCalledTimes(5);
+    expect(ai.analyze).toHaveBeenCalledTimes(2);
+    expect(requestCreate).toHaveBeenCalledTimes(2);
+    expect(requestUpdate).toHaveBeenCalledTimes(2);
     expect(requestUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ status: AIRequestStatus.COMPLETED }),
       }),
     );
     expect(queue.enqueueJob).toHaveBeenCalledWith('report.queue', 'report', payload);
-    expect(result.data).toMatchObject({ totalTokens: 75 });
+    expect(result.data).toMatchObject({ totalTokens: 30 });
   });
 
   it('persists failed AI request and propagates error', async () => {
@@ -187,6 +187,7 @@ describe('AI and report processors', () => {
     const findingDelete = vi.fn();
     const findingCreate = vi.fn();
     const database = {
+      scan: { findUnique: vi.fn().mockResolvedValue({ status: 'ANALYZING' }) },
       report: { upsert: reportUpsert },
       finding: { deleteMany: findingDelete, createMany: findingCreate },
     };

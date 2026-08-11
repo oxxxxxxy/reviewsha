@@ -43,16 +43,16 @@ describe('ZipValidator', () => {
     }
   });
 
-  it('rejects a non-ZIP extension', async () => {
+  it('accepts a supported non-ZIP source file for text/archive processing', async () => {
     await expect(
       validator.validate('project.tar', 'application/zip', Buffer.alloc(30)),
-    ).rejects.toThrow('Only ZIP');
+    ).resolves.toMatchObject({ entries: 1, uncompressedSize: 30 });
   });
 
-  it('rejects a wrong MIME type', async () => {
+  it('does not trust MIME type for a supported source file', async () => {
     await expect(
       validator.validate('project.zip', 'application/octet-stream', Buffer.alloc(30)),
-    ).rejects.toThrow('Only ZIP');
+    ).resolves.toMatchObject({ entries: 1, uncompressedSize: 30 });
   });
 
   it('rejects an empty or too-small archive', async () => {

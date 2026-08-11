@@ -12,7 +12,7 @@ const routes = [
   ['/projects', 'Projects'],
   ['/projects/123', 'Project'],
   ['/reports/abc', 'Reports'],
-  ['/chat', 'Chat'],
+  ['/chat', 'All chats'],
   ['/settings', 'Settings'],
   ['/login', 'Login'],
 ] as const;
@@ -44,6 +44,12 @@ describe('AppRouter', () => {
     vi.spyOn(reviewshaSdk.reports, 'list').mockResolvedValue({
       data: [],
       meta: { page: 1, limit: 20, total: 0, pages: 0 },
+    } as never);
+    vi.spyOn(reviewshaSdk.auth, 'me').mockResolvedValue({
+      id: 'u1',
+      email: 'user@example.com',
+      displayName: 'User',
+      role: 'USER',
     } as never);
   });
   afterEach(() => vi.restoreAllMocks());
