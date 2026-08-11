@@ -1,7 +1,8 @@
 # Этапы 11–14 — Implementation Completion Audit
 
 Дата сверки: 2026-08-11
-Последний проверенный кодовый коммит: `4d0c80c` и текущее рабочее дерево
+Последний проверенный кодовый коммит: актуальный stage-13/14 implementation
+commit и текущее рабочее дерево
 
 ## Актуальная локальная сверка
 
@@ -12,8 +13,8 @@
 | --- | --- |
 | `yarn test:stage11` | ✅ 12 API test files / 182 tests, 2 security files / 9 tests, 2 Worker files / 31 tests |
 | `yarn test:stage12` | ✅ API 6 files / 113 tests, Web 10 files / 29 tests, Admin 11 files / 44 tests |
-| `yarn test:stage13` | ✅ API 10 files / 66 tests, Admin 11 files / 44 tests |
-| `yarn test:stage14` | ✅ OpenAPI/SDK drift check, SDK 6 tests, Web/Admin/API/Worker typecheck |
+| `yarn test:stage13` | ✅ API 10 files / 75 tests, Admin 13 files / 46 tests |
+| `yarn test:stage14` | ✅ OpenAPI/SDK drift check, SDK 7 tests, Web/Admin/API/Worker typecheck |
 
 Это подтверждает функциональный кодовый baseline 11–12 и текущую локальную
 собираемость 13–14. Это **не** заменяет перечисленные ниже real-provider,
@@ -51,10 +52,10 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 | 11.2 AI Context & Streaming | PARTIAL | Provider-to-Worker-to-API streaming реализован через OmniRouter SSE и Redis broker; real end-to-end/disconnect QA ещё не закрыты. |
 | 12.1 Core Application | FUNCTIONAL / QA PARTIAL | UI Kit, auth, protected routes и Dashboard работают через реальный API; не закрыты требуемые объёмы тестов и ручной QA. |
 | 12.2 User Features | PARTIAL | Projects, upload, analysis, reports, chat и settings подключены; отсутствует полный пользовательский E2E и часть UX/API coverage. |
-| 13.1 Admin Core | PARTIAL | Отдельный Admin, RBAC, users/projects, overview и queue core есть; security matrix и полный E2E не закрыты. |
+| 13.1 Admin Core | PARTIAL | Отдельный Admin, RBAC, dedicated users/projects API, server-side search/pagination, details и role/status mutation есть; security matrix и полный E2E не закрыты. |
 | 13.2 Administration | PARTIAL | Queues с pagination, safe job details и backend ERROR handling, masked logs, AI usage и date-filtered statistics есть; расширенные filters/details/charts/QA не завершены. |
-| 14.1 OpenAPI & SDK | PARTIAL | OpenAPI генерируется/валидируется, generated types и drift check есть; runtime SDK и все DTO ещё не полностью generated/единые. |
-| 14.2 Frontend Integration | PARTIAL | Web/Admin используют общий SDK client, auth/refresh централизованы; миграция, cancellation/race/contract coverage и critical E2E не завершены. |
+| 14.1 OpenAPI & SDK | PARTIAL | OpenAPI генерируется/валидируется, generated types и drift check включают dedicated Admin list/details/update contract; runtime SDK и все DTO ещё не полностью generated/единые. |
+| 14.2 Frontend Integration | PARTIAL | Web/Admin используют общий SDK client, auth/refresh и Admin query/mutation layer; миграция, cancellation/race/contract coverage и critical E2E не завершены. |
 
 ## 11.1 Chat Module
 
@@ -175,6 +176,12 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 - Users/projects list, server-side search/pagination и details pages.
 - Admin user details now include owned projects and recent project activity;
   admin project details include owner, uploaded versions and analysis summary.
+- Dedicated `/admin/users` and `/admin/projects` endpoints provide server-side
+  search/pagination; `/admin/users/:id` and `/admin/projects/:id` expose detail
+  views, while `PATCH /admin/users/:id` supports validated role, active-status
+  and profile updates.
+- Admin user details expose explicit role/status controls and invalidate the
+  user query after a successful mutation.
 - Queue overview, jobs, retry/remove API и UI.
 - Admin controller security matrix now exercises every administrative handler:
   `USER` is denied and `ADMIN` is accepted by the role guard. An HTTP integration
@@ -186,10 +193,9 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 
 1. Расширять user/project summaries только при появлении новых backend fields;
    current ownership, activity, versions and analyses summaries are implemented.
-3. Реализовывать block/unblock/role mutation только после наличия backend API.
-4. Расширить HTTP security matrix реальными database-backed ownership/IDOR
+2. Расширить HTTP security matrix реальными database-backed ownership/IDOR
    сценариями с подменёнными user/project/job/log IDs.
-5. Добавить полноценные Admin E2E и manual responsive/accessibility QA.
+4. Добавить полноценные Admin E2E и manual responsive/accessibility QA.
 
 ## 13.2 Administration
 
@@ -206,6 +212,8 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
   the current `AIRequest` schema and is not fabricated by the UI.
 - Statistics endpoint с date range и UI period selector.
 - Admin API contracts и OpenAPI response schemas обновляются.
+- Browser operations use the backend Admin API; Redis/BullMQ are never exposed
+  directly to the browser, and job/log responses omit sensitive payload data.
 
 ### Что доработать
 
@@ -248,6 +256,8 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
   documented in the backend DTO.
 - Upload and Analysis SDK response contracts now use generated OpenAPI schemas;
   nullable pipeline fields are explicitly typed in the backend DTO metadata.
+- Dedicated Admin users/projects list, details and update routes are generated
+  in the canonical OpenAPI artifact and covered by SDK runtime path tests.
 
 ### Что доработать
 
@@ -271,6 +281,8 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
   chat history and report-download requests; Web query functions pass TanStack
   Query cancellation signals.
 - Основные Web/Admin features используют typed SDK вместо feature-level fetch.
+- Admin user/project list, details and role/status mutation use the shared SDK
+  and React Query invalidation rather than ad-hoc HTTP calls.
 - Typecheck, build/quality и app tests проходят.
 
 ### Что доработать

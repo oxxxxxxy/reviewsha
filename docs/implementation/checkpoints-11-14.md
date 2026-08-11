@@ -86,9 +86,11 @@ yarn format:check --ignore-unknown
 
 ## 13.1 / 13.2 — Admin Core и Administration
 
-Admin app использует RBAC-protected API, overview, users/projects, queues,
-logs, AI usage и statistics. Операционные E2E/security IDOR matrix и manual QA
-остаются отдельными acceptance-задачами.
+Admin app использует RBAC-protected API, overview, dedicated users/projects
+endpoints, server-side search/pagination, details pages and explicit role/status
+mutations. Queues, logs, AI usage и statistics остаются backend-owned
+operational APIs. Операционные E2E/security IDOR matrix и manual QA остаются
+отдельными acceptance-задачами.
 
 Для checkpoint 13.1 локальный CI-набор включает:
 
@@ -106,9 +108,10 @@ Admin security boundary проверяется backend HTTP role matrix; обы�
 
 Queue health/state filters, paginated jobs, safe job details, retry/remove,
 masked logs, AI usage breakdown и date-filtered statistics подключены к Admin
-API/UI. Тесты для текущих queue/logs/usage/statistics contracts входят в
-`yarn test:stage13`; расширенная operational и manual QA остаётся явно
-отмеченной в audit.
+API/UI. Destructive user/job actions требуют явного подтверждения, а secrets
+не выдаются в job/log payloads. Тесты для текущих queue/logs/usage/statistics
+contracts входят в `yarn test:stage13`; расширенная operational и manual QA
+остаётся явно отмеченной в audit.
 
 Проверка перед checkpoint:
 
@@ -124,8 +127,9 @@ yarn format:check --ignore-unknown
 
 Canonical OpenAPI генерируется в `docs/generated/openapi.json`, SDK drift
 проверяется `yarn sdk:check`, а Web/Admin используют общий typed SDK client.
-Оставшаяся миграция ручных DTO и полный contract/E2E coverage отмечены в
-основном аудите.
+Admin users/projects list, details and update operations теперь также проходят
+через generated contract; SSE остаётся отдельным typed transport. Оставшаяся
+миграция ручных DTO и полный contract/E2E coverage отмечены в основном аудите.
 
 Для checkpoint 14.1 добавлен SDK contract regression test для Chat, streaming
 и Admin paths в canonical OpenAPI artifact.
