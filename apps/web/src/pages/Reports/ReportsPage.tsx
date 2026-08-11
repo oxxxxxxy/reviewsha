@@ -137,7 +137,6 @@ function formatDate(value: string) {
 function ReportsList({ projectId }: { projectId?: string }) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<string[]>([]);
   const [downloadError, setDownloadError] = useState<string>();
   const reports = useQuery({
     enabled: Boolean(projectId),
@@ -148,11 +147,6 @@ function ReportsList({ projectId }: { projectId?: string }) {
     enabled: Boolean(projectId),
     queryKey: ['project', projectId],
     queryFn: ({ signal }) => reviewshaSdk.projects.get(projectId!, signal),
-  });
-  const compare = useQuery({
-    enabled: selected.length === 2,
-    queryKey: ['report-compare', ...selected],
-    queryFn: () => reviewshaSdk.reports.compare(selected[0]!, selected[1]!),
   });
   if (!projectId)
     return (
@@ -183,14 +177,6 @@ function ReportsList({ projectId }: { projectId?: string }) {
       setDownloadError('Unable to download this report. Please try again.');
     }
   };
-  const toggleReport = (reportId: string) =>
-    setSelected((current) =>
-      current.includes(reportId)
-        ? current.filter((id) => id !== reportId)
-        : current.length < 2
-          ? [...current, reportId]
-          : current,
-    );
   return (
     <section className="page reports-page">
       <div className="page-heading reports-list-heading">
@@ -205,42 +191,6 @@ function ReportsList({ projectId }: { projectId?: string }) {
         <span className="reports-count">{reports.data?.meta.total ?? 0} reports</span>
       </div>
       {downloadError ? <p role="alert">{downloadError}</p> : null}
-      <div className="reports-compare-toolbar">
-        <div>
-          <strong>Compare reports</strong>
-          <span className="muted"> Select two reports to see what changed.</span>
-        </div>
-        <Button
-          disabled={selected.length !== 2}
-          isLoading={compare.isFetching}
-          onClick={() => void compare.refetch()}
-        >
-          Compare selected ({selected.length}/2)
-        </Button>
-      </div>
-      {compare.data ? (
-        <Card className="reports-compare-result">
-          <div>
-            <span className="eyebrow">Comparison</span>
-            <h2>Report changes</h2>
-          </div>
-          <div className="reports-compare-metrics">
-            <span>
-              <strong>
-                {compare.data.scoreDiff > 0 ? '+' : ''}
-                {compare.data.scoreDiff}
-              </strong>{' '}
-              score difference
-            </span>
-            <span>
-              <strong>{compare.data.newIssues}</strong> new issues
-            </span>
-            <span>
-              <strong>{compare.data.resolvedIssues}</strong> resolved issues
-            </span>
-          </div>
-        </Card>
-      ) : null}
       {reports.data?.data.length ? (
         <div className="reports-history" aria-label="Project reports">
           <div className="reports-history-header" aria-hidden="true">
@@ -253,14 +203,6 @@ function ReportsList({ projectId }: { projectId?: string }) {
           {reports.data.data.map((report, index) => (
             <article className="reports-history-row" key={report.id}>
               <div className="reports-history-name">
-                <label className="reports-select">
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(report.id)}
-                    onChange={() => toggleReport(report.id)}
-                    aria-label={`Select report ${index + 1} for comparison`}
-                  />
-                </label>
                 <div>
                   <button
                     className="reports-title-link"
