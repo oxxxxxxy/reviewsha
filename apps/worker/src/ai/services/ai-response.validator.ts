@@ -44,19 +44,16 @@ export class AIResponseValidator {
         typeof recommendation !== 'string'
       )
         throw new Error('AI response has invalid fields');
-      return [
-        {
-          ...item,
-          severity,
-          file,
-          problem,
-          recommendation,
-          ...(item.category !== undefined &&
-          categories.includes(String(item.category).toUpperCase())
-            ? { category: String(item.category).toUpperCase() }
-            : {}),
-        } as unknown as AIReviewResult['issues'][number],
-      ];
+      return {
+        ...item,
+        severity,
+        file,
+        problem,
+        recommendation,
+        ...(item.category !== undefined && categories.includes(String(item.category).toUpperCase())
+          ? { category: String(item.category).toUpperCase() }
+          : {}),
+      } as unknown as AIReviewResult['issues'][number];
     });
     const result = value as Record<string, unknown>;
     return {
