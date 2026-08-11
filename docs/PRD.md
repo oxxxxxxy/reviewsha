@@ -1,5 +1,7 @@
 # Название проекта
 
+> **Historical documentation note.** Historical product requirements. It is not an authoritative runtime specification; use the current code and [canonical docs](README.md).
+
 **Ревьюша**
 
 

@@ -1,5 +1,7 @@
 # Этап 3 — финальный аудит базы данных и Prisma
 
+> **Historical implementation note.** This document records an earlier plan or execution checkpoint. It is retained for traceability; current behavior is defined by code and the canonical docs index.
+
 **Статус:** ✅ COMPLETE
 
 ## Состав этапа

@@ -1,5 +1,7 @@
 # Архитектура Worker проекта "Ревьюша"
 
+> **Historical architecture note.** This numbered design document predates the current canonical architecture index. Verify all claims against code.
+
 Worker подключается к тем же Redis и именам BullMQ очередей, что и API. Stage 7.1
 фиксирует инфраструктуру и retry policy. Фактическая цепочка jobs:
 `download → extract → parse → merge → analyze → report → notify → cleanup`. Stage 8.1 добавляет

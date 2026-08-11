@@ -1,5 +1,7 @@
 # API Contracts проекта "Ревьюша"
 
+> **Historical architecture note.** This numbered design document predates the current canonical architecture index. Verify all claims against code.
+
 ## Client contract
 
 Web и Admin используют `@reviewsha/sdk` как единую точку API-доступа. Auth,

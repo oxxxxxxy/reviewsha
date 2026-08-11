@@ -1,5 +1,7 @@
 # Stage 6.2 — Upload Pipeline
 
+> **Historical implementation note.** This document records an earlier plan or execution checkpoint. It is retained for traceability; current behavior is defined by code and the canonical docs index.
+
 **Status: ✅ COMPLETE**
 
 ## Реализовано в текущем шаге

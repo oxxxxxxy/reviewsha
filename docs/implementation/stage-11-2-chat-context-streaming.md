@@ -1,5 +1,7 @@
 # Stage 11.2 — AI Context & Streaming
 
+> **Historical implementation note.** This document records an earlier plan or execution checkpoint. It is retained for traceability; current behavior is defined by code and the canonical docs index.
+
 Статус: **IMPLEMENTED; real-provider acceptance QA продолжается**.
 
 ## Реализовано

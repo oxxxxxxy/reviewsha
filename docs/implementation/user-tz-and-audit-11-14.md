@@ -1,5 +1,7 @@
 # Проект Reviewsha — ТЗ пользователя и сверка этапов 11–14
 
+> **Historical implementation note.** This document records an earlier plan or execution checkpoint. It is retained for traceability; current behavior is defined by code and the canonical docs index.
+
 Дата создания файла: 2026-08-11
 
 Этот файл создан по запросу пользователя. Раздел «ТЗ пользователя» содержит переданные пользователем планы и чек-листы без добавления новых требований. Фактические сведения о коде вынесены отдельно и должны подтверждаться текущим репозиторием и тестами.

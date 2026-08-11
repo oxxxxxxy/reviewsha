@@ -1,5 +1,7 @@
 # Deployment Architecture проекта "Ревьюша"
 
+> **Historical architecture note.** This numbered design document predates the current canonical architecture index. Verify all claims against code.
+
 ## 1. Назначение документа
 
 Этот документ описывает:

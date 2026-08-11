@@ -1,5 +1,7 @@
 # AI Pipeline проекта "Ревьюша"
 
+> **Historical architecture note.** This numbered design document predates the current canonical architecture index. Verify all claims against code.
+
 Подготовка контекста начинается в Worker Stage 8.2: `Download → Extract → Parse
 → Merge`. Результат `Merge` (`context.json`) является входом для
 следующих этапов AI Pipeline и не содержит сам ZIP или секреты.

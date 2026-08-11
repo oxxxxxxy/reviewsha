@@ -1,5 +1,7 @@
 # Definition of Done — Этап 2.2. Создание приложений
 
+> **Historical implementation note.** This document records an earlier plan or execution checkpoint. It is retained for traceability; current behavior is defined by code and the canonical docs index.
+
 Этап 2.2 считается завершённым только если все приложения монорепозитория созданы, запускаются независимо, соответствуют PRD, архитектуре `docs/architecture/*` и общим принципам проекта.
 
 ---

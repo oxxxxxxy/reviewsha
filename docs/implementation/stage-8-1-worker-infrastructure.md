@@ -1,5 +1,7 @@
 # Stage 8.1 — Worker Infrastructure
 
+> **Historical implementation note.** This document records an earlier plan or execution checkpoint. It is retained for traceability; current behavior is defined by code and the canonical docs index.
+
 ## Реализовано
 
 - standalone `apps/worker` на Nest application context без HTTP-слоя;

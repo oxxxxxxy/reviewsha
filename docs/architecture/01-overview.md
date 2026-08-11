@@ -1,3 +1,5 @@
+> **Historical architecture note.** This numbered design document predates the current canonical architecture index. Verify all claims against code.
+
 
 # Обзор архитектуры проекта "Ревьюша"
 

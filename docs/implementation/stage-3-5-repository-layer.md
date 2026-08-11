@@ -1,5 +1,7 @@
 # Этап 3.5 — Repository Layer
 
+> **Historical implementation note.** This document records an earlier plan or execution checkpoint. It is retained for traceability; current behavior is defined by code and the canonical docs index.
+
 **Статус:** ✅ COMPLETE
 
 ## Результат

@@ -1,5 +1,7 @@
 # Этап 3.4 — Prisma Client
 
+> **Historical implementation note.** This document records an earlier plan or execution checkpoint. It is retained for traceability; current behavior is defined by code and the canonical docs index.
+
 **Статус:** ✅ COMPLETE
 
 ## Результат

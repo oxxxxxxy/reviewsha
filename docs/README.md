@@ -51,7 +51,10 @@ implementation notes используются как история работ, 
 
 - [CONTRIBUTING.md](../CONTRIBUTING.md)
 - [API contract](api/openapi.md)
+- [Архитектурный индекс](architecture/README.md)
 - [Архитектурные решения](architecture/adr/README.md)
+- [Documentation inventory](documentation-inventory.md)
+- [Implementation notes index](implementation/README.md)
 - [Implementation audit 11–14](implementation/stages-11-14-completion-audit.md)
 
 ## Правило обновления

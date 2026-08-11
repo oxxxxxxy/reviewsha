@@ -1,5 +1,7 @@
 # Этап 1. Проектирование системы — статус завершения
 
+> **Historical architecture note.** This numbered design document predates the current canonical architecture index. Verify all claims against code.
+
 Документ фиксирует, что архитектурное проектирование перед стартом разработки завершено.
 
 ---

@@ -1,3 +1,5 @@
+> **Historical documentation note.** Historical implementation plan. It is not an authoritative runtime specification; use the current code and [canonical docs](README.md).
+
 Я бы вообще подошёл к этому как к разработке настоящего коммерческого продукта. Не "сначала фронт, потом бэк", а как это делают в компаниях.
 
 Главная цель — не написать сайт, а **потрогать максимальное количество реальных инженерных практик**.

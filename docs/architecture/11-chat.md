@@ -1,5 +1,7 @@
 # AI Chat
 
+> **Historical architecture note.** This numbered design document predates the current canonical architecture index. Verify all claims against code.
+
 ## 11.1 Base module
 
 `ChatController → ChatService → chat.queue → ChatProcessor → shared AIService → PostgreSQL`.
