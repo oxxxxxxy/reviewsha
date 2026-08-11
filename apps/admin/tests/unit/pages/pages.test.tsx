@@ -17,7 +17,7 @@ const pages = [
   { Component: UsersPage, heading: 'Users' },
   { Component: ProjectsPage, heading: 'Projects' },
   { Component: QueuesPage, heading: 'Queues' },
-  { Component: AIPage, heading: 'AI' },
+  { Component: AIPage, heading: 'AI control center' },
   { Component: LogsPage, heading: 'Logs' },
   { Component: SettingsPage, heading: 'Settings' },
 ] as const;
@@ -54,6 +54,20 @@ describe('admin placeholder pages', () => {
       users: [],
       projects: [],
     } as never);
+    vi.spyOn(adminSdk.admin, 'aiSettings').mockResolvedValue({
+      provider: 'deepseek',
+      baseUrl: 'http://localhost:20128/v1',
+      model: 'auto/best-coding',
+      apiKeyConfigured: true,
+      apiKeyMasked: 'sk-••••••••1234',
+      maxTokens: 4000,
+      temperature: 0.2,
+      timeoutMs: 60000,
+      retryAttempts: 2,
+      maxConcurrency: 2,
+      availableModels: ['auto/best-coding'],
+      updatedAt: null,
+    } as never);
     vi.spyOn(adminSdk.admin, 'logs').mockResolvedValue({
       items: [],
       meta: { page: 1, limit: 50, total: 0, pages: 0 },
@@ -72,10 +86,10 @@ describe('admin placeholder pages', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it.each(pages)('renders $heading page', ({ Component, heading }) => {
+  it.each(pages)('renders $heading page', async ({ Component, heading }) => {
     renderWithAdminProviders(<Component />);
 
-    expect(screen.getByRole('heading', { name: heading })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument();
   });
 
   it('renders not found page with dashboard link', () => {

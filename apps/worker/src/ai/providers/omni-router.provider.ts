@@ -2,15 +2,28 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { AIProvider, AIResponse, AIStreamChunk } from './ai-provider.interface';
 import type { LLMRequest } from '../types/ai.types';
+import { AIRuntimeSettingsService } from '../services/ai-runtime-settings.service';
 
 @Injectable()
 export class OmniRouterProvider implements AIProvider {
-  constructor(@Inject(ConfigService) private readonly config: ConfigService) {}
+  constructor(
+    @Inject(AIRuntimeSettingsService)
+    runtimeSettings: AIRuntimeSettingsService | ConfigService,
+  ) {
+    const legacyConfig = runtimeSettings as unknown as ConfigService;
+    this.runtimeSettings =
+      runtimeSettings instanceof ConfigService || typeof legacyConfig.getOrThrow === 'function'
+        ? this.fromLegacyConfig(legacyConfig)
+        : runtimeSettings;
+  }
+
+  private readonly runtimeSettings: AIRuntimeSettingsService;
+
   async generate(request: LLMRequest): Promise<AIResponse> {
     // OmniRoute exposes chat completions as SSE even when `stream` is not
     // requested. Reuse the streaming parser for normal analysis requests.
     let content = '';
-    let model = this.config.getOrThrow<string>('worker.aiModel');
+    let model = (await this.runtimeSettings.get()).model;
     let promptTokens = 0;
     let completionTokens = 0;
     let totalTokens = 0;
@@ -24,39 +37,48 @@ export class OmniRouterProvider implements AIProvider {
     return { content, model, promptTokens, completionTokens, totalTokens };
   }
 
+  private fromLegacyConfig(config: ConfigService): AIRuntimeSettingsService {
+    return {
+      get: async () => ({
+        provider: config.get<string>('worker.aiProvider', 'deepseek'),
+        baseUrl: config.get<string>('worker.aiBaseUrl', 'https://openrouter.ai/api/v1'),
+        model: config.get<string>('worker.aiModel', 'auto/best-coding'),
+        apiKey: config.get<string>('worker.aiApiKey'),
+        maxTokens: config.get<number>('worker.aiMaxTokens', 4000),
+        temperature: config.get<number>('worker.aiTemperature', 0.2),
+        timeoutMs: config.get<number>('worker.aiTimeoutMs', 60000),
+        retryAttempts: config.get<number>('worker.aiRetryAttempts', 3),
+        maxConcurrency: config.get<number>('worker.aiMaxConcurrency', 3),
+      }),
+    } as AIRuntimeSettingsService;
+  }
+
   async *stream(request: LLMRequest, signal?: AbortSignal): AsyncIterable<AIStreamChunk> {
-    const apiKey = this.config.get<string>('worker.aiApiKey');
+    const settings = await this.runtimeSettings.get();
+    const apiKey = settings.apiKey;
     if (!apiKey) throw new Error('OMNIROUTER_API_KEY is not configured');
     const controller = new AbortController();
-    const timeout = setTimeout(
-      () => controller.abort(),
-      this.config.get<number>('worker.aiTimeoutMs', 60000),
-    );
+    const timeout = setTimeout(() => controller.abort(), settings.timeoutMs);
     const abort = () => controller.abort();
     signal?.addEventListener('abort', abort, { once: true });
     try {
-      const response = await fetch(
-        `${this.config.getOrThrow<string>('worker.aiBaseUrl')}/chat/completions`,
-        {
-          method: 'POST',
-          signal: controller.signal,
-          headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-          body: JSON.stringify({
-            model: this.config.getOrThrow<string>('worker.aiModel'),
-            temperature: this.config.get<number>('worker.aiTemperature', 0.2),
-            max_tokens: this.config.get<number>('worker.aiMaxTokens', 4000),
-            stream: true,
-            stream_options: { include_usage: true },
-            messages: [
-              { role: 'system', content: request.system },
-              { role: 'user', content: request.prompt },
-            ],
-            ...(request.outputFormat === 'json'
-              ? { response_format: { type: 'json_object' } }
-              : {}),
-          }),
-        },
-      );
+      const response = await fetch(`${settings.baseUrl.replace(/\/+$/u, '')}/chat/completions`, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model: settings.model,
+          temperature: settings.temperature,
+          max_tokens: settings.maxTokens,
+          stream: true,
+          stream_options: { include_usage: true },
+          messages: [
+            { role: 'system', content: request.system },
+            { role: 'user', content: request.prompt },
+          ],
+          ...(request.outputFormat === 'json' ? { response_format: { type: 'json_object' } } : {}),
+        }),
+      });
       if (!response.ok) {
         const body =
           typeof response.text === 'function' ? await response.text().catch(() => '') : '';
@@ -73,7 +95,7 @@ export class OmniRouterProvider implements AIProvider {
           };
           yield {
             content: json.choices?.[0]?.message?.content ?? '',
-            model: json.model ?? this.config.getOrThrow<string>('worker.aiModel'),
+            model: json.model ?? settings.model,
             promptTokens: json.usage?.prompt_tokens ?? 0,
             completionTokens: json.usage?.completion_tokens ?? 0,
             totalTokens: json.usage?.total_tokens ?? 0,
@@ -87,7 +109,7 @@ export class OmniRouterProvider implements AIProvider {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
-      let model = this.config.getOrThrow<string>('worker.aiModel');
+      let model = settings.model;
       let usage: AIStreamChunk = {};
       let done = false;
       while (!done) {

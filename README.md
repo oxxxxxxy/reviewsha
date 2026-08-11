@@ -12,6 +12,7 @@ analysis pipeline, reports и AI Chat.
 - AI context/chunks, structured reports, Markdown/PDF/JSON exports;
 - chat history, bounded context и typed SSE streaming;
 - Web и Admin React applications;
+- Admin AI control center: OmniRoute key/model/runtime management;
 - OpenAPI → generated SDK contract;
 - Docker/Compose development и Helm/Kubernetes deployment.
 
@@ -114,6 +115,10 @@ yarn sdk:check
 - [Production procedure](docs/deployment/production.md)
 - [Rollback](docs/deployment/rollback.md)
 - [Production checklist](docs/deployment/checklist.md)
+
+Admin operational UI, user management and OmniRoute settings описаны в
+[Admin guide](docs/frontend/admin.md). В Kubernetes OmniRoute работает как
+внутренний Service, а Worker подключается к нему по `http://omniroute:20128/v1`.
 
 ## Текущий implementation baseline
 

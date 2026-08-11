@@ -15,6 +15,7 @@ const baseWorkerEnvSchema = z.object({
   MINIO_SECRET_KEY: z.string().min(1).default('reviewsha-password'),
   MINIO_PORT: z.coerce.number().int().positive().default(9000),
   MINIO_USE_SSL: z.coerce.boolean().default(false),
+  INTERNAL_API_KEY: z.string().optional(),
   AI_PROVIDER: z.enum(['deepseek', 'openai', 'local', 'mock']).default('deepseek'),
   OMNIROUTER_API_KEY: z.string().optional(),
   OMNIROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),

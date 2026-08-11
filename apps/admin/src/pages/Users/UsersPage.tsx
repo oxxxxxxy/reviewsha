@@ -23,14 +23,25 @@ export function UsersPage() {
   if (users.isLoading)
     return (
       <section className="page">
-        <h1>Users</h1>
+        <div className="page-header">
+          <div>
+            <div className="eyebrow">Access management</div>
+            <h1>Users</h1>
+            <p>Control roles, account access and user activity.</p>
+          </div>
+        </div>
         <Loader label="Loading users" />
       </section>
     );
   if (users.isError)
     return (
       <section className="page">
-        <h1>Users</h1>
+        <div className="page-header">
+          <div>
+            <div className="eyebrow">Access management</div>
+            <h1>Users</h1>
+          </div>
+        </div>
         <p role="alert">
           Unable to load users. <button onClick={() => void users.refetch()}>Retry</button>
         </p>
@@ -39,16 +50,27 @@ export function UsersPage() {
   const rows = users.data?.items ?? [];
   return (
     <section className="page">
-      <h1>Users</h1>
-      <Input
-        aria-label="Search users"
-        placeholder="Search users"
-        value={search}
-        onChange={(event) => {
-          setSearch(event.target.value);
-          setPage(1);
-        }}
-      />
+      <header className="page-header">
+        <div>
+          <div className="eyebrow">Access management</div>
+          <h1>Users</h1>
+          <p>
+            {users.data?.meta.total ?? 0} accounts in this workspace. Select a user to manage
+            access.
+          </p>
+        </div>
+      </header>
+      <div className="toolbar">
+        <Input
+          aria-label="Search users"
+          placeholder="Search by email or name"
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setPage(1);
+          }}
+        />
+      </div>
       <div className="filters" aria-label="User filters">
         <label>
           Role
@@ -97,7 +119,12 @@ export function UsersPage() {
             {
               key: 'status',
               header: 'Status',
-              render: (user) => (user.isActive ? 'ACTIVE' : 'BLOCKED'),
+              render: (user) => (
+                <span className={user.isActive ? 'status-pill' : 'status-pill blocked'}>
+                  <span className="status-dot" />
+                  {user.isActive ? 'Active' : 'Blocked'}
+                </span>
+              ),
             },
             { key: 'created', header: 'Created', render: (user) => user.createdAt },
           ]}

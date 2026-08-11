@@ -10,6 +10,8 @@ export type QueueJobsResponse = components['schemas']['AdminJobsResponseDto'];
 
 export type AdminAiUsage = components['schemas']['AdminAiUsageResponseDto'];
 export type AdminAiUsageBreakdown = components['schemas']['AdminAiUsageBreakdownResponseDto'];
+export type AdminAiSettings = components['schemas']['AdminAiSettingsResponseDto'];
+export type AdminAiConnection = components['schemas']['AdminAiConnectionResponseDto'];
 
 export type AdminStatistics = components['schemas']['AdminStatisticsResponseDto'];
 export type AdminUserDetails = components['schemas']['AdminUserDetailsResponseDto'];
@@ -41,6 +43,24 @@ export class AdminAPI {
 
   aiUsageBreakdown(params?: Parameters<AdminAPI['aiUsage']>[0]): Promise<AdminAiUsageBreakdown> {
     return this.client.get<AdminAiUsageBreakdown>('/admin/ai-usage/breakdown', { params });
+  }
+
+  aiSettings(): Promise<AdminAiSettings> {
+    return this.client.get<AdminAiSettings>('/admin/ai/settings');
+  }
+
+  updateAiSettings(
+    payload: components['schemas']['UpdateAdminAiSettingsDto'],
+  ): Promise<AdminAiSettings> {
+    return this.client.patch('/admin/ai/settings', payload);
+  }
+
+  aiModels(): Promise<components['schemas']['AdminAiModelsResponseDto']> {
+    return this.client.get('/admin/ai/models');
+  }
+
+  testAiConnection(): Promise<AdminAiConnection> {
+    return this.client.post('/admin/ai/test-connection');
   }
 
   statistics(params?: { from?: string; to?: string }): Promise<AdminStatistics> {

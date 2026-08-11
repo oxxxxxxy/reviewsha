@@ -69,10 +69,28 @@ assistant response сохранился в истории чата после о
 4. Users service нормализует query pagination, если адаптер передаёт query
    значения строками.
 
+## Validation Kubernetes run
+
+После переноса сервисов в Kubernetes выполнен отдельный Chromium smoke-check
+через validation cluster `kind-reviewsha-validation`. Проверены:
+
+- rollout API, Worker и Admin после обновления образов;
+- API health: PostgreSQL, Redis и storage = `ok`;
+- Admin login и сохранение сессии;
+- Dashboard, Projects, Queues, Logs, Statistics и Settings;
+- AI control center: загрузка settings, каталог моделей, выбор/восстановление
+  модели и connection test OmniRoute;
+- Users table, поиск и role/status filters;
+- responsive sidebar при viewport `390x844`;
+- отсутствие browser console errors в сценарии Admin.
+
+Для port-forward окружения использовались Admin `15174`, API `13000` и
+внутренний gateway Service `omniroute:20128`. Реальный provider key в тесте не
+выводился и не менялся.
+
 ## Ограничения
 
 - Проверен публичный GitHub import, а не OAuth-привязка приватного аккаунта.
-- Admin Settings сейчас является информационным route без изменяемых настроек.
 - Полный визуальный и accessibility review человеком в браузере остаётся
   отдельной задачей; автоматический smoke-check не заменяет его.
 - Production deployment, внешний DNS/TLS и реальные production credentials не

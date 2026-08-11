@@ -10,8 +10,11 @@ import type { AIProvider } from './providers/ai-provider.interface';
 import { ConfigService } from '@nestjs/config';
 import { MockAIProvider } from './providers/mock-ai.provider';
 import { SecretRedactorService } from './services/secret-redactor.service';
+import { AIRuntimeSettingsService } from './services/ai-runtime-settings.service';
+import { WorkerDatabaseModule } from '../database/worker-database.module';
 
 @Module({
+  imports: [WorkerDatabaseModule],
   providers: [
     AIProjectParser,
     ChunkBuilderService,
@@ -19,6 +22,7 @@ import { SecretRedactorService } from './services/secret-redactor.service';
     PromptBuilderService,
     AIResponseValidator,
     SecretRedactorService,
+    AIRuntimeSettingsService,
     OmniRouterProvider,
     MockAIProvider,
     {

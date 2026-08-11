@@ -22,7 +22,7 @@ describe('AdminLayout', () => {
     );
 
     expect(screen.getByLabelText('Admin sidebar')).toBeInTheDocument();
-    expect(screen.getByText('System administration console')).toBeInTheDocument();
+    expect(screen.getByText('Control center')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Nested Dashboard' })).toBeInTheDocument();
   });
 
@@ -52,7 +52,7 @@ describe('AdminLayout', () => {
     );
 
     expect(useAdminUiStore.getState().isSidebarOpen).toBe(true);
-    fireEvent.click(screen.getByRole('button', { name: 'Toggle sidebar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
     expect(useAdminUiStore.getState().isSidebarOpen).toBe(false);
   });
 });

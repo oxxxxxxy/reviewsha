@@ -15,6 +15,9 @@ import { Roles } from '../../common/auth/decorators/roles.decorator';
 import { ADMIN_ROLES } from '../../common/authorization/roles/role.constants';
 import { ApiStandardErrors } from '../../common/swagger';
 import { AdminService } from './admin.service';
+import { AdminAiSettingsService } from './admin-ai-settings.service';
+import { CurrentUser } from '../../common/auth/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../common/auth/types/auth.types';
 import { ProjectFilterDto } from '../projects/dto/project-filter.dto';
 import { ProjectsListResponseDto } from '../projects/dto/project-response.dto';
 import { AdminUserQueryDto } from './dto/admin-user-query.dto';
@@ -38,6 +41,12 @@ import {
   AdminStatisticsQueryDto,
   QueueOverviewResponseDto,
 } from './dto/admin-response.dto';
+import {
+  AdminAiConnectionResponseDto,
+  AdminAiModelsResponseDto,
+  AdminAiSettingsResponseDto,
+  UpdateAdminAiSettingsDto,
+} from './dto/admin-ai-settings.dto';
 
 @ApiTags('Admin')
 @ApiBearerAuth('bearer')
@@ -45,7 +54,10 @@ import {
 @Roles(...ADMIN_ROLES)
 @Controller('admin')
 export class AdminController {
-  constructor(@Inject(AdminService) private readonly admin: AdminService) {}
+  constructor(
+    @Inject(AdminService) private readonly admin: AdminService,
+    @Inject(AdminAiSettingsService) private readonly aiSettings: AdminAiSettingsService,
+  ) {}
 
   @Get('overview')
   @ApiOperation({ summary: 'Get administrative system overview' })
@@ -115,6 +127,34 @@ export class AdminController {
   @ApiOkResponse({ type: AdminAiUsageResponseDto })
   aiUsage(@Query() query: AdminAiUsageQueryDto) {
     return this.admin.aiUsage(query);
+  }
+
+  @Get('ai/settings')
+  @ApiOperation({ summary: 'Get editable AI gateway settings with a masked API key' })
+  @ApiOkResponse({ type: AdminAiSettingsResponseDto })
+  aiSettingsView() {
+    return this.aiSettings.get();
+  }
+
+  @Patch('ai/settings')
+  @ApiOperation({ summary: 'Update AI gateway, model and runtime settings' })
+  @ApiOkResponse({ type: AdminAiSettingsResponseDto })
+  updateAiSettings(@CurrentUser() user: AuthenticatedUser, @Body() dto: UpdateAdminAiSettingsDto) {
+    return this.aiSettings.update(user, dto);
+  }
+
+  @Get('ai/models')
+  @ApiOperation({ summary: 'List models exposed by the configured OmniRoute gateway' })
+  @ApiOkResponse({ type: AdminAiModelsResponseDto })
+  async aiModels() {
+    return { models: await this.aiSettings.models() };
+  }
+
+  @Post('ai/test-connection')
+  @ApiOperation({ summary: 'Test the configured OmniRoute gateway connection' })
+  @ApiOkResponse({ type: AdminAiConnectionResponseDto })
+  testAiConnection() {
+    return this.aiSettings.testConnection();
   }
 
   @Get('ai-usage/breakdown')

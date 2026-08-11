@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RolesGuard } from '../../../../src/common/auth/guards/roles.guard';
 import { ApiLoggerService } from '../../../../src/common/logger/api-logger.service';
 import { AdminController } from '../../../../src/modules/admin/admin.controller';
+import { AdminAiSettingsService } from '../../../../src/modules/admin/admin-ai-settings.service';
 import { AdminService } from '../../../../src/modules/admin/admin.service';
 
 class TestJwtGuard implements CanActivate {
@@ -44,6 +45,13 @@ const adminService = {
   removeJob: vi.fn(async () => ({})),
 };
 
+const adminAiSettingsService = {
+  get: vi.fn(async () => ({})),
+  update: vi.fn(async () => ({})),
+  models: vi.fn(async () => []),
+  testConnection: vi.fn(async () => ({})),
+};
+
 const adminPaths = [
   { method: 'get', path: '/api/v1/admin/overview' },
   { method: 'get', path: '/api/v1/admin/users/00000000-0000-4000-8000-000000000002/details' },
@@ -54,6 +62,10 @@ const adminPaths = [
   { method: 'get', path: '/api/v1/admin/projects' },
   { method: 'get', path: '/api/v1/admin/projects/00000000-0000-4000-8000-000000000002' },
   { method: 'get', path: '/api/v1/admin/queues' },
+  { method: 'get', path: '/api/v1/admin/ai/settings' },
+  { method: 'patch', path: '/api/v1/admin/ai/settings' },
+  { method: 'get', path: '/api/v1/admin/ai/models' },
+  { method: 'post', path: '/api/v1/admin/ai/test-connection' },
   { method: 'get', path: '/api/v1/admin/ai-usage' },
   { method: 'get', path: '/api/v1/admin/ai-usage/breakdown' },
   { method: 'get', path: '/api/v1/admin/statistics' },
@@ -73,6 +85,7 @@ describe('Admin HTTP authorization matrix', () => {
       controllers: [AdminController],
       providers: [
         { provide: AdminService, useValue: adminService },
+        { provide: AdminAiSettingsService, useValue: adminAiSettingsService },
         { provide: ApiLoggerService, useValue: { log: vi.fn(), warn: vi.fn() } },
         { provide: APP_GUARD, useClass: TestJwtGuard },
         { provide: APP_GUARD, useClass: RolesGuard },

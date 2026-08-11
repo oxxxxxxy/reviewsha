@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 
 import { ShutdownService } from './common/shutdown/shutdown.service';
-import { WorkerDatabaseService } from './database/worker-database.service';
 import { WorkerConfigModule } from './config/config.module';
 import { QueueModule } from './queue/queue.module';
+import { WorkerDatabaseModule } from './database/worker-database.module';
 import { AIWorker } from './workers/ai.worker';
 import { ChatWorker } from './workers/chat.worker';
 import { FileWorker } from './workers/file.worker';
@@ -37,10 +37,9 @@ import { ChatStreamControlService } from './processors/chat-stream-control.servi
 import { ChatStreamPublisherService } from './processors/chat-stream-publisher.service';
 
 @Module({
-  imports: [WorkerConfigModule, QueueModule, AIModule, ReportingModule],
+  imports: [WorkerConfigModule, WorkerDatabaseModule, QueueModule, AIModule, ReportingModule],
   providers: [
     ShutdownService,
-    WorkerDatabaseService,
     WorkerStorageService,
     FilesystemService,
     TempStorageService,
@@ -71,6 +70,6 @@ import { ChatStreamPublisherService } from './processors/chat-stream-publisher.s
     ReportWorker,
     NotificationWorker,
   ],
-  exports: [WorkerDatabaseService, WorkerStorageService, ProcessorRegistry],
+  exports: [WorkerDatabaseModule, WorkerStorageService, ProcessorRegistry],
 })
 export class WorkerModule {}

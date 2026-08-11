@@ -16,7 +16,7 @@ describe('AuthLayout', () => {
       { route: '/login' },
     );
 
-    expect(screen.getByText('Ревьюша Admin')).toBeInTheDocument();
+    expect(screen.getByText('Reviewsha Admin')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Nested Login' })).toBeInTheDocument();
   });
 });

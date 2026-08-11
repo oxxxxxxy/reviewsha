@@ -22,6 +22,7 @@ export type WorkerConfig = {
   aiMaxConcurrency: number;
   aiDailyRequestLimit: number;
   aiInputMaxTokens: number;
+  settingsEncryptionKey?: string;
 };
 
 export default (): { worker: WorkerConfig } => ({
@@ -54,5 +55,6 @@ export default (): { worker: WorkerConfig } => ({
     aiMaxConcurrency: Number(process.env.AI_MAX_CONCURRENCY ?? 3),
     aiDailyRequestLimit: Number(process.env.AI_DAILY_REQUEST_LIMIT ?? 500),
     aiInputMaxTokens: Number(process.env.AI_INPUT_MAX_TOKENS ?? 12000),
+    settingsEncryptionKey: process.env.INTERNAL_API_KEY ?? 'reviewsha-internal-api-key-change-me',
   },
 });

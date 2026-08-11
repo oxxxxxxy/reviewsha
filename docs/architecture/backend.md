@@ -14,7 +14,7 @@ API имеет глобальный prefix `api/v1`. Authentication и validatio
 | `pipeline` | scan lifecycle, status/progress/cancel | Scan + QueueService |
 | `reports` | report status, history, exports, compare | Report + MinIO |
 | `chat` | session/message/history/context/stream | ChatSession/Message + Worker |
-| `admin` | overview, users, projects, queues, logs, usage, stats | service adapters |
+| `admin` | overview, users, projects, queues, logs, usage, stats, AI runtime settings | service adapters + encrypted `SystemSetting` |
 | `health` | dependency health endpoint | DB/Redis/storage checks |
 
 ## Request flow
@@ -43,3 +43,22 @@ HTTP errors проходят через общий exception filter и API error
 - admin endpoints требуют JWT и role guard;
 - `SUPER_ADMIN` не должен случайно получать обход обычной модели данных без
   явного решения.
+
+## Admin AI runtime settings
+
+Администратор может менять runtime-конфигурацию OmniRoute через Admin API:
+
+```text
+Admin UI → generated SDK → AdminController
+        → AdminAiSettingsService → encrypted SystemSetting
+        → WorkerAiRuntimeSettingsService → OmniRouter provider
+```
+
+В `SystemSetting` хранится зашифрованный JSON с provider, base URL, model и
+generation limits. Ключ шифрования берётся из `INTERNAL_API_KEY`/настроенного
+settings encryption key и не возвращается API. Ответы содержат только
+`apiKeyConfigured` и маскированное представление ключа.
+
+Worker читает эту настройку из PostgreSQL при создании provider request и
+сохраняет env defaults как fallback. Поэтому изменение модели или gateway не
+требует пересборки образа; следующий AI job использует сохранённое значение.
