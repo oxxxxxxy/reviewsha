@@ -6,6 +6,12 @@ import { reviewshaSdk } from '../../api/client';
 import { Markdown } from '../../components/Markdown';
 import { createUuid } from '../../utils/uuid';
 
+type PendingUserMessage = {
+  idempotencyKey: string;
+  content: string;
+  status: 'sending' | 'error';
+};
+
 export function ChatPage() {
   const { id: projectId } = useParams();
   const [searchParams] = useSearchParams();
@@ -17,6 +23,7 @@ export function ChatPage() {
   const [streamText, setStreamText] = useState('');
   const [streamError, setStreamError] = useState<string>();
   const [retryPrompt, setRetryPrompt] = useState<string>();
+  const [pendingUserMessage, setPendingUserMessage] = useState<PendingUserMessage>();
   const messagesEnd = useRef<HTMLDivElement>(null);
   const streamAbort = useRef<AbortController | undefined>(undefined);
   const client = useQueryClient();
@@ -55,11 +62,22 @@ export function ChatPage() {
     queryKey: ['chat-messages', sessionId],
     queryFn: ({ signal }) => reviewshaSdk.chat.getMessages(sessionId!, signal),
   });
-  const stream = async (requestedMessage = message) => {
+  useEffect(() => {
+    streamAbort.current?.abort();
+    setPendingUserMessage(undefined);
+    setStreamText('');
+    setStreamError(undefined);
+  }, [sessionId]);
+  const stream = async (
+    requestedMessage = message,
+    requestedIdempotencyKey = pendingUserMessage?.idempotencyKey,
+  ) => {
     const prompt = requestedMessage.trim();
     if (!hasCompletedAnalysis || !sessionId || !prompt || streaming) return;
+    const idempotencyKey = requestedIdempotencyKey ?? createUuid();
     setMessage('');
     setRetryPrompt(prompt);
+    setPendingUserMessage({ idempotencyKey, content: prompt, status: 'sending' });
     setStreamText('');
     setStreamError(undefined);
     setStreaming(true);
@@ -69,7 +87,7 @@ export function ChatPage() {
         sessionId,
         {
           message: prompt,
-          idempotencyKey: createUuid(),
+          idempotencyKey,
           language: localStorage.getItem('reviewsha.language') === 'ru' ? 'ru' : 'en',
         },
         ({ event, data }) => {
@@ -82,12 +100,17 @@ export function ChatPage() {
         },
         streamAbort.current.signal,
       );
-      void client.invalidateQueries({ queryKey: ['chat-messages', sessionId] });
+      await client.invalidateQueries({ queryKey: ['chat-messages', sessionId] });
       void client.invalidateQueries({ queryKey: ['chat-sessions', projectId] });
+      // The complete assistant response is now part of the server history;
+      // remove the temporary streamed copy so it cannot render twice.
+      setStreamText('');
+      setPendingUserMessage(undefined);
       setRetryPrompt(undefined);
     } catch (error) {
       if (!(error instanceof DOMException && error.name === 'AbortError')) {
         setStreamError('AI is unavailable. Try again.');
+        setPendingUserMessage((current) => (current ? { ...current, status: 'error' } : current));
       }
     } finally {
       setStreaming(false);
@@ -180,13 +203,24 @@ export function ChatPage() {
             ) : null}
             {messages.isLoading ? (
               <Loader label="Loading messages" />
-            ) : messages.data?.data.length ? (
-              messages.data.data.map((item) => (
-                <Card key={item.id} className={`chat-message chat-${item.role.toLowerCase()}`}>
-                  <strong>{item.role}</strong>
-                  <Markdown>{item.content}</Markdown>
-                </Card>
-              ))
+            ) : messages.data?.data.length || pendingUserMessage ? (
+              <>
+                {messages.data?.data.map((item) => (
+                  <Card key={item.id} className={`chat-message chat-${item.role.toLowerCase()}`}>
+                    <strong>{item.role}</strong>
+                    <Markdown>{item.content}</Markdown>
+                  </Card>
+                ))}
+                {pendingUserMessage ? (
+                  <Card className="chat-message chat-user chat-pending-message">
+                    <strong>You</strong>
+                    <Markdown>{pendingUserMessage.content}</Markdown>
+                    {pendingUserMessage.status === 'sending' ? (
+                      <small className="chat-message-status">Sending…</small>
+                    ) : null}
+                  </Card>
+                ) : null}
+              </>
             ) : (
               <div className="chat-empty-state">
                 <span className="chat-empty-icon">✦</span>
@@ -253,7 +287,9 @@ export function ChatPage() {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => void stream(retryPrompt ?? '')}
+                    onClick={() =>
+                      void stream(retryPrompt ?? '', pendingUserMessage?.idempotencyKey)
+                    }
                   >
                     Retry
                   </Button>
