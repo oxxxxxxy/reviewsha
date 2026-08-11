@@ -73,14 +73,19 @@ describe('ZipValidator', () => {
     ).rejects.toThrow('empty');
   });
 
-  it('rejects forbidden dependency directories', async () => {
+  it('accepts ignored working-tree directories', async () => {
     await expect(
       validator.validate(
         'project.zip',
         'application/zip',
-        await archive([['node_modules/pkg.js', 'x']]),
+        await archive([
+          ['.git/config', 'x'],
+          ['node_modules/pkg.js', 'x'],
+          ['dist/app.js', 'x'],
+          ['build/app.js', 'x'],
+        ]),
       ),
-    ).rejects.toThrow('forbidden');
+    ).resolves.toMatchObject({ entries: 4 });
   });
 
   it('rejects environment files from the archive', async () => {
@@ -91,10 +96,10 @@ describe('ZipValidator', () => {
     ).rejects.toThrow('forbidden');
   });
 
-  it('rejects hidden repository metadata', async () => {
+  it('accepts hidden repository metadata for working-tree uploads', async () => {
     await expect(
       validator.validate('project.zip', 'application/zip', await archive([['.git/config', 'x']])),
-    ).rejects.toThrow('forbidden');
+    ).resolves.toMatchObject({ entries: 1 });
   });
 
   it('returns the uncompressed size', async () => {

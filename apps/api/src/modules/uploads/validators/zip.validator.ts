@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { open as openFile, fromBuffer, type Entry, type ZipFile } from 'yauzl';
 import {
   UPLOAD_ALLOWED_EXTENSION,
-  UPLOAD_FORBIDDEN_PATHS,
+  UPLOAD_IGNORED_PATHS,
   UPLOAD_FORBIDDEN_FILES,
   UPLOAD_MAX_COMPRESSION_RATIO,
   UPLOAD_MAX_ENTRIES,
@@ -131,18 +131,21 @@ export class ZipValidator {
     const normalized = entry.fileName.replaceAll('\\', '/');
     const lowerCasePath = normalized.toLowerCase();
     const fileName = lowerCasePath.split('/').at(-1) ?? '';
-    if (
-      lowerCasePath.split('/').includes('..') ||
-      UPLOAD_FORBIDDEN_PATHS.some((path) => lowerCasePath.startsWith(path)) ||
-      UPLOAD_FORBIDDEN_FILES.includes(fileName)
-    ) {
+    if (lowerCasePath.split('/').includes('..') || UPLOAD_FORBIDDEN_FILES.includes(fileName)) {
       throw new InvalidArchiveException('Archive contains a forbidden path');
     }
+    const ignoredPath = UPLOAD_IGNORED_PATHS.some(
+      (path) => lowerCasePath === path.slice(0, -1) || lowerCasePath.startsWith(path),
+    );
     if (
       entry.compressedSize > 0 &&
       entry.uncompressedSize / entry.compressedSize > UPLOAD_MAX_COMPRESSION_RATIO
     ) {
       throw new ZipBombDetectedException();
     }
+    // The parser deliberately ignores generated/dependency and repository
+    // metadata directories. Keep them uploadable so users can zip a working
+    // tree, while still validating their size and compression ratio above.
+    if (ignoredPath) return;
   }
 }

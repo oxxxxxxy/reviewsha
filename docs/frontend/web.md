@@ -40,7 +40,10 @@ the action row.
 
 Upload failures preserve the API validation message in the page alert (for
 example, an invalid archive or a forbidden path), so the user can correct the
-file instead of seeing only a generic HTTP error.
+file instead of seeing only a generic HTTP error. Repository metadata and
+generated/dependency directories (`.git`, `node_modules`, `dist`, and `build`)
+are accepted but excluded from review context; `.env` files and unsafe archive
+paths remain rejected.
 
 ## Commands
 

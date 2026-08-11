@@ -69,5 +69,11 @@ export const UPLOAD_SUPPORTED_EXTENSIONS = [
   '.pptx',
   '.odp',
 ];
-export const UPLOAD_FORBIDDEN_PATHS = ['.git/', 'node_modules/', 'dist/', 'build/'];
+// These directories are intentionally retained in the uploaded object but are
+// ignored by the parser and AI context builder. Rejecting an otherwise valid
+// project archive just because a user zipped its working tree made common
+// exports (for example, a repository containing `.git` or `node_modules`)
+// impossible to upload. Security-sensitive files and traversal paths remain
+// rejected by the validator.
+export const UPLOAD_IGNORED_PATHS = ['.git/', 'node_modules/', 'dist/', 'build/'];
 export const UPLOAD_FORBIDDEN_FILES = ['.env'];
