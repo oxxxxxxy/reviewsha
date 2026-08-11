@@ -35,6 +35,7 @@ function fixture(): Scan {
     pipelineStartedAt: new Date('2026-08-06T00:00:00.000Z'),
     pipelineFinishedAt: null,
     pipelineErrorAt: null,
+    reviewLanguage: 'ru',
   };
 }
 

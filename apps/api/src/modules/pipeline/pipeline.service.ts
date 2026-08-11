@@ -98,6 +98,8 @@ export class PipelineService {
           event.projectId,
           event.uploadId,
           PIPELINE_STEPS.extract,
+          undefined,
+          event.language,
         );
         await this.scans.updateStatus(existing.id, ScanStatus.EXTRACTING);
         await this.scans.update(existing.id, {
@@ -109,6 +111,7 @@ export class PipelineService {
           pipelineErrorStack: null,
           pipelineErrorAt: null,
           pipelineFinishedAt: null,
+          ...(event.language ? { reviewLanguage: event.language } : {}),
         });
       }
       return this.scans.findById(existing.id);
@@ -122,9 +125,17 @@ export class PipelineService {
       progress: 0,
       pipelineStep: PrismaPipelineStep.EXTRACT,
       pipelineStatus: PipelineStatus.PENDING,
+      reviewLanguage: event.language ?? 'ru',
     });
 
-    await this.enqueueStep(scan.id, event.projectId, event.uploadId, PIPELINE_STEPS.extract);
+    await this.enqueueStep(
+      scan.id,
+      event.projectId,
+      event.uploadId,
+      PIPELINE_STEPS.extract,
+      undefined,
+      event.language,
+    );
     await this.scans.updateStatus(scan.id, ScanStatus.EXTRACTING);
     await this.scans.update(scan.id, {
       pipelineStatus: PipelineStatus.RUNNING,
@@ -170,7 +181,14 @@ export class PipelineService {
       return;
     }
 
-    await this.enqueueStep(scan.id, scan.projectId, scan.sourceFileId ?? '', next, result.resultId);
+    await this.enqueueStep(
+      scan.id,
+      scan.projectId,
+      scan.sourceFileId ?? '',
+      next,
+      result.resultId,
+      scan.reviewLanguage as 'en' | 'ru',
+    );
     await this.scans.updateProgress(scan.id, PIPELINE_PROGRESS[step]);
     await this.scans.updateStatus(scan.id, this.statusForStep(next));
     await this.scans.update(scan.id, {
@@ -237,7 +255,14 @@ export class PipelineService {
       pipelineErrorStack: null,
       pipelineErrorAt: null,
     });
-    await this.enqueueStep(scan.id, scan.projectId, scan.sourceFileId ?? '', step);
+    await this.enqueueStep(
+      scan.id,
+      scan.projectId,
+      scan.sourceFileId ?? '',
+      step,
+      undefined,
+      scan.reviewLanguage as 'en' | 'ru',
+    );
   }
 
   async cancelPipeline(pipelineId: string): Promise<void> {
@@ -304,6 +329,7 @@ export class PipelineService {
     uploadId: string,
     step: PipelineStep,
     resultId?: string,
+    language?: 'en' | 'ru',
   ): Promise<void> {
     // The first file-queue operation is a download. Historically it was
     // named `extract` and the worker had to reinterpret that job, which made
@@ -317,6 +343,7 @@ export class PipelineService {
       uploadId,
       step,
       ...(resultId ? { resultId } : {}),
+      ...(language ? { language } : {}),
     });
   }
 

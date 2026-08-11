@@ -265,8 +265,10 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     },
     onError: (error) => {
       uploadController.current = undefined;
-      if ((error as Error).name !== 'CanceledError')
-        setUploadError('Upload failed. Check the file format and try again.');
+      if ((error as Error).name !== 'CanceledError') {
+        const message = error instanceof Error ? error.message : '';
+        setUploadError(message || 'Upload failed. Check the file format and try again.');
+      }
     },
   });
   const removeUpload = useMutation({
@@ -282,7 +284,12 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     },
   });
   const analyze = useMutation({
-    mutationFn: () => reviewshaSdk.analyses.start(projectId, selectedUploadId),
+    mutationFn: () =>
+      reviewshaSdk.analyses.start(
+        projectId,
+        selectedUploadId,
+        localStorage.getItem('reviewsha.language') === 'en' ? 'en' : 'ru',
+      ),
     onSuccess: () => void client.invalidateQueries({ queryKey: ['analyses', projectId] }),
   });
   const cancel = useMutation({

@@ -38,6 +38,10 @@ Project history and archive controls are intentionally not exposed in this
 view. Upload versions and the current analysis status remain available below
 the action row.
 
+Upload failures preserve the API validation message in the page alert (for
+example, an invalid archive or a forbidden path), so the user can correct the
+file instead of seeing only a generic HTTP error.
+
 ## Commands
 
 ```bash

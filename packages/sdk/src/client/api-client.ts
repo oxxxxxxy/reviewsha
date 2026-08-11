@@ -206,6 +206,15 @@ export class ApiClient {
 
 function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
   if (!value || typeof value !== 'object') return false;
-  const candidate = value as { success?: unknown; error?: { message?: unknown } };
-  return candidate.success === false && typeof candidate.error?.message === 'string';
+  const candidate = value as {
+    success?: unknown;
+    error?: { message?: unknown };
+  };
+  // The documented envelope includes `success: false`; older validation and
+  // upload responses may omit it while keeping the same nested error object.
+  // Accept both shapes so clients can surface the server's actionable reason.
+  return (
+    typeof candidate.error?.message === 'string' &&
+    (candidate.success === false || candidate.success === undefined)
+  );
 }

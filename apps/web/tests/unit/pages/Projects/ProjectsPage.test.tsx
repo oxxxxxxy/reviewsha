@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Route, Routes } from 'react-router-dom';
 import { ProjectsPage } from '../../../../src/pages/Projects/ProjectsPage';
 import { reviewshaSdk } from '../../../../src/api/client';
 import { renderWithWebProviders } from '../../../../src/test/render';
@@ -37,5 +38,31 @@ describe('ProjectsPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete project' }));
     await waitFor(() => expect(reviewshaSdk.projects.remove).toHaveBeenCalledWith('project-1'));
+  });
+
+  it('shows the server validation reason when an upload is rejected', async () => {
+    vi.spyOn(reviewshaSdk.projects, 'get').mockResolvedValue({ data: project } as never);
+    vi.spyOn(reviewshaSdk.uploads, 'list').mockResolvedValue({ data: [] } as never);
+    vi.spyOn(reviewshaSdk.analyses, 'list').mockResolvedValue({ data: [] } as never);
+    vi.spyOn(reviewshaSdk.uploads, 'upload').mockRejectedValue(
+      new Error('Archive contains a forbidden path'),
+    );
+
+    const { container } = renderWithWebProviders(
+      <Routes>
+        <Route path="/projects/:id" element={<ProjectsPage />} />
+      </Routes>,
+      {
+        route: '/projects/project-1',
+      },
+    );
+    await screen.findByRole('heading', { name: 'Reviewsha' });
+    const input = container.querySelector('input[type="file"]');
+    expect(input).toBeInTheDocument();
+    fireEvent.change(input!, {
+      target: { files: [new File(['content'], 'project.zip', { type: 'application/zip' })] },
+    });
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Archive contains a forbidden path');
   });
 });

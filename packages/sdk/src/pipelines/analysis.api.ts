@@ -14,9 +14,13 @@ export class AnalysisAPI {
     });
   }
 
-  start(projectId: string, uploadId?: string): Promise<{ data: Analysis }> {
+  start(
+    projectId: string,
+    uploadId?: string,
+    language: 'en' | 'ru' = 'ru',
+  ): Promise<{ data: Analysis }> {
     return this.client.post<{ data: Analysis }>(`/projects/${projectId}/analyses`, undefined, {
-      params: uploadId ? { uploadId } : undefined,
+      params: { ...(uploadId ? { uploadId } : {}), language },
     });
   }
 }

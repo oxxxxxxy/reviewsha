@@ -55,7 +55,8 @@ export class AnalysisController {
     @CurrentUser() user: AuthenticatedUser,
     @Param('projectId', ParseUUIDPipe) projectId: string,
     @Query('uploadId') uploadId?: string,
+    @Query('language') language?: string,
   ): Promise<{ data: AnalysisResponseDto }> {
-    return this.analyses.start(user, projectId, uploadId);
+    return this.analyses.start(user, projectId, uploadId, language === 'en' ? 'en' : 'ru');
   }
 }

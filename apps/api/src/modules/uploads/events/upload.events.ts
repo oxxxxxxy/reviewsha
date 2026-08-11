@@ -15,6 +15,7 @@ export interface UploadEvent {
   readonly userId: string;
   readonly version: number;
   readonly occurredAt: string;
+  readonly language?: 'en' | 'ru';
   readonly reason?: string;
 }
 

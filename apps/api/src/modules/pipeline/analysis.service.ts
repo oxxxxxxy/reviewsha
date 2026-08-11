@@ -48,6 +48,7 @@ export class AnalysisService {
     user: AuthenticatedUser,
     projectId: string,
     uploadId?: string,
+    language: 'en' | 'ru' = 'ru',
   ): Promise<{ data: AnalysisResponseDto }> {
     await this.assertProject(user, projectId);
     const upload = uploadId
@@ -67,6 +68,7 @@ export class AnalysisService {
       userId: user.id,
       version: upload.version,
       occurredAt: new Date().toISOString(),
+      language,
     } satisfies UploadEvent);
     if (!scan) throw new NotFoundException('Analysis could not be started');
     return { data: await this.toResponse(scan) };

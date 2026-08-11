@@ -155,11 +155,13 @@ export class AnalyzeProcessor implements JobHandler {
               allChunks,
               metadata as unknown as Record<string, unknown>,
               this.config.get<number>('worker.aiInputMaxTokens', 12_000),
+              scan.reviewLanguage === 'en' ? 'en' : 'ru',
             )
           : this.prompts.buildProjectReview(
               allChunks,
               metadata as unknown as Record<string, unknown>,
               this.config.get<number>('worker.aiInputMaxTokens', 12_000),
+              scan.reviewLanguage === 'en' ? 'en' : 'ru',
             );
         const startedAt = Date.now();
         const requestRecord = await this.db.aIRequest.create({

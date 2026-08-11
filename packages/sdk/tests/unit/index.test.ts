@@ -52,6 +52,27 @@ describe('@reviewsha/sdk public API', () => {
     });
   });
 
+  it('normalizes compact validation errors returned by upload endpoints', async () => {
+    const client = new ApiClient({ baseURL: 'http://localhost:3000/api/v1' });
+    vi.spyOn(client.http, 'get').mockRejectedValue(
+      Object.assign(new Error('request failed'), {
+        isAxiosError: true,
+        response: {
+          status: 422,
+          data: {
+            error: { code: 'INVALID_ARCHIVE', message: 'Archive contains a forbidden path' },
+          },
+        },
+      }),
+    );
+
+    await expect(client.get('/projects/project-id/uploads')).rejects.toMatchObject({
+      status: 422,
+      message: 'Archive contains a forbidden path',
+      payload: { error: { message: 'Archive contains a forbidden path' } },
+    });
+  });
+
   it('creates all domain API services', () => {
     const sdk = createReviewshaSDK({ baseURL: 'http://localhost:3000/api/v1' });
 
