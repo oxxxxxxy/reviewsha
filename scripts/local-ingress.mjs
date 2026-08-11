@@ -1,4 +1,7 @@
 import http from 'node:http';
+import net from 'node:net';
+import { existsSync } from 'node:fs';
+import { spawn } from 'node:child_process';
 
 const routes = {
   web: 'http://127.0.0.1:15173',
@@ -6,6 +9,55 @@ const routes = {
   api: 'http://127.0.0.1:13000',
   omniroute: 'http://127.0.0.1:20129',
 };
+
+const kubectl =
+  process.env.KUBECTL ??
+  (existsSync('/tmp/reviewsha-k8s/kubectl') ? '/tmp/reviewsha-k8s/kubectl' : 'kubectl');
+const context = process.env.KUBE_CONTEXT ?? 'kind-reviewsha-validation';
+const forwards = [
+  ['reviewsha-web', 15173, 80],
+  ['reviewsha-admin', 15174, 80],
+  ['reviewsha-api', 13000, 3000],
+  ['omniroute', 20129, 20128],
+];
+const children = [];
+const activeForwards = new Set();
+
+function portOpen(port) {
+  return new Promise((resolve) => {
+    const socket = net.createConnection({ host: '127.0.0.1', port });
+    socket.once('connect', () => {
+      socket.destroy();
+      resolve(true);
+    });
+    socket.once('error', () => resolve(false));
+  });
+}
+
+async function ensurePortForwards() {
+  for (const [service, localPort, servicePort] of forwards) {
+    if (await portOpen(localPort)) continue;
+    if (activeForwards.has(service)) continue;
+    activeForwards.add(service);
+    const child = spawn(
+      kubectl,
+      [
+        '--context',
+        context,
+        '-n',
+        'reviewsha',
+        'port-forward',
+        `svc/${service}`,
+        `${localPort}:${servicePort}`,
+      ],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+    child.stdout.on('data', (chunk) => process.stdout.write(`[${service}] ${chunk}`));
+    child.stderr.on('data', (chunk) => process.stderr.write(`[${service}] ${chunk}`));
+    child.once('exit', () => activeForwards.delete(service));
+    children.push(child);
+  }
+}
 
 function targetFor(request) {
   const host = (request.headers.host ?? '').split(':')[0].toLowerCase();
@@ -54,6 +106,15 @@ const server = http.createServer(async (request, response) => {
 });
 
 const { Writable } = await import('node:stream');
+await ensurePortForwards();
+setInterval(() => void ensurePortForwards(), 5000).unref();
 server.listen(18080, '127.0.0.1', () => {
   console.log('Local domains gateway: http://app.reviewsha.test:18080');
 });
+
+function shutdown() {
+  for (const child of children) child.kill('SIGTERM');
+  server.close();
+}
+process.once('SIGINT', shutdown);
+process.once('SIGTERM', shutdown);
