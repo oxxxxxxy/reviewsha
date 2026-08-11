@@ -1,5 +1,7 @@
 @import './variables.css';
 
+/* Keep the admin workspace visually aligned with the customer application. */
+
 * {
   box-sizing: border-box;
 }
@@ -320,6 +322,110 @@ a {
   border-radius: 18px;
   background: var(--color-surface);
   box-shadow: var(--shadow-card);
+}
+
+/* Dark product shell and pink action language shared with apps/web. */
+body {
+  background:
+    linear-gradient(rgb(11 14 19 / 92%), rgb(11 14 19 / 92%)),
+    linear-gradient(90deg, rgb(42 49 61 / 20%) 1px, transparent 1px),
+    linear-gradient(rgb(42 49 61 / 20%) 1px, transparent 1px),
+    var(--color-background);
+  background-size: auto, 28px 28px, 28px 28px, auto;
+}
+.admin-sidebar {
+  border-right: 1px solid var(--color-border);
+  background: rgb(17 21 28 / 96%);
+}
+.admin-header {
+  border-color: var(--color-border);
+  background: rgb(17 21 28 / 88%);
+}
+.brand-mark {
+  background: linear-gradient(135deg, #e84578, #b34dff);
+  box-shadow: 0 8px 24px rgb(232 69 120 / 24%);
+}
+.admin-nav-link.active {
+  border-color: rgb(232 69 120 / 32%);
+  background: linear-gradient(90deg, rgb(232 69 120 / 20%), rgb(179 77 255 / 12%));
+}
+.admin-nav-link.active .nav-icon,
+.nav-icon {
+  color: var(--color-primary);
+}
+.icon-button,
+.page-panel,
+.metric-card,
+.auth-card,
+.not-found-page {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.icon-button:hover,
+.quick-action:hover {
+  border-color: rgb(232 69 120 / 48%);
+  background: var(--color-surface-muted);
+}
+.environment-badge,
+.status-pill,
+.connection-state.success {
+  border-color: rgb(53 211 155 / 28%);
+  background: rgb(53 211 155 / 10%);
+  color: #65e6b6;
+}
+.avatar,
+.quick-action-icon {
+  background: rgb(232 69 120 / 14%);
+  color: #ff7ca4;
+}
+.metric-card::after {
+  background: rgb(232 69 120 / 10%);
+}
+.metric-icon,
+.text-link,
+code {
+  color: var(--color-primary);
+}
+.filters,
+.quick-action,
+.connection-state,
+th {
+  border-color: var(--color-border);
+  background: var(--color-surface-muted);
+}
+.filters input,
+.filters select,
+.settings-grid input,
+.settings-grid select,
+.settings-grid textarea,
+.form-field input {
+  border-color: var(--color-border);
+  background: #0f1319;
+  color: var(--color-foreground);
+}
+tr:hover td {
+  background: rgb(232 69 120 / 5%);
+}
+.badge {
+  background: rgb(232 69 120 / 14%);
+  color: #ff88ac;
+}
+.connection-state.error,
+.status-pill.blocked {
+  background: rgb(255 85 125 / 10%);
+  color: #ff809d;
+}
+.auth-layout {
+  background:
+    linear-gradient(rgb(11 14 19 / 92%), rgb(11 14 19 / 92%)),
+    linear-gradient(90deg, rgb(42 49 61 / 20%) 1px, transparent 1px),
+    linear-gradient(rgb(42 49 61 / 20%) 1px, transparent 1px),
+    var(--color-background);
+  background-size: auto, 28px 28px, 28px 28px, auto;
+}
+.auth-card {
+  border-radius: var(--radius-lg);
 }
 .page-panel {
   padding: 24px;
