@@ -126,3 +126,16 @@ Canonical OpenAPI генерируется в `docs/generated/openapi.json`, SDK
 проверяется `yarn sdk:check`, а Web/Admin используют общий typed SDK client.
 Оставшаяся миграция ручных DTO и полный contract/E2E coverage отмечены в
 основном аудите.
+
+Для checkpoint 14.1 добавлен SDK contract regression test для Chat, streaming
+и Admin paths в canonical OpenAPI artifact.
+
+Проверка перед checkpoint:
+
+```text
+yarn sdk:check
+yarn workspace @reviewsha/sdk test
+yarn workspace @reviewsha/sdk typecheck
+yarn lint
+yarn format:check --ignore-unknown
+```

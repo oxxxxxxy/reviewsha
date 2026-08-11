@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_URLS } from '@reviewsha/config';
 import { ApiClient, createAuthorizationHeader, createReviewshaSDK } from '../../src/index.js';
@@ -29,6 +30,23 @@ describe('@reviewsha/sdk public API', () => {
     expect(sdk.reports.download).toBeTypeOf('function');
     expect(sdk.chat.create).toBeTypeOf('function');
     expect(sdk.admin.users).toBeTypeOf('function');
+  });
+
+  it('keeps the generated contract for user chat and administration endpoints', async () => {
+    const document = JSON.parse(
+      readFileSync(new URL('../../../../docs/generated/openapi.json', import.meta.url), 'utf8'),
+    ) as { paths: Record<string, Record<string, unknown>> };
+    const paths = document.paths;
+
+    expect(paths['/projects/{id}/chat']).toEqual(
+      expect.objectContaining({ get: expect.any(Object), post: expect.any(Object) }),
+    );
+    expect(paths['/chat/{sessionId}/stream']).toEqual(
+      expect.objectContaining({ post: expect.any(Object) }),
+    );
+    for (const path of ['/admin/queues', '/admin/logs', '/admin/ai-usage', '/admin/statistics']) {
+      expect(paths[path]).toEqual(expect.objectContaining({ get: expect.any(Object) }));
+    }
   });
 
   it('parses SSE chunks through the shared streaming transport', async () => {
