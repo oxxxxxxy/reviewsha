@@ -697,6 +697,62 @@ a {
   margin-bottom: 0.25rem;
   color: var(--color-foreground);
 }
+.finding-code-context {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #0d1117;
+}
+.finding-code-context-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: #171d27;
+  padding: 0.55rem 0.8rem;
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.finding-code-context pre {
+  margin: 0;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+  color: #c9d1d9;
+  font:
+    0.82rem/1.65 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+}
+.finding-code-context code {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+  min-width: max-content;
+  padding: 0 0.9rem 0 0;
+}
+.finding-code-context code.is-target {
+  background: rgb(255 70 105 / 0.18);
+  color: #fff1f4;
+  box-shadow: inset 3px 0 0 #ff4f7b;
+}
+.finding-code-line-number {
+  padding-right: 0.75rem;
+  color: #667085;
+  text-align: right;
+  user-select: none;
+}
+.finding-code-context code.is-target .finding-code-line-number {
+  color: #ff91aa;
+  font-weight: 700;
+}
+.finding-code-line-content {
+  white-space: pre;
+}
 .settings-page {
   display: grid;
   gap: 1rem;

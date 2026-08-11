@@ -10,6 +10,12 @@ export class ReportIssueDto {
   @ApiProperty({ type: String }) filePath!: string;
   @ApiPropertyOptional({ type: Number, nullable: true }) line!: number | null;
   @ApiPropertyOptional({ type: String, nullable: true }) recommendation!: string | null;
+  @ApiPropertyOptional({ type: Object, nullable: true })
+  codeContext?: {
+    startLine: number;
+    endLine: number;
+    lines: Array<{ line: number; content: string; isTarget: boolean }>;
+  } | null;
 }
 
 export class ReportExportDto {

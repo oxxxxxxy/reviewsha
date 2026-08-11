@@ -480,6 +480,13 @@ function ReportDetails({ reportId }: { reportId: string }) {
                   </code>
                 </div>
                 <h3>{issue.title}</h3>
+                {issue.line &&
+                issue.line > 1 &&
+                (issue as typeof issue & { codeContext?: CodeContext }).codeContext ? (
+                  <CodeContextBlock
+                    context={(issue as typeof issue & { codeContext: CodeContext }).codeContext}
+                  />
+                ) : null}
                 <div className="finding-description">
                   <Markdown>{issue.description}</Markdown>
                 </div>
@@ -495,6 +502,33 @@ function ReportDetails({ reportId }: { reportId: string }) {
         )}
       </section>
     </section>
+  );
+}
+
+type CodeContext = {
+  startLine: number;
+  endLine: number;
+  lines: Array<{ line: number; content: string; isTarget: boolean }>;
+};
+
+function CodeContextBlock({ context }: { context: CodeContext }) {
+  return (
+    <div className="finding-code-context" aria-label="Code context">
+      <div className="finding-code-context-header">
+        <span>Code context</span>
+        <span>
+          Lines {context.startLine}–{context.endLine}
+        </span>
+      </div>
+      <pre>
+        {context.lines.map((line) => (
+          <code className={line.isTarget ? 'is-target' : ''} key={line.line}>
+            <span className="finding-code-line-number">{line.line}</span>
+            <span className="finding-code-line-content">{line.content || ' '}</span>
+          </code>
+        ))}
+      </pre>
+    </div>
   );
 }
 

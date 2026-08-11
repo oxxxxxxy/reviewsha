@@ -161,6 +161,7 @@ export class ReportsService {
         filePath: item.filePath,
         line: item.line,
         recommendation: item.recommendation,
+        codeContext: this.codeContext(report, item.filePath, item.line),
       })),
       recommendations: [
         ...new Set(
@@ -174,6 +175,38 @@ export class ReportsService {
       })),
       files: this.fileCoverage(report),
     };
+  }
+
+  private codeContext(report: DetailedReport, filePath: string, line?: number | null) {
+    if (!line || line <= 1) return null;
+    const chunks = report.scan.analysisContext?.chunks;
+    if (!Array.isArray(chunks)) return null;
+    for (const chunk of chunks as Array<{
+      path?: unknown;
+      filePaths?: unknown;
+      content?: unknown;
+    }>) {
+      const paths = [
+        ...(typeof chunk.path === 'string' ? [chunk.path] : []),
+        ...(Array.isArray(chunk.filePaths)
+          ? chunk.filePaths.filter((value): value is string => typeof value === 'string')
+          : []),
+      ];
+      if (!paths.includes(filePath) || typeof chunk.content !== 'string') continue;
+      const sourceLines = chunk.content.split(/\r?\n/);
+      if (line > sourceLines.length) continue;
+      const startLine = Math.max(1, line - 2);
+      const endLine = Math.min(sourceLines.length, line + 2);
+      return {
+        startLine,
+        endLine,
+        lines: sourceLines.slice(startLine - 1, endLine).map((content, index) => {
+          const currentLine = startLine + index;
+          return { line: currentLine, content, isTarget: currentLine === line };
+        }),
+      };
+    }
+    return null;
   }
 
   private fileCoverage(report: DetailedReport) {
