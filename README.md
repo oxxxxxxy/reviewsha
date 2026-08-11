@@ -53,6 +53,14 @@ AI SaaS platform for automated code review.
 Текущие этапы: 11.1–11.2 Chat, 12 Frontend, 13 Admin Panel и 14.1–14.2 SDK/Frontend Integration
 ```
 
+### Logging & Audit (этап 15.1)
+
+API и Worker используют structured JSON logging с уровнями `DEBUG`, `INFO`,
+`WARN`, `ERROR`, `FATAL`. API добавляет `X-Request-ID`, сохраняет технические
+логи в `AdminLog`, а mutating HTTP actions — в отдельный `AuditLog`. Секреты,
+токены и пароли маскируются. Архитектура описана в
+[`docs/architecture/15-logging-audit.md`](docs/architecture/15-logging-audit.md).
+
 Локальный запуск проверен 11 августа 2026: Web доступен на `http://localhost:5173`,
 Admin на `http://localhost:5174`, API на `http://localhost:3000/api/v1`, Worker
 подключается к PostgreSQL/Redis/MinIO. Swagger доступен через `/docs`, OpenAPI JSON

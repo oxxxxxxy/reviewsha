@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
 
 export interface AdminLogEntry {
-  level: string;
+  level: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
   service: string;
   context: string;
   message: string;
+  event?: string;
+  requestId?: string;
+  userId?: string;
+  projectId?: string;
+  jobId?: string;
+  metadata?: Record<string, unknown>;
   stack?: string;
 }
 

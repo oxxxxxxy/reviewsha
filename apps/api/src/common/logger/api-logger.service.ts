@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
-import { createLogEntry, formatLogEntry, type LogLevel } from '@reviewsha/config';
+import { createLogEntry, formatLogEntry, type LogLevel, type LogMetadata } from '@reviewsha/config';
 import { AdminLogSink } from '../../database/admin-log-sink';
 
 @Injectable()
@@ -9,47 +9,81 @@ export class ApiLoggerService {
 
   constructor(@Optional() @Inject(AdminLogSink) private readonly logSink?: AdminLogSink) {}
 
-  log(message: string, context = 'Api'): void {
-    this.write('INFO', message, context);
+  debug(message: string, context = 'Api', metadata?: LogMetadata): void {
+    this.write('DEBUG', message, context, undefined, metadata);
   }
 
-  warn(message: string, context = 'Api'): void {
-    this.write('WARN', message, context);
+  log(message: string, context = 'Api', metadata?: LogMetadata): void {
+    this.write('INFO', message, context, undefined, metadata);
   }
 
-  error(message: string, trace?: string, context = 'Api'): void {
-    this.write('ERROR', message, context, trace);
+  warn(message: string, context = 'Api', metadata?: LogMetadata): void {
+    this.write('WARN', message, context, undefined, metadata);
   }
 
-  private write(level: LogLevel, message: string, context: string, stack?: string): void {
-    this.logger[level === 'ERROR' ? 'error' : level === 'WARN' ? 'warn' : 'log'](
-      this.format(level, message, context),
-      stack,
-    );
+  error(message: string, trace?: string, context = 'Api', metadata?: LogMetadata): void {
+    this.write('ERROR', message, context, trace, metadata);
+  }
+
+  fatal(message: string, trace?: string, context = 'Api', metadata?: LogMetadata): void {
+    this.write('FATAL', message, context, trace, metadata);
+  }
+
+  private write(
+    level: LogLevel,
+    message: string,
+    context: string,
+    stack?: string,
+    metadata?: LogMetadata,
+  ): void {
+    const safeMessage = this.mask(message);
+    const safeStack = stack ? this.mask(stack) : undefined;
+    const entry = createLogEntry({
+      service: this.serviceName,
+      level,
+      context,
+      message: safeMessage,
+      ...(metadata ? this.maskMetadata(metadata) : {}),
+    });
+    this.logger[
+      level === 'ERROR' || level === 'FATAL' ? 'error' : level === 'WARN' ? 'warn' : 'log'
+    ](formatLogEntry(entry), safeStack);
     this.logSink?.write({
       level,
       service: this.serviceName,
       context,
-      message: this.mask(message),
-      ...(stack ? { stack: this.mask(stack) } : {}),
+      message: safeMessage,
+      ...(safeStack ? { stack: safeStack } : {}),
+      ...this.maskMetadata(metadata ?? {}),
     });
+  }
+
+  private maskMetadata(metadata: LogMetadata): Record<string, unknown> {
+    const safe = { ...metadata };
+    for (const key of Object.keys(safe)) {
+      if (/(authorization|token|password|secret|api[_-]?key)/iu.test(key)) {
+        safe[key] = '[REDACTED]';
+      }
+    }
+    return safe;
+  }
+
+  format(level: LogLevel, message: string, context: string, metadata?: LogMetadata): string {
+    return formatLogEntry(
+      createLogEntry({
+        service: this.serviceName,
+        level,
+        context,
+        message: this.mask(message),
+        ...(metadata ? this.maskMetadata(metadata) : {}),
+      }),
+    );
   }
 
   private mask(value: string): string {
     return value.replace(
       /(authorization|token|password|secret|api[_-]?key)\s*[:=]\s*[^\s,;]+/gi,
       '$1=[REDACTED]',
-    );
-  }
-
-  format(level: LogLevel, message: string, context: string): string {
-    return formatLogEntry(
-      createLogEntry({
-        service: this.serviceName,
-        level,
-        context,
-        message,
-      }),
     );
   }
 }

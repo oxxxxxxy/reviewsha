@@ -23,7 +23,7 @@ describe('shared infrastructure helpers', () => {
     });
 
     expect(formatLogEntry(entry)).toBe(
-      '[2026-08-01T18:24:15.000Z] API INFO AuthService User created',
+      '{"timestamp":"2026-08-01T18:24:15.000Z","service":"API","level":"INFO","context":"AuthService","message":"User created"}',
     );
   });
 

@@ -54,12 +54,32 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async persistAdminLog(entry: {
-    level: string;
+    level: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
     service: string;
     context: string;
     message: string;
+    event?: string;
+    requestId?: string;
+    userId?: string;
+    projectId?: string;
+    jobId?: string;
+    metadata?: Record<string, unknown>;
     stack?: string;
   }): Promise<void> {
-    await this.adminLog.create({ data: entry });
+    await this.adminLog.create({
+      data: {
+        level: entry.level,
+        service: entry.service,
+        context: entry.context,
+        event: entry.event,
+        message: entry.message,
+        requestId: entry.requestId,
+        userId: entry.userId,
+        projectId: entry.projectId,
+        jobId: entry.jobId,
+        metadata: entry.metadata as Prisma.InputJsonValue | undefined,
+        stack: entry.stack,
+      },
+    });
   }
 }

@@ -208,9 +208,14 @@ export class AdminLogResponseDto {
   @ApiProperty({ type: String, example: 'ERROR' }) level!: string;
   @ApiProperty({ type: String, example: 'API' }) service!: string;
   @ApiPropertyOptional({ type: String, nullable: true }) context!: string | null;
+  @ApiPropertyOptional({ type: String, nullable: true }) event!: string | null;
   @ApiProperty({ type: String }) message!: string;
   @ApiPropertyOptional({ type: String, nullable: true }) requestId!: string | null;
   @ApiPropertyOptional({ type: String, nullable: true }) traceId!: string | null;
+  @ApiPropertyOptional({ type: String, nullable: true }) userId!: string | null;
+  @ApiPropertyOptional({ type: String, nullable: true }) projectId!: string | null;
+  @ApiPropertyOptional({ type: String, nullable: true }) jobId!: string | null;
+  @ApiPropertyOptional({ type: Object, nullable: true }) metadata!: Record<string, unknown> | null;
   @ApiPropertyOptional({ type: String, nullable: true }) stack!: string | null;
   @ApiProperty({ type: String, format: 'date-time' }) createdAt!: Date;
 }

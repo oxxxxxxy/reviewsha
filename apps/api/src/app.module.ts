@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 
 import { JwtAuthGuard } from './common/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './common/auth/guards/roles.guard';
 import { OwnershipGuard } from './common/auth/guards/ownership.guard';
 import { ApiLoggerService } from './common/logger/api-logger.service';
+import { RequestLoggingMiddleware } from './common/logger/request-logging.middleware';
 import { AppConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
@@ -46,4 +47,8 @@ import { AdminModule } from './modules/admin/admin.module';
     { provide: APP_GUARD, useClass: OwnershipGuard },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RequestLoggingMiddleware).forRoutes('*');
+  }
+}

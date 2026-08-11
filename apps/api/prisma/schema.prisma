@@ -731,9 +731,13 @@ model AdminLog {
   level     String   @db.VarChar(16)
   service   String   @db.VarChar(80)
   context   String?  @db.VarChar(120)
+  event     String?  @db.VarChar(160)
   message   String   @db.Text
   requestId String?  @map("request_id") @db.VarChar(120)
   traceId   String?  @map("trace_id") @db.VarChar(120)
+  userId    String?  @map("user_id") @db.Uuid
+  projectId String?  @map("project_id") @db.Uuid
+  jobId     String?  @map("job_id") @db.VarChar(120)
   metadata  Json?
   stack     String?  @db.Text
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -742,6 +746,24 @@ model AdminLog {
   @@index([service])
   @@index([createdAt])
   @@map("admin_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String   @db.VarChar(160)
+  entityType String   @map("entity_type") @db.VarChar(80)
+  entityId   String?  @map("entity_id") @db.VarChar(120)
+  requestId  String?  @map("request_id") @db.VarChar(120)
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([actorId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([requestId])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 model RefreshToken {

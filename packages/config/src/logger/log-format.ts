@@ -1,4 +1,6 @@
-export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
+
+export type LogMetadata = Readonly<Record<string, unknown>>;
 
 export interface LogEntry {
   readonly timestamp: string;
@@ -6,20 +8,23 @@ export interface LogEntry {
   readonly level: LogLevel;
   readonly context: string;
   readonly message: string;
+  readonly event?: string;
+  readonly requestId?: string;
+  readonly userId?: string;
+  readonly projectId?: string;
+  readonly jobId?: string;
+  readonly metadata?: LogMetadata;
 }
 
 export function createLogEntry(
   input: Omit<LogEntry, 'timestamp'> & { readonly timestamp?: string },
 ): LogEntry {
   return {
+    ...input,
     timestamp: input.timestamp ?? new Date().toISOString(),
-    service: input.service,
-    level: input.level,
-    context: input.context,
-    message: input.message,
   };
 }
 
 export function formatLogEntry(entry: LogEntry): string {
-  return `[${entry.timestamp}] ${entry.service} ${entry.level} ${entry.context} ${entry.message}`;
+  return JSON.stringify(entry);
 }
