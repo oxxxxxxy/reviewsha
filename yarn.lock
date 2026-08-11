@@ -1419,19 +1419,19 @@
   dependencies:
     "@tybys/wasm-util" "^0.10.3"
 
-"@nestjs/bull-shared@^11.0.4":
-  version "11.0.4"
-  resolved "https://registry.yarnpkg.com/@nestjs/bull-shared/-/bull-shared-11.0.4.tgz#6179bb0a0ae705193a113ea60021d28732c6038d"
-  integrity sha512-VBJcDHSAzxQnpcDfA0kt9MTGUD1XZzfByV70su0W0eDCQ9aqIEBlzWRW21tv9FG9dIut22ysgDidshdjlnczLw==
+"@nestjs/bull-shared@^11.0.5":
+  version "11.0.5"
+  resolved "https://registry.yarnpkg.com/@nestjs/bull-shared/-/bull-shared-11.0.5.tgz#cc953aea9173b678b5ec98a2a6ae85784a3726c8"
+  integrity sha512-QI7GHPk4oePBwszAZn/Kz5hgB79KijB1RDoo+E/BrSt33sHUrvRZXVyO0+knZleyloRYy0LT2VwsqSP/aQvg4Q==
   dependencies:
     tslib "2.8.1"
 
-"@nestjs/bullmq@^11.0.4":
-  version "11.0.4"
-  resolved "https://registry.yarnpkg.com/@nestjs/bullmq/-/bullmq-11.0.4.tgz#aa0d62f949a9bfa7456b43780aa7b404dc5536b3"
-  integrity sha512-wBzK9raAVG0/6NTMdvLGM4/FQ1lsB35/pYS8L6a0SDgkTiLpd7mAjQ8R692oMx5s7IjvgntaZOuTUrKYLNfIkA==
+"@nestjs/bullmq@^11.0.5":
+  version "11.0.5"
+  resolved "https://registry.yarnpkg.com/@nestjs/bullmq/-/bullmq-11.0.5.tgz#512aaaba2ab81427b20d45e14697e19aea70c68b"
+  integrity sha512-u0VGVc5aER8A+4jEYXDin2rtqIHR8sFL68RUgNDgZslvjdeb1QL4CF+Sr0v4zMXJEfaLSVD606Oq0cryNNCxHg==
   dependencies:
-    "@nestjs/bull-shared" "^11.0.4"
+    "@nestjs/bull-shared" "^11.0.5"
     tslib "2.8.1"
 
 "@nestjs/common@^11":
