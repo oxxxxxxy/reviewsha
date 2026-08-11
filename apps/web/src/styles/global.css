@@ -1291,10 +1291,8 @@ input[type='file'] {
   font-size: 0.9rem;
 }
 .project-hero {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 2rem;
+  display: grid;
+  gap: 1.5rem;
   border: 1px solid var(--color-border);
   border-radius: 20px;
   background: linear-gradient(135deg, rgb(34 39 50 / 0.95), rgb(23 27 34 / 0.96));
@@ -1329,9 +1327,34 @@ input[type='file'] {
 }
 .project-hero-actions {
   display: grid;
-  width: min(100%, 210px);
-  flex: 0 0 210px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  width: 100%;
   gap: 0.6rem;
+}
+.project-action-link {
+  display: inline-flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-primary);
+  border-radius: 10px;
+  background: var(--color-primary);
+  padding: 0.7rem 0.85rem;
+  color: #fff;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+.project-action-link:hover {
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
+  color: #fff;
 }
 .project-primary-action,
 .project-delete-action {

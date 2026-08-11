@@ -404,14 +404,9 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           </div>
         </div>
         <div className="project-hero-actions" role="group" aria-label="Project actions">
-          <Button
-            className="project-primary-action"
-            disabled={analyze.isPending}
-            isLoading={analyze.isPending}
-            onClick={() => analyze.mutate()}
-          >
-            Start analysis
-          </Button>
+          <Link className="project-action-link" to={`/projects/${projectId}/settings`}>
+            Project settings
+          </Link>
           <Button
             className="project-delete-action"
             variant="ghost"
@@ -420,25 +415,22 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           >
             Delete project
           </Button>
+          <Button
+            className="project-primary-action"
+            disabled={analyze.isPending}
+            isLoading={analyze.isPending}
+            onClick={() => analyze.mutate()}
+          >
+            Start analysis
+          </Button>
+          <Link className="project-action-link" to={`/projects/${projectId}/reports`}>
+            Open reports
+          </Link>
+          <Link className="project-action-link" to={`/projects/${projectId}/chat`}>
+            Open chat
+          </Link>
         </div>
       </header>
-      <nav className="project-menu" aria-label="Project sections">
-        <Link
-          className="project-menu-button project-menu-button-current"
-          to={`/projects/${projectId}`}
-        >
-          Overview
-        </Link>
-        <Link className="project-menu-button" to={`/projects/${projectId}/reports`}>
-          Reports
-        </Link>
-        <Link className="project-menu-button" to={`/projects/${projectId}/chat`}>
-          Chat
-        </Link>
-        <Link className="project-menu-button" to={`/projects/${projectId}/settings`}>
-          Settings
-        </Link>
-      </nav>
       <div className="project-details-summary">
         <span>
           <strong>{item.stats?.reportsCount ?? 0}</strong> reports
