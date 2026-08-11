@@ -90,6 +90,19 @@ Admin app использует RBAC-protected API, overview, users/projects, que
 logs, AI usage и statistics. Операционные E2E/security IDOR matrix и manual QA
 остаются отдельными acceptance-задачами.
 
+Для checkpoint 13.1 локальный CI-набор включает:
+
+```text
+yarn test:stage13
+yarn workspace @reviewsha/admin test
+yarn lint
+yarn format:check --ignore-unknown
+```
+
+Admin security boundary проверяется backend HTTP role matrix; обычный USER не
+получает административные handlers, а ADMIN получает разрешённый доступ.
+
+
 ## 14.1 / 14.2 — OpenAPI, SDK и frontend integration
 
 Canonical OpenAPI генерируется в `docs/generated/openapi.json`, SDK drift
