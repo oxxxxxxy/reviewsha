@@ -200,9 +200,6 @@ function ProjectsList() {
               ) : null}
               <div className="project-card-stats" aria-label="Project activity">
                 <span>
-                  <strong>{project.stats?.analysesCount ?? 0}</strong> analyses
-                </span>
-                <span>
                   <strong>{project.stats?.reportsCount ?? 0}</strong> reports
                 </span>
                 <span>
@@ -443,9 +440,6 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         </Link>
       </nav>
       <div className="project-details-summary">
-        <span>
-          <strong>{item.stats?.analysesCount ?? 0}</strong> analyses
-        </span>
         <span>
           <strong>{item.stats?.reportsCount ?? 0}</strong> reports
         </span>

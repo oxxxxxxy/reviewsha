@@ -43,7 +43,7 @@ describe('ReportsPage project chooser', () => {
     expect(await screen.findByText('Workspace insights')).toBeInTheDocument();
     const summary = screen.getByLabelText('Reviewsha report summary');
     expect(within(summary).getByText('2')).toBeInTheDocument();
-    expect(within(summary).getByText('3')).toBeInTheDocument();
+    expect(summary).not.toHaveTextContent('analyses');
     expect(screen.getAllByRole('button', { name: /View reports/i })).toHaveLength(2);
   });
 

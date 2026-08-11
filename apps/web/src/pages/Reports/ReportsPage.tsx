@@ -63,7 +63,7 @@ function ReportsProjectChooser() {
             <div className="reports-project-list">
               {filteredProjects.map((project) => {
                 const reportCount = project.stats?.reportsCount ?? 0;
-                const analysisCount = project.stats?.analysesCount ?? 0;
+                const uploadCount = project.stats?.uploadsCount ?? 0;
                 return (
                   <Card
                     key={project.id}
@@ -95,12 +95,7 @@ function ReportsProjectChooser() {
                         <strong>{reportCount}</strong> reports
                       </span>
                       <span>
-                        <strong>{analysisCount}</strong> analyses
-                      </span>
-                      <span>
-                        {project.stats?.lastAnalysisAt
-                          ? `Updated ${formatDate(project.stats.lastAnalysisAt)}`
-                          : 'No analyses yet'}
+                        <strong>{uploadCount}</strong> uploads
                       </span>
                     </div>
                     <Button
