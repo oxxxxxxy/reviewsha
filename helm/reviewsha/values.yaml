@@ -45,6 +45,7 @@ env:
   NODE_ENV: production
   API_PORT: '3000'
   API_PREFIX: api/v1
+  CORS_ORIGIN: http://app.reviewsha.test:18080,http://admin.reviewsha.test:18080
   REDIS_URL: redis://redis:6379
   REDIS_HOST: redis
   REDIS_PORT: '6379'

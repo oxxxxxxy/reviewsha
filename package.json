@@ -10,6 +10,7 @@
     "packages/*"
   ],
   "scripts": {
+    "dev:local-domains": "node scripts/local-ingress.mjs",
     "dev": "concurrently -k -n api,web,admin,worker,omni -c blue,green,magenta,cyan,yellow \"yarn workspace @reviewsha/api dev\" \"yarn workspace @reviewsha/web dev\" \"yarn workspace @reviewsha/admin dev\" \"yarn workspace @reviewsha/worker dev\" \"yarn dev:omniroute\"",
     "build": "yarn build:packages && yarn build:apps",
     "lint": "yarn lint:packages && yarn lint:apps",

@@ -59,3 +59,24 @@ storage as healthy, and Web/Admin return HTTP 200.
 OmniRoute is deployed as the `reviewsha-omniroute` workload and exposed as the
 in-cluster `omniroute` Service; its dashboard/API credentials are supplied by
 the separately managed `reviewsha-omniroute-secrets` Secret.
+## Local Kubernetes domains
+
+The local validation cluster is exposed through the repository's local gateway
+(`yarn dev:local-domains`) on port `18080`. Add these names to `/etc/hosts`:
+
+```text
+127.0.0.1 app.reviewsha.test admin.reviewsha.test api.reviewsha.test omni.reviewsha.test
+```
+
+Endpoints:
+
+```text
+http://app.reviewsha.test:18080
+http://admin.reviewsha.test:18080
+http://api.reviewsha.test:18080/api/v1/health
+http://omni.reviewsha.test:18080/v1/models
+```
+
+The gateway routes to Kubernetes port-forwards only; PostgreSQL, Redis,
+MinIO, API, Worker, Web, Admin, and OmniRoute remain workloads in the
+validation cluster.
