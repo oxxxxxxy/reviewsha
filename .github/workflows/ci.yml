@@ -134,6 +134,22 @@ jobs:
       - name: API documentation generation
         run: yarn docs:api
 
+  infrastructure:
+    name: Infrastructure manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+      - name: Validate development compose
+        run: docker compose -f infrastructure/docker/compose.dev.yml config
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+      - name: Lint Helm chart
+        run: helm lint helm/reviewsha
+      - name: Render production Helm chart
+        run: helm template reviewsha helm/reviewsha -f helm/reviewsha/values.prod.yaml
+
   openapi-docs:
     name: OpenAPI contract / Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest

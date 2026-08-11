@@ -1,0 +1,37 @@
+namespace: reviewsha
+imagePullSecrets: []
+
+images:
+  api: { repository: reviewsha-api, tag: dev, pullPolicy: IfNotPresent }
+  worker: { repository: reviewsha-worker, tag: dev, pullPolicy: IfNotPresent }
+  web: { repository: reviewsha-web, tag: dev, pullPolicy: IfNotPresent }
+  admin: { repository: reviewsha-admin, tag: dev, pullPolicy: IfNotPresent }
+
+replicas:
+  api: 1
+  worker: 1
+  web: 1
+  admin: 1
+
+resources: {}
+
+env:
+  NODE_ENV: production
+  API_PORT: '3000'
+  API_PREFIX: api/v1
+  REDIS_URL: redis://redis:6379
+  DATABASE_URL: ''
+  MINIO_ENDPOINT: ''
+
+secretName: reviewsha-secrets
+
+services:
+  api: { port: 3000 }
+  web: { port: 80 }
+  admin: { port: 80 }
+
+ingress:
+  enabled: false
+  className: nginx
+  host: reviewsha.local
+  tls: false

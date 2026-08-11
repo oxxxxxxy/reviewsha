@@ -1,0 +1,103 @@
+name: reviewsha-dev
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-reviewsha}
+      POSTGRES_USER: ${POSTGRES_USER:-reviewsha}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-reviewsha}
+    ports: ['${POSTGRES_PORT:-5432}:5432']
+    volumes: [postgres_dev_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports: ['${REDIS_PORT:-6379}:6379']
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-reviewsha}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-reviewsha-password}
+    ports: ['${MINIO_API_PORT:-9000}:9000', '${MINIO_CONSOLE_PORT:-9001}:9001']
+    volumes: [minio_dev_data:/data]
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: development
+      API_HOST: 0.0.0.0
+      DATABASE_URL: postgresql://${POSTGRES_USER:-reviewsha}:${POSTGRES_PASSWORD:-reviewsha}@postgres:5432/${POSTGRES_DB:-reviewsha}?schema=public
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-reviewsha}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-reviewsha-password}
+    ports: ['${API_PORT:-3000}:3000']
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+  worker:
+    build:
+      context: ../..
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://${POSTGRES_USER:-reviewsha}:${POSTGRES_PASSWORD:-reviewsha}@postgres:5432/${POSTGRES_DB:-reviewsha}?schema=public
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-reviewsha}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-reviewsha-password}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+  web:
+    image: node:24-bookworm-slim
+    working_dir: /workspace
+    command:
+      [
+        'bash',
+        '-lc',
+        'corepack enable && yarn install --frozen-lockfile --non-interactive && yarn workspace @reviewsha/web dev --host 0.0.0.0',
+      ]
+    environment:
+      VITE_API_URL: http://localhost:${API_PORT:-3000}/api/v1
+    volumes: ['../..:/workspace', 'web_dev_modules:/workspace/node_modules']
+    ports: ['${WEB_PORT:-5173}:5173']
+    depends_on: [api]
+  admin:
+    image: node:24-bookworm-slim
+    working_dir: /workspace
+    command:
+      [
+        'bash',
+        '-lc',
+        'corepack enable && yarn install --frozen-lockfile --non-interactive && yarn workspace @reviewsha/admin dev --host 0.0.0.0',
+      ]
+    environment:
+      VITE_API_URL: http://localhost:${API_PORT:-3000}/api/v1
+    volumes: ['../..:/workspace', 'admin_dev_modules:/workspace/node_modules']
+    ports: ['${ADMIN_PORT:-5174}:5174']
+    depends_on: [api]
+
+volumes:
+  postgres_dev_data:
+  minio_dev_data:
+  web_dev_modules:
+  admin_dev_modules:

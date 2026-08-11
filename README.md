@@ -61,6 +61,13 @@ API и Worker используют structured JSON logging с уровнями `
 токены и пароли маскируются. Архитектура описана в
 [`docs/architecture/15-logging-audit.md`](docs/architecture/15-logging-audit.md).
 
+### Infrastructure (этапы 16–19)
+
+GitHub repository templates, Dependabot, development compose, production
+Dockerfiles, Kubernetes examples и Helm chart находятся в `.github/`,
+`infrastructure/docker/`, `k8s/` и `helm/reviewsha/`. Подробности:
+[`docs/architecture/16-19-infrastructure.md`](docs/architecture/16-19-infrastructure.md).
+
 Локальный запуск проверен 11 августа 2026: Web доступен на `http://localhost:5173`,
 Admin на `http://localhost:5174`, API на `http://localhost:3000/api/v1`, Worker
 подключается к PostgreSQL/Redis/MinIO. Swagger доступен через `/docs`, OpenAPI JSON

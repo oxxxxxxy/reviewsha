@@ -1,0 +1,14 @@
+{{- range $name := list "api" "web" "admin" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "reviewsha.fullname" $ }}-{{ $name }}
+  namespace: {{ $.Values.namespace }}
+spec:
+  selector: { app.kubernetes.io/name: reviewsha, app.kubernetes.io/component: {{ $name }} }
+  ports:
+    - name: http
+      port: {{ (index $.Values.services $name).port }}
+      targetPort: http
+---
+{{- end }}

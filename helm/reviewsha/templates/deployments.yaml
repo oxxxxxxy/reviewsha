@@ -1,0 +1,36 @@
+{{- range $name := list "api" "worker" "web" "admin" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "reviewsha.fullname" $ }}-{{ $name }}
+  namespace: {{ $.Values.namespace }}
+spec:
+  replicas: {{ index $.Values.replicas $name }}
+  selector:
+    matchLabels: { app.kubernetes.io/name: reviewsha, app.kubernetes.io/component: {{ $name }} }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: reviewsha, app.kubernetes.io/component: {{ $name }} }
+    spec:
+      imagePullSecrets:
+{{- toYaml $.Values.imagePullSecrets | nindent 8 }}
+      containers:
+        - name: {{ $name }}
+          image: "{{ (index $.Values.images $name).repository }}:{{ (index $.Values.images $name).tag }}"
+          imagePullPolicy: {{ (index $.Values.images $name).pullPolicy }}
+          envFrom:
+            - configMapRef: { name: {{ include "reviewsha.fullname" $ }}-config }
+            - secretRef: { name: {{ $.Values.secretName }}, optional: true }
+          {{- if or (eq $name "api") (eq $name "web") (eq $name "admin") }}
+          ports:
+            - name: http
+              containerPort: {{ if eq $name "api" }}3000{{ else }}80{{ end }}
+          {{- end }}
+          {{- if eq $name "api" }}
+          livenessProbe: { httpGet: { path: /api/v1/health, port: http }, initialDelaySeconds: 15 }
+          readinessProbe: { httpGet: { path: /api/v1/health, port: http }, initialDelaySeconds: 5 }
+          {{- end }}
+          resources:
+{{- toYaml (default dict (index $.Values.resources $name)) | nindent 12 }}
+---
+{{- end }}

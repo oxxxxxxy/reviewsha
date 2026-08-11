@@ -1,0 +1,28 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "reviewsha.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.ingress.className }}
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts: [{{ .Values.ingress.host }}]
+      secretName: {{ include "reviewsha.fullname" . }}-tls
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend: { service: { name: {{ include "reviewsha.fullname" . }}-api, port: { name: http } } }
+          - path: /admin
+            pathType: Prefix
+            backend: { service: { name: {{ include "reviewsha.fullname" . }}-admin, port: { name: http } } }
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: {{ include "reviewsha.fullname" . }}-web, port: { name: http } } }
+{{- end }}

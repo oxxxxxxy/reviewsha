@@ -1,0 +1,28 @@
+namespace: reviewsha
+images:
+  api:
+    {
+      repository: ghcr.io/oxxxxxxy/reviewsha-api,
+      tag: replace-with-git-sha,
+      pullPolicy: IfNotPresent,
+    }
+  worker:
+    {
+      repository: ghcr.io/oxxxxxxy/reviewsha-worker,
+      tag: replace-with-git-sha,
+      pullPolicy: IfNotPresent,
+    }
+  web:
+    {
+      repository: ghcr.io/oxxxxxxy/reviewsha-web,
+      tag: replace-with-git-sha,
+      pullPolicy: IfNotPresent,
+    }
+  admin:
+    {
+      repository: ghcr.io/oxxxxxxy/reviewsha-admin,
+      tag: replace-with-git-sha,
+      pullPolicy: IfNotPresent,
+    }
+replicas: { api: 2, worker: 1, web: 2, admin: 1 }
+ingress: { enabled: true, className: nginx, host: reviewsha.example.com, tls: true }
