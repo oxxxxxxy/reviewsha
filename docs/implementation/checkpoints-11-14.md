@@ -102,6 +102,23 @@ yarn format:check --ignore-unknown
 Admin security boundary проверяется backend HTTP role matrix; обычный USER не
 получает административные handlers, а ADMIN получает разрешённый доступ.
 
+## 13.2 — Administration checkpoint
+
+Queue health/state filters, paginated jobs, safe job details, retry/remove,
+masked logs, AI usage breakdown и date-filtered statistics подключены к Admin
+API/UI. Тесты для текущих queue/logs/usage/statistics contracts входят в
+`yarn test:stage13`; расширенная operational и manual QA остаётся явно
+отмеченной в audit.
+
+Проверка перед checkpoint:
+
+```text
+yarn test:stage13
+yarn workspace @reviewsha/admin test
+yarn lint
+yarn format:check --ignore-unknown
+```
+
 
 ## 14.1 / 14.2 — OpenAPI, SDK и frontend integration
 
