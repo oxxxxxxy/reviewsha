@@ -101,30 +101,50 @@ export function ChatPage() {
   if (sessions.isLoading) return <Loader label="Loading chats" />;
   return (
     <section className="page chat-page">
-      <div className="page-heading">
+      <div className="chat-page-header">
         <div>
+          <Link className="chat-back-link" to={`/projects/${projectId}`}>
+            ← Back to project
+          </Link>
           <span className="eyebrow">AI workspace</span>
-          <h1>Project Chat</h1>
-          <p className="muted">Ask questions about architecture, files and findings.</p>
+          <h1>Project chat</h1>
+          <p className="muted">Ask about your code, architecture, files and review findings.</p>
         </div>
-        <span className="context-pill">Project context · Latest analysis</span>
+        <span className="chat-context-pill">
+          Project context <b>·</b> Latest analysis
+        </span>
       </div>
       <div className="chat-layout">
         <aside>
-          <Button
-            onClick={() => create.mutate()}
-            isLoading={create.isPending}
-            disabled={!hasCompletedAnalysis}
-          >
-            New Chat
-          </Button>
+          <div className="chat-sidebar-heading">
+            <div>
+              <strong>Conversations</strong>
+              <small>{sessions.data?.data.length ?? 0} chats</small>
+            </div>
+            <Button
+              className="chat-new-button"
+              onClick={() => create.mutate()}
+              isLoading={create.isPending}
+              disabled={!hasCompletedAnalysis}
+              aria-label="Create new chat"
+            >
+              +
+            </Button>
+          </div>
           {sessions.data?.data.map((session) => (
             <div key={session.id} className="chat-session-row">
-              <button className="chat-session" onClick={() => setActive(session.id)}>
-                {session.title} <small>{session.messagesCount}</small>
+              <button
+                className={`chat-session ${sessionId === session.id ? 'is-active' : ''}`}
+                onClick={() => setActive(session.id)}
+              >
+                <span className="chat-session-copy">
+                  <strong>{session.title}</strong>
+                  <small>{session.messagesCount} messages</small>
+                </span>
               </button>
               <Button
-                variant="secondary"
+                variant="ghost"
+                className="chat-delete-button"
                 onClick={() => remove.mutate(session.id)}
                 aria-label={`Delete ${session.title}`}
               >
@@ -134,61 +154,88 @@ export function ChatPage() {
           ))}
         </aside>
         <div className="chat-main">
-          {!analyses.isLoading && !hasCompletedAnalysis ? (
-            <Card className="chat-gate" role="status">
-              <strong>Chat is unavailable</strong>
-              <p className="muted">
-                Complete at least one project analysis before sending messages to the AI.
-              </p>
-              <Link className="button button-secondary" to={`/projects/${projectId}`}>
-                Open project analysis
-              </Link>
-            </Card>
-          ) : null}
-          {messages.isLoading ? (
-            <Loader label="Loading messages" />
-          ) : (
-            messages.data?.data.map((item) => (
-              <Card key={item.id} className={`chat-message chat-${item.role.toLowerCase()}`}>
-                <strong>{item.role}</strong>
-                <Markdown>{item.content}</Markdown>
+          <div className="chat-main-header">
+            <div>
+              <span className="eyebrow">AI assistant</span>
+              <h2>
+                {sessions.data?.data.find((item) => item.id === sessionId)?.title ??
+                  'New conversation'}
+              </h2>
+            </div>
+            <span className="chat-online-status">
+              <i /> Ready
+            </span>
+          </div>
+          <div className="chat-messages">
+            {!analyses.isLoading && !hasCompletedAnalysis ? (
+              <Card className="chat-gate" role="status">
+                <strong>Chat is unavailable</strong>
+                <p className="muted">
+                  Complete at least one project analysis before sending messages to the AI.
+                </p>
+                <Link className="button button-secondary" to={`/projects/${projectId}`}>
+                  Open project analysis
+                </Link>
               </Card>
-            ))
-          )}
-          {streaming || streamText ? (
-            <Card className="chat-message chat-assistant">
-              <strong>ASSISTANT</strong>
-              <Markdown>{streamText || 'AI is typing…'}</Markdown>
-            </Card>
-          ) : null}
-          <div ref={messagesEnd} />
+            ) : null}
+            {messages.isLoading ? (
+              <Loader label="Loading messages" />
+            ) : messages.data?.data.length ? (
+              messages.data.data.map((item) => (
+                <Card key={item.id} className={`chat-message chat-${item.role.toLowerCase()}`}>
+                  <strong>{item.role}</strong>
+                  <Markdown>{item.content}</Markdown>
+                </Card>
+              ))
+            ) : (
+              <div className="chat-empty-state">
+                <span className="chat-empty-icon">✦</span>
+                <h3>Ask anything about your project</h3>
+                <p>Get help understanding the latest analysis, files and recommendations.</p>
+              </div>
+            )}
+            {streaming || streamText ? (
+              <Card className="chat-message chat-assistant">
+                <strong>ASSISTANT</strong>
+                <Markdown>{streamText || 'AI is typing…'}</Markdown>
+              </Card>
+            ) : null}
+            <div ref={messagesEnd} />
+          </div>
           {sessionId && hasCompletedAnalysis ? (
             <form
-              className="form"
+              className="chat-composer form"
               onSubmit={(event) => {
                 event.preventDefault();
                 if (message.trim()) void stream(message);
               }}
             >
-              <Textarea
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                placeholder="Ask about this project… (Shift+Enter for a new line)"
-                aria-label="Chat message"
-                rows={3}
-              />
-              <Button type="submit" isLoading={streaming}>
-                {streaming ? 'AI is typing…' : 'Send'}
-              </Button>
-              {streaming ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => streamAbort.current?.abort()}
-                >
-                  Cancel
-                </Button>
-              ) : null}
+              <div className="chat-composer-box">
+                <Textarea
+                  value={message}
+                  onChange={(event) => setMessage(event.target.value)}
+                  placeholder="Message your project…"
+                  aria-label="Chat message"
+                  rows={2}
+                />
+                <div className="chat-composer-actions">
+                  <small>Enter to send · Shift+Enter for a new line</small>
+                  <div>
+                    {streaming ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => streamAbort.current?.abort()}
+                      >
+                        Stop
+                      </Button>
+                    ) : null}
+                    <Button type="submit" isLoading={streaming} disabled={!message.trim()}>
+                      {streaming ? 'Thinking…' : 'Send ↑'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
               {streamError ? (
                 <>
                   <p role="alert">{streamError}</p>

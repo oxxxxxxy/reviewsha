@@ -1992,6 +1992,291 @@ input[type='file'] {
   }
 }
 
+/* Chat workspace refresh */
+.chat-page {
+  max-width: 1480px;
+}
+.chat-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.chat-page-header h1 {
+  margin: 0.4rem 0 0.35rem;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+.chat-page-header p {
+  margin: 0;
+}
+.chat-back-link {
+  display: block;
+  margin-bottom: 0.85rem;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+.chat-context-pill {
+  border: 1px solid rgb(99 102 241 / 0.3);
+  border-radius: 999px;
+  background: rgb(99 102 241 / 0.12);
+  padding: 0.65rem 0.9rem;
+  color: #a5b4fc;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.chat-context-pill b {
+  padding: 0 0.3rem;
+  color: var(--color-muted);
+}
+.chat-layout {
+  grid-template-columns: 250px minmax(0, 1fr);
+  min-height: min(70vh, 720px);
+  border-color: rgb(148 163 184 / 0.18);
+  border-radius: 20px;
+  background: #11151c;
+  box-shadow: 0 24px 70px rgb(0 0 0 / 0.22);
+}
+.chat-layout aside {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  border-right-color: rgb(148 163 184 / 0.16);
+  background: #0e1218;
+  padding: 1rem 0.75rem;
+}
+.chat-sidebar-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  padding: 0 0.35rem;
+}
+.chat-sidebar-heading > div {
+  display: grid;
+  gap: 0.2rem;
+}
+.chat-sidebar-heading small,
+.chat-session-copy small {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+.chat-new-button {
+  width: 2.1rem !important;
+  min-width: 2.1rem;
+  margin: 0 !important;
+  border-radius: 9px;
+  padding: 0.35rem !important;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.chat-session-row {
+  gap: 0.3rem;
+  margin: 0;
+}
+.chat-session {
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  padding: 0.7rem 0.75rem;
+}
+.chat-session-copy {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+.chat-session-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-session:hover,
+.chat-session:focus-visible {
+  background: rgb(148 163 184 / 0.08);
+}
+.chat-session.is-active {
+  border-color: rgb(232 69 120 / 0.28);
+  background: rgb(232 69 120 / 0.12);
+}
+.chat-delete-button {
+  flex: 0 0 auto;
+  min-width: 2rem;
+  border-radius: 9px;
+  padding: 0.35rem !important;
+  color: var(--color-muted);
+}
+.chat-main {
+  min-height: 0;
+  gap: 0;
+  background: #151a22;
+  padding: 0;
+}
+.chat-main-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgb(148 163 184 / 0.14);
+  padding: 1.1rem 1.4rem;
+}
+.chat-main-header h2 {
+  margin: 0.25rem 0 0;
+  font-size: 1rem;
+}
+.chat-online-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+.chat-online-status i {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 0 4px rgb(74 222 128 / 0.12);
+}
+.chat-messages {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 290px;
+  overflow-y: auto;
+  padding: 1.5rem 1.4rem;
+}
+.chat-message {
+  width: min(82%, 760px);
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  padding: 0.25rem 0;
+}
+.chat-message > strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.chat-message.chat-user {
+  align-self: flex-end;
+  width: fit-content;
+  max-width: 82%;
+  border: 1px solid rgb(232 69 120 / 0.25);
+  background: rgb(232 69 120 / 0.12);
+  padding: 0.8rem 1rem;
+}
+.chat-message.chat-user > strong {
+  color: #f9a8d4;
+}
+.chat-message.chat-assistant {
+  align-self: flex-start;
+}
+.chat-empty-state {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  flex: 1;
+  min-height: 250px;
+  color: var(--color-muted);
+  text-align: center;
+}
+.chat-empty-icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  margin-bottom: 0.8rem;
+  border-radius: 14px;
+  background: rgb(232 69 120 / 0.14);
+  color: var(--color-primary);
+  font-size: 1.5rem;
+}
+.chat-empty-state h3 {
+  margin: 0;
+  color: var(--color-text);
+}
+.chat-empty-state p {
+  max-width: 35ch;
+  margin: 0.45rem 0 0;
+}
+.chat-composer {
+  position: static !important;
+  display: block !important;
+  border-top: 1px solid rgb(148 163 184 / 0.14);
+  background: #11151c !important;
+  padding: 1rem 1.4rem 1.2rem !important;
+}
+.chat-composer-box {
+  border: 1px solid rgb(148 163 184 / 0.22);
+  border-radius: 15px;
+  background: #0b0f14;
+  padding: 0.65rem 0.75rem 0.55rem;
+}
+.chat-composer-box:focus-within {
+  border-color: rgb(232 69 120 / 0.7);
+  box-shadow: 0 0 0 3px rgb(232 69 120 / 0.12);
+}
+.chat-composer-box textarea {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0;
+  resize: none;
+}
+.chat-composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--color-muted);
+  font-size: 0.72rem;
+}
+.chat-composer-actions > div {
+  display: flex;
+  gap: 0.5rem;
+}
+.chat-composer-actions button {
+  min-height: 2.1rem;
+  padding: 0.45rem 0.8rem;
+}
+
+@media (max-width: 800px) {
+  .chat-page-header {
+    flex-direction: column;
+  }
+  .chat-context-pill {
+    align-self: flex-start;
+  }
+  .chat-layout {
+    min-height: 680px;
+  }
+  .chat-layout aside {
+    max-height: 190px;
+    padding: 0.75rem;
+  }
+  .chat-main-header,
+  .chat-messages,
+  .chat-composer {
+    padding-right: 0.85rem !important;
+    padding-left: 0.85rem !important;
+  }
+  .chat-message,
+  .chat-message.chat-user {
+    width: 100%;
+    max-width: 100%;
+  }
+  .chat-composer-actions {
+    align-items: flex-end;
+    flex-direction: column;
+  }
+}
+
 @media (min-width: 801px) {
   .ui-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
