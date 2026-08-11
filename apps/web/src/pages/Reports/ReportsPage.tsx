@@ -137,13 +137,18 @@ function formatDate(value: string) {
 function ReportsList({ projectId }: { projectId?: string }) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<string[]>([]);
   const [downloadError, setDownloadError] = useState<string>();
   const reports = useQuery({
     enabled: Boolean(projectId),
-    queryKey: ['reports', projectId],
+    queryKey: ['reports', projectId, page],
     queryFn: ({ signal }) => reviewshaSdk.reports.list(projectId!, page, 20, signal),
   });
-  const [selected, setSelected] = useState<string[]>([]);
+  const project = useQuery({
+    enabled: Boolean(projectId),
+    queryKey: ['project', projectId],
+    queryFn: ({ signal }) => reviewshaSdk.projects.get(projectId!, signal),
+  });
   const compare = useQuery({
     enabled: selected.length === 2,
     queryKey: ['report-compare', ...selected],
@@ -178,112 +183,137 @@ function ReportsList({ projectId }: { projectId?: string }) {
       setDownloadError('Unable to download this report. Please try again.');
     }
   };
+  const toggleReport = (reportId: string) =>
+    setSelected((current) =>
+      current.includes(reportId)
+        ? current.filter((id) => id !== reportId)
+        : current.length < 2
+          ? [...current, reportId]
+          : current,
+    );
   return (
-    <section className="page">
-      <h1>Reports</h1>
-      <p>Select two reports to compare history.</p>
+    <section className="page reports-page">
+      <div className="page-heading reports-list-heading">
+        <div>
+          <button className="reports-back" type="button" onClick={() => navigate('/reports')}>
+            ← All projects
+          </button>
+          <span className="eyebrow">Project history</span>
+          <h1>{project.data?.data.name ?? 'Reports'}</h1>
+          <p className="muted">Analysis reports and score history for this project.</p>
+        </div>
+        <span className="reports-count">{reports.data?.meta.total ?? 0} reports</span>
+      </div>
       {downloadError ? <p role="alert">{downloadError}</p> : null}
-      {selected.length === 2 ? (
-        <Button onClick={() => void compare.refetch()} isLoading={compare.isFetching}>
-          Compare selected
+      <div className="reports-compare-toolbar">
+        <div>
+          <strong>Compare reports</strong>
+          <span className="muted"> Select two reports to see what changed.</span>
+        </div>
+        <Button
+          disabled={selected.length !== 2}
+          isLoading={compare.isFetching}
+          onClick={() => void compare.refetch()}
+        >
+          Compare selected ({selected.length}/2)
         </Button>
-      ) : null}
+      </div>
       {compare.data ? (
-        <Card>
-          <strong>Score difference: {compare.data.scoreDiff}</strong>
-          <p>New issues: {compare.data.newIssues}</p>
-          <p>Resolved issues: {compare.data.resolvedIssues}</p>
+        <Card className="reports-compare-result">
+          <div>
+            <span className="eyebrow">Comparison</span>
+            <h2>Report changes</h2>
+          </div>
+          <div className="reports-compare-metrics">
+            <span>
+              <strong>
+                {compare.data.scoreDiff > 0 ? '+' : ''}
+                {compare.data.scoreDiff}
+              </strong>{' '}
+              score difference
+            </span>
+            <span>
+              <strong>{compare.data.newIssues}</strong> new issues
+            </span>
+            <span>
+              <strong>{compare.data.resolvedIssues}</strong> resolved issues
+            </span>
+          </div>
         </Card>
       ) : null}
       {reports.data?.data.length ? (
-        <div className="project-list">
-          {reports.data.data.map((report) => (
-            <Card
-              key={report.id}
-              className="report-card"
-              role="link"
-              tabIndex={0}
-              onClick={() => navigate(`/reports/${report.id}`)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') navigate(`/reports/${report.id}`);
-              }}
-            >
-              <label>
-                <input
-                  onClick={(event) => event.stopPropagation()}
-                  type="checkbox"
-                  checked={selected.includes(report.id)}
-                  onChange={() =>
-                    setSelected((current) =>
-                      current.includes(report.id)
-                        ? current.filter((id) => id !== report.id)
-                        : current.length < 2
-                          ? [...current, report.id]
-                          : current,
-                    )
-                  }
-                />{' '}
-                Compare
-              </label>
-              <h2>
-                {(report.summary || 'Analysis report').slice(0, 180)}
-                {(report.summary?.length ?? 0) > 180 ? '…' : ''}
-              </h2>
-              <Button
-                variant="secondary"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  navigate(`/reports/${report.id}`);
-                }}
+        <div className="reports-history" aria-label="Project reports">
+          <div className="reports-history-header" aria-hidden="true">
+            <span>Report</span>
+            <span>Score</span>
+            <span>Status</span>
+            <span>Created</span>
+            <span>Actions</span>
+          </div>
+          {reports.data.data.map((report, index) => (
+            <article className="reports-history-row" key={report.id}>
+              <div className="reports-history-name">
+                <label className="reports-select">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(report.id)}
+                    onChange={() => toggleReport(report.id)}
+                    aria-label={`Select report ${index + 1} for comparison`}
+                  />
+                </label>
+                <div>
+                  <button
+                    className="reports-title-link"
+                    type="button"
+                    onClick={() => navigate(`/reports/${report.id}`)}
+                  >
+                    {report.summary ? report.summary.slice(0, 105) : 'Analysis report'}
+                    {(report.summary?.length ?? 0) > 105 ? '…' : ''}
+                  </button>
+                  <small className="muted">
+                    Report {reports.data!.meta.total - index - (page - 1) * 20}
+                  </small>
+                </div>
+              </div>
+              <strong
+                className={`report-score ${(report.score ?? 0) >= 80 ? 'is-good' : (report.score ?? 0) >= 60 ? 'is-medium' : 'is-low'}`}
               >
-                View report
-              </Button>
-              <p>Score: {report.score ?? '—'}</p>
-              <Button
-                variant="secondary"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  void download(report.id, 'pdf');
-                }}
-              >
-                PDF
-              </Button>{' '}
-              <Button
-                variant="secondary"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  void download(report.id, 'md');
-                }}
-              >
-                Markdown
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  void download(report.id, 'json');
-                }}
-              >
-                JSON
-              </Button>
-            </Card>
+                {report.score ?? '—'}
+              </strong>
+              <span className="report-status">{report.status ?? 'COMPLETED'}</span>
+              <span className="muted">{formatDate(report.createdAt)}</span>
+              <div className="reports-row-actions">
+                <Button variant="secondary" onClick={() => navigate(`/reports/${report.id}`)}>
+                  View
+                </Button>
+                <Button variant="ghost" onClick={() => void download(report.id, 'pdf')}>
+                  PDF
+                </Button>
+                <Button variant="ghost" onClick={() => void download(report.id, 'md')}>
+                  MD
+                </Button>
+                <Button variant="ghost" onClick={() => void download(report.id, 'json')}>
+                  JSON
+                </Button>
+              </div>
+            </article>
           ))}
         </div>
       ) : (
         <EmptyState title="No reports yet" description="Upload a project and wait for analysis." />
       )}
       {reports.data && reports.data.meta.totalPages > 1 ? (
-        <nav aria-label="Report pages">
+        <nav className="reports-pagination" aria-label="Report pages">
           <Button
             variant="secondary"
             disabled={page <= 1}
             onClick={() => setPage((value) => value - 1)}
           >
             Previous
-          </Button>{' '}
+          </Button>
           <span>
             Page {page} of {reports.data.meta.totalPages}
-          </span>{' '}
+          </span>
           <Button
             variant="secondary"
             disabled={page >= reports.data.meta.totalPages}
