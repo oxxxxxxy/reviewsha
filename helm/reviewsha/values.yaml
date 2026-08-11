@@ -13,6 +13,20 @@ replicas:
   web: 1
   admin: 1
 
+omniroute:
+  enabled: true
+  image: { repository: ghcr.io/diegosouzapw/omniroute, tag: latest, pullPolicy: IfNotPresent }
+  replicas: 1
+  port: 20128
+  existingSecret: reviewsha-omniroute-secrets
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: ''
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: '1', memory: 2Gi }
+
 resources:
   api:
     requests: { cpu: 100m, memory: 256Mi }
@@ -32,6 +46,8 @@ env:
   API_PORT: '3000'
   API_PREFIX: api/v1
   REDIS_URL: redis://redis:6379
+  REDIS_HOST: redis
+  REDIS_PORT: '6379'
   MINIO_ENDPOINT: ''
 
 secretName: reviewsha-secrets

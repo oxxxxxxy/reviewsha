@@ -3,7 +3,7 @@ import { validateAdminEnv } from '../../../src/config/env.schema';
 
 describe('admin env schema', () => {
   it('uses shared API URL default', () => {
-    expect(validateAdminEnv({})).toEqual({ VITE_API_URL: 'http://localhost:3000/api/v1' });
+    expect(validateAdminEnv({})).toEqual({ VITE_API_URL: '/api/v1' });
   });
 
   it('validates VITE_API_URL', () => {

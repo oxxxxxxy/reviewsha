@@ -56,3 +56,6 @@ workspace links and includes Prisma schema/migrations. Helm runs a pre-install
 and pre-upgrade migration Job before application rollouts. A deployment is
 accepted only after the API health probe reports database, Redis and object
 storage as healthy, and Web/Admin return HTTP 200.
+OmniRoute is deployed as the `reviewsha-omniroute` workload and exposed as the
+in-cluster `omniroute` Service; its dashboard/API credentials are supplied by
+the separately managed `reviewsha-omniroute-secrets` Secret.

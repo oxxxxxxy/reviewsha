@@ -1,8 +1,7 @@
 import { z } from 'zod';
-import { DEFAULT_URLS } from '@reviewsha/config';
 
 export const adminEnvSchema = z.object({
-  VITE_API_URL: z.url().default(DEFAULT_URLS.api),
+  VITE_API_URL: z.union([z.url(), z.string().startsWith('/')]).default('/api/v1'),
 });
 
 export type AdminEnv = z.infer<typeof adminEnvSchema>;

@@ -4,6 +4,8 @@ env:
   API_PORT: '3000'
   API_PREFIX: api/v1
   REDIS_URL: redis://redis.example.internal:6379
+  REDIS_HOST: redis.example.internal
+  REDIS_PORT: '6379'
   MINIO_ENDPOINT: https://object.example.internal
   CORS_ORIGINS: https://app.example.com,https://admin.example.com
 images:
@@ -32,6 +34,13 @@ images:
       pullPolicy: IfNotPresent,
     }
 replicas: { api: 2, worker: 1, web: 2, admin: 1 }
+omniroute:
+  enabled: true
+  image: { repository: ghcr.io/diegosouzapw/omniroute, tag: replace-with-git-sha, pullPolicy: IfNotPresent }
+  replicas: 1
+  port: 20128
+  existingSecret: reviewsha-omniroute-secrets
+  persistence: { enabled: true, size: 10Gi, storageClass: '' }
 ingress: { enabled: true, className: nginx, host: reviewsha.example.com, tls: true }
 secrets:
   create: false
