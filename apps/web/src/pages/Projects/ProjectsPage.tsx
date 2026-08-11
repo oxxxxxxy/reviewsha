@@ -67,19 +67,38 @@ function ProjectsList() {
     );
   return (
     <section className="page projects-page">
-      <h1>Projects</h1>
-      <div className="projects-workspace">
-        <aside className="project-search-panel">
+      <header className="projects-list-header">
+        <div>
           <span className="eyebrow">Workspace</span>
-          <h2>Find a project</h2>
+          <h1>Projects</h1>
+          <p className="projects-list-subtitle">
+            Keep your codebases, uploads, analyses, and reports in one place.
+          </p>
+        </div>
+        <div className="projects-total" aria-label={`${projects.data?.meta.total ?? 0} projects`}>
+          <strong>{projects.data?.meta.total ?? 0}</strong>
+          <span>projects</span>
+        </div>
+      </header>
+      <div className="projects-workspace">
+        <div className="project-search-panel">
+          <div className="project-panel-heading">
+            <div>
+              <span className="eyebrow">Your workspace</span>
+              <h2>Find a project</h2>
+            </div>
+            <span className="project-panel-icon" aria-hidden="true">
+              ⌕
+            </span>
+          </div>
           <Input
             value={search}
             onChange={(event) => updateSearch(event.target.value)}
-            placeholder="Search projects"
+            placeholder="Search by project name"
             aria-label="Search projects"
           />
-          <label>
-            Sort
+          <label className="project-sort-control">
+            <span>Sort projects</span>
             <select
               value={sort}
               onChange={(event) => {
@@ -88,11 +107,11 @@ function ProjectsList() {
               }}
             >
               <option value="updatedAt">Recently updated</option>
-              <option value="name">Name</option>
+              <option value="name">Name A–Z</option>
             </select>
           </label>
-          <p className="muted">{projects.data?.meta.total ?? 0} projects</p>
-        </aside>
+          <p className="project-panel-hint">Use search to quickly find a codebase.</p>
+        </div>
         <form
           className="project-create-panel form"
           onSubmit={(event) => {
@@ -100,8 +119,18 @@ function ProjectsList() {
             if (name.trim()) create.mutate();
           }}
         >
-          <span className="eyebrow">New workspace</span>
-          <h2>Create project</h2>
+          <div className="project-panel-heading">
+            <div>
+              <span className="eyebrow">Start a review</span>
+              <h2>Create project</h2>
+            </div>
+            <span className="project-panel-icon" aria-hidden="true">
+              ＋
+            </span>
+          </div>
+          <p className="project-panel-hint">
+            Add a repository now, or connect GitHub after creation.
+          </p>
           <Input
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -138,40 +167,45 @@ function ProjectsList() {
       {projects.data?.data.length ? (
         <div className="project-list project-cards">
           {projects.data.data.map((project) => (
-            <Card
-              key={project.id}
-              className="project-card"
-              role="link"
-              tabIndex={0}
-              onClick={() => navigate(`/projects/${project.id}`)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') navigate(`/projects/${project.id}`);
-              }}
-            >
-              <h2>{project.name}</h2>
-              <p>{project.description || 'No description'}</p>
-              <p>
-                {project.status} · {project.language || 'Unknown language'}
-              </p>
-              <Button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  navigate(`/projects/${project.id}`);
-                }}
-              >
-                Open project
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setDeleteProject({ id: project.id, name: project.name });
-                }}
-              >
-                Delete
-              </Button>
+            <Card key={project.id} className="project-card">
+              <div className="project-card-topline">
+                <Badge tone={project.status === 'ACTIVE' ? 'success' : 'warning'}>
+                  {project.status}
+                </Badge>
+                <span className="project-updated">
+                  Updated {formatProjectDate(project.updatedAt)}
+                </span>
+              </div>
+              <div className="project-card-title-row">
+                <div>
+                  <h2 title={project.name}>{project.name}</h2>
+                  <p>{project.description || 'No description yet'}</p>
+                </div>
+                <span className="project-language">{project.language || 'Unknown'}</span>
+              </div>
+              <div className="project-card-stats" aria-label="Project activity">
+                <span>
+                  <strong>{project.stats?.analysesCount ?? 0}</strong> analyses
+                </span>
+                <span>
+                  <strong>{project.stats?.reportsCount ?? 0}</strong> reports
+                </span>
+                <span>
+                  <strong>{project.stats?.uploadsCount ?? 0}</strong> uploads
+                </span>
+              </div>
+              <div className="project-card-actions">
+                <Button type="button" onClick={() => navigate(`/projects/${project.id}`)}>
+                  Open project
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setDeleteProject({ id: project.id, name: project.name })}
+                >
+                  Delete
+                </Button>
+              </div>
             </Card>
           ))}
         </div>
@@ -224,6 +258,12 @@ function ProjectsList() {
       </Modal>
     </section>
   );
+}
+
+function formatProjectDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'recently';
+  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date);
 }
 
 function ProjectDetails({ projectId }: { projectId: string }) {
