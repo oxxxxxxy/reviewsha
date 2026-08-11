@@ -26,3 +26,8 @@ Before rollout, create the externally managed `reviewsha-secrets` Secret and
 configure production values with immutable image tags, external
 PostgreSQL/Redis/MinIO endpoints, the real domain and TLS Secret. The chart
 does not create placeholder production secrets when `secrets.create=false`.
+
+The chart also runs `reviewsha-migrations` as a Helm pre-install/pre-upgrade
+hook. The API image must therefore contain `apps/api/prisma` and the compiled
+workspace packages; the production Dockerfile does this explicitly. Verify a
+rollout with API health plus Web/Admin HTTP checks, not only `helm lint`.

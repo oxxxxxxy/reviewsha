@@ -18,5 +18,7 @@ RUN apt-get -o Acquire::Retries=3 update && apt-get -o Acquire::Retries=3 instal
 COPY --from=build --chown=reviewsha:reviewsha /app/node_modules ./node_modules
 COPY --from=build --chown=reviewsha:reviewsha /app/apps/worker/dist ./apps/worker/dist
 COPY --from=build --chown=reviewsha:reviewsha /app/apps/worker/package.json ./apps/worker/package.json
+COPY --from=build --chown=reviewsha:reviewsha /app/packages/config ./packages/config
+COPY --from=build --chown=reviewsha:reviewsha /app/packages/types ./packages/types
 USER reviewsha
 CMD ["node", "apps/worker/dist/main.js"]

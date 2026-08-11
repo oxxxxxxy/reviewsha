@@ -50,3 +50,9 @@ Rendered production resources are also checked with kubeconform. Controlled
 rollout and rollback are available through `scripts/deploy/helm-deploy.sh` and
 `scripts/deploy/helm-rollback.sh`; they require a configured cluster and
 externally managed production secrets.
+
+The API image includes the compiled workspace packages required by Yarn's
+workspace links and includes Prisma schema/migrations. Helm runs a pre-install
+and pre-upgrade migration Job before application rollouts. A deployment is
+accepted only after the API health probe reports database, Redis and object
+storage as healthy, and Web/Admin return HTTP 200.
