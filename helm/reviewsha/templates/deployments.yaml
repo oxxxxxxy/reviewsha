@@ -20,7 +20,7 @@ spec:
           imagePullPolicy: {{ (index $.Values.images $name).pullPolicy }}
           envFrom:
             - configMapRef: { name: {{ include "reviewsha.fullname" $ }}-config }
-            - secretRef: { name: {{ $.Values.secretName }}, optional: true }
+            - secretRef: { name: {{ default $.Values.secretName $.Values.secrets.existingSecret }}, optional: true }
           {{- if or (eq $name "api") (eq $name "web") (eq $name "admin") }}
           ports:
             - name: http
@@ -29,6 +29,9 @@ spec:
           {{- if eq $name "api" }}
           livenessProbe: { httpGet: { path: /api/v1/health, port: http }, initialDelaySeconds: 15 }
           readinessProbe: { httpGet: { path: /api/v1/health, port: http }, initialDelaySeconds: 5 }
+          {{- else if or (eq $name "web") (eq $name "admin") }}
+          livenessProbe: { httpGet: { path: /, port: http }, initialDelaySeconds: 5 }
+          readinessProbe: { httpGet: { path: /, port: http }, initialDelaySeconds: 3 }
           {{- end }}
           resources:
 {{- toYaml (default dict (index $.Values.resources $name)) | nindent 12 }}

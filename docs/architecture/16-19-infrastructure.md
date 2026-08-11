@@ -46,3 +46,7 @@ Production image tags должны быть Git SHA или version, не `latest
 изменить replicas/resources, внешние PostgreSQL/Redis/MinIO и ingress/TLS без
 изменения templates. CI проверяет compose, Helm lint/template и собирает все
 четыре production images без запуска или остановки локальных сервисов.
+Rendered production resources are also checked with kubeconform. Controlled
+rollout and rollback are available through `scripts/deploy/helm-deploy.sh` and
+`scripts/deploy/helm-rollback.sh`; they require a configured cluster and
+externally managed production secrets.

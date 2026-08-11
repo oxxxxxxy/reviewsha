@@ -13,8 +13,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN apt-get -o Acquire::Retries=3 update && apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
     p7zip-full unrar-free libarchive-tools poppler-utils libreoffice \
-    && rm -rf /var/lib/apt/lists/*
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/worker/dist ./apps/worker/dist
-COPY --from=build /app/apps/worker/package.json ./apps/worker/package.json
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --uid 10001 reviewsha
+COPY --from=build --chown=reviewsha:reviewsha /app/node_modules ./node_modules
+COPY --from=build --chown=reviewsha:reviewsha /app/apps/worker/dist ./apps/worker/dist
+COPY --from=build --chown=reviewsha:reviewsha /app/apps/worker/package.json ./apps/worker/package.json
+USER reviewsha
 CMD ["node", "apps/worker/dist/main.js"]

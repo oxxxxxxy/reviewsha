@@ -1,4 +1,11 @@
 namespace: reviewsha
+env:
+  NODE_ENV: production
+  API_PORT: '3000'
+  API_PREFIX: api/v1
+  REDIS_URL: redis://redis.example.internal:6379
+  MINIO_ENDPOINT: https://object.example.internal
+  CORS_ORIGINS: https://app.example.com,https://admin.example.com
 images:
   api:
     {
@@ -26,3 +33,19 @@ images:
     }
 replicas: { api: 2, worker: 1, web: 2, admin: 1 }
 ingress: { enabled: true, className: nginx, host: reviewsha.example.com, tls: true }
+secrets:
+  create: false
+  existingSecret: reviewsha-secrets
+resources:
+  api:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: '1', memory: 1Gi }
+  worker:
+    requests: { cpu: 500m, memory: 1Gi }
+    limits: { cpu: '2', memory: 2Gi }
+  web:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 512Mi }
+  admin:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits: { cpu: 500m, memory: 512Mi }
