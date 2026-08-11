@@ -149,6 +149,14 @@ jobs:
         run: helm lint helm/reviewsha
       - name: Render production Helm chart
         run: helm template reviewsha helm/reviewsha -f helm/reviewsha/values.prod.yaml
+      - name: Build production API image
+        run: docker build --file apps/api/Dockerfile --tag reviewsha-api:ci .
+      - name: Build production worker image
+        run: docker build --file apps/worker/Dockerfile --tag reviewsha-worker:ci .
+      - name: Build production web image
+        run: docker build --file apps/web/Dockerfile --tag reviewsha-web:ci .
+      - name: Build production admin image
+        run: docker build --file apps/admin/Dockerfile --tag reviewsha-admin:ci .
 
   openapi-docs:
     name: OpenAPI contract / Node ${{ matrix.node-version }}
@@ -555,10 +563,13 @@ jobs:
         run: docker compose version
       - name: Docker Compose config
         run: docker compose config
-      - name: Docker image build placeholder
-        if: ${{ false }}
+      - name: Docker production images are defined
         run: |
-          echo "Docker image build checks will be enabled when application Dockerfiles are added."
+          test -f .dockerignore
+          test -f apps/api/Dockerfile
+          test -f apps/worker/Dockerfile
+          test -f apps/web/Dockerfile
+          test -f apps/admin/Dockerfile
       - name: Dependency audit placeholder
         if: ${{ false }}
         run: |

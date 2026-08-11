@@ -46,6 +46,11 @@ AI SaaS platform for automated code review.
 | 13.2 Administration                | 🟡 IN PROGRESS | Queue health/state filters, pagination, safe job details, accessible destructive confirmations, AI failure diagnostics, processing metrics and server-side logs are implemented; charts and QA remain |
 | 14.1 OpenAPI & SDK                 | 🟡 IN PROGRESS | Canonical OpenAPI generation/validation; Auth, Projects, Chat, Reports, Upload, Analysis and pipeline contracts derive from generated schemas, while full runtime migration continues                 |
 | 14.2 Frontend Integration          | 🟡 IN PROGRESS | Web/Admin share configured SDK clients with centralized auth/refresh; complete feature migration and contract coverage continue                                                                       |
+| 15 Logging & Audit                 | ✅ IMPLEMENTED  | Structured API/Worker JSON logs, request IDs, AdminLog and mutating-action AuditLog with secret masking                                                                                              |
+| 16 Repository & CI                 | ✅ IMPLEMENTED  | Repository templates, Dependabot and CI validation for code, contracts, infrastructure and production images                                                                                       |
+| 17 Docker                          | ✅ IMPLEMENTED  | Development Compose with health-ordered services and multi-stage API/Worker/Web/Admin production images                                                                                             |
+| 18 Kubernetes                      | ✅ IMPLEMENTED  | Namespace, ConfigMap/Secret examples and Helm-oriented workloads for API, Worker, Web and Admin with external infrastructure support                                                               |
+| 19 Helm                            | ✅ IMPLEMENTED  | Reproducible chart, dev/prod values, ingress/TLS, probes, resources and optional HPA                                                                                                                |
 
 Текущий статус:
 
@@ -93,7 +98,7 @@ Rew/
 │
 ├── infrastructure/
 │   ├── docker/   # Docker Compose infrastructure config
-│   └── helm/     # future Helm charts
+│   └── helm/     # Helm charts
 │
 ├── docs/
 │   ├── architecture/

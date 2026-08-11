@@ -1,0 +1,11 @@
+namespace: reviewsha-dev
+images:
+  api: { repository: reviewsha-api, tag: dev, pullPolicy: IfNotPresent }
+  worker: { repository: reviewsha-worker, tag: dev, pullPolicy: IfNotPresent }
+  web: { repository: reviewsha-web, tag: dev, pullPolicy: IfNotPresent }
+  admin: { repository: reviewsha-admin, tag: dev, pullPolicy: IfNotPresent }
+replicas: { api: 1, worker: 1, web: 1, admin: 1 }
+ingress:
+  enabled: false
+autoscaling:
+  enabled: false

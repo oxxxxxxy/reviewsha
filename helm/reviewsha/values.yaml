@@ -35,3 +35,9 @@ ingress:
   className: nginx
   host: reviewsha.local
   tls: false
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70

@@ -10,8 +10,9 @@ bug/feature issue templates и ежемесячный Dependabot workflow.
 
 Development compose находится в `infrastructure/docker/compose.dev.yml` и
 описывает PostgreSQL, Redis, MinIO, API, Worker, Web и Admin. Сервисы используют
-healthchecks и именованные volumes. Production multi-stage Dockerfiles созданы
-для API, Web и Admin; Worker использует отдельный runtime image.
+healthchecks, healthy startup dependencies и именованные volumes. Production
+multi-stage Dockerfiles созданы для API, Web и Admin; Worker использует отдельный
+runtime image. `.dockerignore` исключает исходные секреты, зависимости и артефакты.
 
 ```bash
 docker compose -f infrastructure/docker/compose.dev.yml config
@@ -25,7 +26,8 @@ docker compose -f infrastructure/docker/compose.dev.yml up -d --build
 
 В `k8s/base/` находятся namespace, ConfigMap и Secret examples. PostgreSQL,
 Redis и MinIO в production предполагаются внешними зависимостями; реальные
-secrets не коммитятся.
+secrets не коммитятся. Канонический deployment выполняется Helm chart; базовые
+Kubernetes examples оставлены для проверки и ручной адаптации.
 
 ## Helm (19.1–19.3)
 
@@ -39,4 +41,8 @@ helm template reviewsha helm/reviewsha -f helm/reviewsha/values.prod.yaml
 helm upgrade --install reviewsha helm/reviewsha -f helm/reviewsha/values.prod.yaml
 ```
 
-Production image tags должны быть Git SHA или version, не `latest`.
+Production image tags должны быть Git SHA или version, не `latest`. В
+`values.dev.yaml` отключён HPA, а production values позволяют включить HPA,
+изменить replicas/resources, внешние PostgreSQL/Redis/MinIO и ingress/TLS без
+изменения templates. CI проверяет compose, Helm lint/template и собирает все
+четыре production images без запуска или остановки локальных сервисов.
