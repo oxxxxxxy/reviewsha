@@ -78,6 +78,25 @@ describe('ReportsService', () => {
     });
   });
 
+  it('uses the full description when an old finding title was truncated from it', async () => {
+    const fullProblem =
+      'Нет обработки случая, когда устройство мыши недоступно или отключено во время работы программы. Это приведёт к падению приложения.';
+    repository.findById.mockResolvedValue(
+      report({
+        findings: [
+          finding({
+            title: fullProblem.slice(0, 120),
+            description: fullProblem,
+          }),
+        ],
+      }),
+    );
+
+    await expect(service.findById(user, 'report-1')).resolves.toMatchObject({
+      issues: [{ title: fullProblem }],
+    });
+  });
+
   it('returns not found for a missing report', async () => {
     repository.findById.mockResolvedValue(null);
     await expect(service.findById(user, 'missing')).rejects.toBeInstanceOf(NotFoundException);

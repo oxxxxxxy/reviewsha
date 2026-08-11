@@ -10,7 +10,7 @@ export class IssueNormalizerService {
       ...issue,
       id: randomUUID(),
       category: this.category(issue),
-      title: issue.problem.slice(0, 120),
+      title: issue.problem,
       description: issue.problem,
       filePath: issue.file,
     }));

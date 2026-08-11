@@ -633,6 +633,7 @@ a {
 }
 .finding-item {
   display: grid;
+  min-width: 0;
   gap: 0.7rem;
   border: 1px solid var(--color-border);
   border-radius: 16px;
@@ -674,11 +675,18 @@ a {
   color: #4ade80;
 }
 .finding-item h3 {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin: 0;
   font-size: 1rem;
+  height: auto;
+  overflow: visible !important;
   overflow-wrap: anywhere;
-  white-space: normal;
   line-height: 1.45;
+  white-space: normal !important;
+  word-break: normal;
 }
 .finding-description,
 .finding-recommendation {

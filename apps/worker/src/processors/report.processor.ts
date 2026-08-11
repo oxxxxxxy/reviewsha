@@ -133,7 +133,7 @@ export class ReportProcessor implements JobHandler {
       lineEnd: issue.line,
       severity: Severity[issue.severity],
       category: this.category(issue.category),
-      title: issue.title.slice(0, 240),
+      title: issue.title,
       description: issue.description,
       recommendation: issue.recommendation,
     };

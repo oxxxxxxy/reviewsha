@@ -156,7 +156,14 @@ export class ReportsService {
         id: item.id,
         severity: item.severity,
         category: item.category,
-        title: item.title,
+        // Older findings stored a shortened copy of the problem in `title`.
+        // Prefer the full description only when it is clearly that truncated
+        // title, so existing reports are rendered without losing text while
+        // intentionally concise titles remain unchanged.
+        title:
+          item.description && item.description.startsWith(item.title)
+            ? item.description
+            : item.title,
         description: item.description,
         filePath: item.filePath,
         line: item.line,
