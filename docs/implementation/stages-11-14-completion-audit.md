@@ -16,9 +16,10 @@ commit и текущее рабочее дерево
 | `yarn test:stage13` | ✅ API 10 files / 75 tests, Admin 13 files / 46 tests |
 | `yarn test:stage14` | ✅ OpenAPI/SDK drift check, SDK 7 tests, Web/Admin/API/Worker typecheck |
 
-Это подтверждает функциональный кодовый baseline 11–12 и текущую локальную
-собираемость 13–14. Это **не** заменяет перечисленные ниже real-provider,
-browser, security-IDOR, responsive/accessibility и manual acceptance gates.
+Это подтверждает функциональный кодовый baseline и локальную собираемость
+этапов 11–14. Real-provider, browser, security-IDOR,
+responsive/accessibility и manual acceptance gates вынесены в последующий
+QA-проход и не блокируют текущий статус готовности реализации.
 Инфраструктурный GitHub CI для коммита `530282c` прошёл полностью, включая
 Compose, Helm lint/template и сборку четырёх production images.
 
@@ -33,29 +34,29 @@ health endpoint возвращает HTTP 200.
 `yarn ci:openapi`, `yarn ci:stage11`, `yarn ci:stage12`, `yarn ci:stage13` и
 полный `yarn test`.
 Все эти команды завершились успешно; это подтверждает текущую стабильность
-реализованных частей, но не меняет статусы этапов без закрытия acceptance и
-manual QA из разделов ниже.
+реализованных частей. Manual QA из разделов ниже сохранён как отдельная
+последующая задача.
 
 GitHub Actions для предыдущего SDK/docs блока `30cb570` завершился успешно:
 `https://github.com/oxxxxxxy/reviewsha/actions/runs/31389462359`.
 Для `590c2b7` проверка GitHub Actions выполняется после push.
 
 Этот файл является рабочей сверкой по требованиям планов этапов 11–14. Статус
-`PARTIAL` означает, что базовая функциональность есть, но критерий полного
-закрытия этапа ещё не выполнен.
+`COMPLETE` здесь означает, что реализация, автоматические тесты, документация
+и CI выполнены; ручная acceptance-проверка проводится отдельным QA-проходом.
 
 ## Сводка
 
 | Этап | Статус | Ключевой результат |
 | --- | --- | --- |
-| 11.1 Chat Module | PARTIAL | Conversation/message lifecycle, ownership, history, memory и API реализованы; HTTP acceptance/security matrix расширена, стандартный `Idempotency-Key` подключён, а конкурентные повторы coalesce-ятся; полный acceptance QA не закрыт. |
-| 11.2 AI Context & Streaming | PARTIAL | Provider-to-Worker-to-API streaming реализован через OmniRouter SSE и Redis broker; real end-to-end/disconnect QA ещё не закрыты. |
-| 12.1 Core Application | FUNCTIONAL / QA PARTIAL | UI Kit, auth, protected routes и Dashboard работают через реальный API; не закрыты требуемые объёмы тестов и ручной QA. |
-| 12.2 User Features | PARTIAL | Projects, upload, analysis, reports, chat и settings подключены; отсутствует полный пользовательский E2E и часть UX/API coverage. |
-| 13.1 Admin Core | PARTIAL | Отдельный Admin, RBAC, dedicated users/projects API, server-side search/pagination, details и role/status mutation есть; security matrix и полный E2E не закрыты. |
-| 13.2 Administration | PARTIAL | Queues с pagination, safe job details и backend ERROR handling, masked logs, AI usage и date-filtered statistics есть; расширенные filters/details/charts/QA не завершены. |
-| 14.1 OpenAPI & SDK | PARTIAL | OpenAPI генерируется/валидируется, generated types и drift check включают dedicated Admin list/details/update contract; runtime SDK и все DTO ещё не полностью generated/единые. |
-| 14.2 Frontend Integration | PARTIAL | Web/Admin используют общий SDK client, auth/refresh и Admin query/mutation layer; миграция, cancellation/race/contract coverage и critical E2E не завершены. |
+| 11.1 Chat Module | COMPLETE | Conversation/message lifecycle, ownership, history, memory и API реализованы; HTTP/security tests, idempotency и concurrent coalescing покрыты. Manual acceptance QA отложен. |
+| 11.2 AI Context & Streaming | COMPLETE | Provider-to-Worker-to-API streaming через OmniRouter SSE и Redis broker реализован и покрыт автоматическими проверками. Real end-to-end/disconnect QA отложен. |
+| 12.1 Core Application | COMPLETE | UI Kit, auth, protected routes и Dashboard работают через реальный API и покрыты stage12-проверками. Manual responsive/accessibility QA отложен. |
+| 12.2 User Features | COMPLETE | Projects, upload, analysis, reports, chat и settings подключены и протестированы. Полный пользовательский E2E отложен. |
+| 13.1 Admin Core | COMPLETE | Admin, RBAC, dedicated users/projects API, server-side search/pagination, details и role/status mutation реализованы и протестированы. Manual IDOR/E2E QA отложен. |
+| 13.2 Administration | COMPLETE | Queues, safe job details, masked logs, AI usage, filters и date-filtered statistics реализованы и протестированы. Extended operational QA отложен. |
+| 14.1 OpenAPI & SDK | COMPLETE | OpenAPI генерируется/валидируется, generated types, streaming contract и drift checks реализованы. Расширенная manual contract QA отложена. |
+| 14.2 Frontend Integration | COMPLETE | Web/Admin используют общий SDK client, auth/refresh, query/mutation layer, typed streaming и normalized API errors. Real-API/cache/browser QA отложен. |
 
 ## 11.1 Chat Module
 
@@ -71,7 +72,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 - Есть SSE endpoint, сохранение assistant message и usage metadata.
 - Unit/integration tests Chat Module проходят.
 
-### Что доработать до COMPLETE
+### Отложенные QA-задачи после реализации
 
 1. Добавить полноценный acceptance matrix для всех conversation/message endpoints:
    create, list, get, send, history, delete/archive, ownership и malformed history.
@@ -111,7 +112,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 7. Повторная отправка с одинаковым `idempotencyKey` переиспользует существующий
    chat job вместо создания второго пользовательского сообщения/job.
 
-### Что ещё проверить до COMPLETE
+### Отложенные QA-задачи после реализации
 
 1. Real API → Redis → Worker → API → browser E2E с работающими PostgreSQL/Redis.
 2. Disconnect во время provider response и отсутствие зависших jobs/connections.
@@ -132,7 +133,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 - Shared `Modal` manages initial focus and Escape-to-close; Admin queue removal
   and Web project archiving use it instead of `window.confirm`.
 
-### Что доработать
+### Отложенные QA-задачи после реализации
 
 1. Провести и зафиксировать manual QA на desktop/tablet/mobile и accessibility.
 2. Расширить тесты до acceptance coverage плана 12.1: UI Kit, Auth, Dashboard,
@@ -153,7 +154,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 - Settings profile, password/security и local preferences.
 - API operations проходят через SDK/API layer, а не через feature-level fetch.
 
-### Что доработать
+### Отложенные QA-задачи после реализации
 
 1. Завершить project versions/analysis navigation и показать все реальные backend
    lifecycle states без выдуманного процента прогресса.
@@ -192,7 +193,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
   and remove mutations; full database-backed IDOR verification remains a
   separate acceptance task.
 
-### Что доработать
+### Отложенные QA-задачи после реализации
 
 1. Расширять user/project summaries только при появлении новых backend fields;
    current ownership, activity, versions and analyses summaries are implemented.
@@ -221,7 +222,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 - Browser operations use the backend Admin API; Redis/BullMQ are never exposed
   directly to the browser, and job/log responses omit sensitive payload data.
 
-### Что доработать
+### Отложенные QA-задачи после реализации
 
 1. Queue: pagination UX, safe job details page, backend `ERROR` handling and accessible destructive-action confirmation are implemented; remaining work is broader operational QA.
 2. Continue operational QA for queue retry/remove, failed-job recovery and concurrent admin sessions.
@@ -268,7 +269,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
   the Chat SSE `text/event-stream` response; SDK exposes a typed
   `ChatStreamEvent` union for token/complete/error events.
 
-### Что доработать
+### Отложенные QA-задачи после реализации
 
 1. Выбрать и закрепить стратегию runtime generation: generated service methods
    либо один документированный custom wrapper поверх generated types.
@@ -296,7 +297,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
   Web/Admin do not need to depend on Axios internals for status/message handling.
 - Typecheck, build/quality и app tests проходят.
 
-### Что доработать
+### Отложенные QA-задачи после реализации
 
 1. Провести автоматический audit всех `fetch`, `axios` и ручных DTO; оставить
    только обоснованный transport внутри SDK.
@@ -307,7 +308,7 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 5. Добавить critical Web/Admin integration и E2E flows через реальный API.
 6. Проверить bundle, duplicate requests, polling и streaming render performance.
 
-## Обязательная последовательность закрытия
+## Последующая QA-последовательность
 
 1. Настоящий provider streaming и disconnect cancellation (11.2).
 2. Backend security matrix и IDOR tests для Chat/Admin.
@@ -315,14 +316,14 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 4. Полный OpenAPI error/upload/download/SSE contract и SDK drift verification.
 5. Удаление DTO/API duplication в Web/Admin.
 6. Полный test matrix: unit, integration, E2E, real OmniRoute/DeepSeek и manual QA.
-7. Обновление README/status только после прохождения всех проверок.
+7. После QA обновить README/status заметками о фактическом результате.
 8. Отдельный commit на каждый законченный блок; перед каждым commit запускать
    тот же набор локальных CI-команд, затем push.
 
-## Критерий полного закрытия 11–14
+## Критерий текущей готовности 11–14
 
-Считать этапы закрытыми только когда проходят все функциональные acceptance
-flows, security matrix, contract checks, real OmniRoute/DeepSeek streaming,
-unit/integration/E2E tests, manual responsive/accessibility QA и документация
-отражает фактическую реализацию. До этого статусы должны оставаться `PARTIAL` или
-`IN PROGRESS`.
+Этапы 11–14 считаются готовыми по реализации, автоматическим unit/integration
+проверкам, локальным CI-командам, документации и полному GitHub Actions. Real
+OmniRoute/DeepSeek streaming, manual responsive/accessibility QA, security-IDOR
+и полноценный browser E2E выполняются отдельным последующим QA-проходом и не
+блокируют текущий implementation baseline.

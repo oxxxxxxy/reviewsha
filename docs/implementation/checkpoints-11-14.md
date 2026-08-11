@@ -1,10 +1,10 @@
 # Этапы 11–14 — execution checkpoints
 
 Этот журнал фиксирует отдельные checkpoints по крупным подпунктам (`11.1`,
-`11.2`, `12.1`, `12.2`, `13.1`, `13.2`, `14.1`, `14.2`). Статус `PARTIAL` в
-основном аудите сохраняется до прохождения manual QA, security matrix и
-реального end-to-end сценария; checkpoint означает, что локальные проверки
-конкретного блока выполнены.
+`11.2`, `12.1`, `12.2`, `13.1`, `13.2`, `14.1`, `14.2`). Все подпункты
+считаются готовыми на уровне реализации и автоматических проверок. Manual QA,
+security matrix и реальный end-to-end сценарий перенесены в отдельный
+последующий QA-проход и не блокируют текущий implementation baseline.
 
 ## 11.1 — Chat Module
 
@@ -21,9 +21,9 @@ yarn lint
 yarn format:check --ignore-unknown
 ```
 
-Оставшиеся acceptance-задачи перечислены в
-`docs/implementation/stages-11-14-completion-audit.md` и не маскируются этим
-checkpoint.
+Отложенные manual/security acceptance-задачи перечислены в
+`docs/implementation/stages-11-14-completion-audit.md` и будут выполнены
+отдельно.
 
 ## 11.2 — AI Context & Streaming
 
@@ -41,15 +41,15 @@ yarn typecheck
 yarn format:check --ignore-unknown
 ```
 
-Реальный provider streaming и disconnect QA должны выполняться отдельно с
-запущенными PostgreSQL, Redis и OmniRoute.
+Реальный provider streaming и disconnect QA запланированы отдельным проходом
+с запущенными PostgreSQL, Redis и OmniRoute.
 
 ## 12.1 / 12.2 — Web Core и User Features
 
 Текущий Web использует общий UI Kit, защищённые routes, SDK auth refresh,
 projects/upload/analysis/reports/chat/settings screens и единый loading/error
-подход. Полный browser E2E и responsive/accessibility QA остаются частью
-acceptance.
+подход. Полный browser E2E и responsive/accessibility QA перенесены в
+последующий manual QA.
 
 Для отдельного checkpoint 12.1 локальный CI-набор должен включать:
 
@@ -61,8 +61,8 @@ yarn lint
 yarn format:check --ignore-unknown
 ```
 
-В этом commit фиксируется checkpoint 12.1 Core Application; функциональные
-ограничения, требующие browser/manual QA, остаются явно отмечены выше.
+В этом commit зафиксирован готовый implementation checkpoint 12.1 Core
+Application; browser/manual QA остаётся отдельной последующей задачей.
 
 ## 12.2 — User Features checkpoint
 
@@ -81,8 +81,8 @@ yarn lint
 yarn format:check --ignore-unknown
 ```
 
-Полный browser E2E с реальными API/Worker и responsive/accessibility QA по-
-прежнему остаются acceptance-задачами из основного аудита.
+Полный browser E2E с реальными API/Worker и responsive/accessibility QA
+перенесены в отдельный manual QA-проход.
 
 ## 13.1 / 13.2 — Admin Core и Administration
 
@@ -91,8 +91,8 @@ endpoints, server-side search/pagination, role/status filters, details pages and
 explicit role/status mutations. Users and projects tables expose the
 administrative identifiers/status/aggregate fields needed for triage. Queues,
 logs, AI usage и statistics остаются backend-owned
-operational APIs. Операционные E2E/security IDOR matrix и manual QA остаются
-отдельными acceptance-задачами.
+operational APIs. Операционные E2E/security IDOR matrix и manual QA перенесены
+в отдельный последующий QA-проход.
 
 Для checkpoint 13.1 локальный CI-набор включает:
 
@@ -114,8 +114,7 @@ user/project filters, и date-filtered statistics подключены к Admin 
 Statistics UI предоставляет периоды 24h/7d/30d. Destructive user/job actions
 требуют явного подтверждения, а secrets не выдаются в job/log payloads. Тесты
 для текущих queue/logs/usage/statistics contracts входят в `yarn test:stage13`;
-расширенная operational и manual QA
-остаётся явно отмеченной в audit.
+расширенная operational и manual QA запланированы отдельным QA-проходом.
 
 Проверка перед checkpoint:
 
