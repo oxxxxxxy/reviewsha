@@ -3,7 +3,7 @@ import { AdminService } from '../../../../src/modules/admin/admin.service';
 
 describe('AdminService', () => {
   const prisma = {
-    user: { count: vi.fn(), findUnique: vi.fn() },
+    user: { count: vi.fn(), findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn() },
     project: { count: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
     projectHistory: { findMany: vi.fn() },
     scan: { count: vi.fn(), findMany: vi.fn() },
@@ -61,6 +61,93 @@ describe('AdminService', () => {
       projects: [],
       activity: [],
     });
+  });
+
+  it('lists users with server-side pagination and search', async () => {
+    prisma.user.findMany.mockResolvedValue([
+      {
+        id: 'user-1',
+        email: 'user@example.com',
+        displayName: 'User',
+        avatarUrl: null,
+        role: 'USER',
+        isActive: true,
+        createdAt: new Date('2026-08-01'),
+        updatedAt: new Date('2026-08-01'),
+      },
+    ]);
+    prisma.user.count.mockResolvedValue(21);
+
+    await expect(service.users({ page: 2, limit: 10, search: 'user' } as never)).resolves.toEqual({
+      items: [expect.objectContaining({ id: 'user-1', email: 'user@example.com' })],
+      meta: { page: 2, limit: 10, total: 21, pages: 3 },
+    });
+    expect(prisma.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skip: 10, take: 10 }),
+    );
+  });
+
+  it('updates only explicit administrative user fields', async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: 'user-1' });
+    prisma.user.update.mockResolvedValue({
+      id: 'user-1',
+      email: 'user@example.com',
+      displayName: 'Blocked User',
+      avatarUrl: null,
+      role: 'USER',
+      isActive: false,
+      createdAt: new Date('2026-08-01'),
+      updatedAt: new Date('2026-08-02'),
+    });
+
+    await expect(service.updateUser('user-1', { isActive: false } as never)).resolves.toMatchObject(
+      {
+        id: 'user-1',
+        isActive: false,
+      },
+    );
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { isActive: false },
+    });
+  });
+
+  it('rejects an empty administrative user update', async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: 'user-1' });
+    await expect(service.updateUser('user-1', {})).rejects.toThrow(
+      'At least one user field must be provided',
+    );
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it('lists all non-deleted projects for administrators', async () => {
+    prisma.project.findMany.mockResolvedValue([
+      {
+        id: 'project-1',
+        ownerId: 'user-1',
+        name: 'Reviewsha',
+        description: null,
+        language: 'TS',
+        status: 'ACTIVE',
+        visibility: 'PRIVATE',
+        archivedAt: null,
+        createdAt: new Date('2026-08-01'),
+        updatedAt: new Date('2026-08-02'),
+        tags: [],
+        scans: [],
+        _count: { scans: 1, uploadedFiles: 2, reports: 1 },
+        owner: { id: 'user-1', email: 'user@example.com' },
+      },
+    ]);
+    prisma.project.count.mockResolvedValue(1);
+
+    await expect(service.projects({ page: 1, limit: 20 } as never)).resolves.toMatchObject({
+      data: [expect.objectContaining({ id: 'project-1', ownerId: 'user-1' })],
+      meta: { page: 1, limit: 20, total: 1, pages: 1 },
+    });
+    expect(prisma.project.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ deletedAt: null }) }),
+    );
   });
 
   it('returns project owner, versions and analyses for admin details', async () => {

@@ -8,7 +8,12 @@ import { RolesGuard } from '../../../../src/common/auth/guards/roles.guard';
 const adminRoutes = [
   'overview',
   'userDetails',
+  'users',
+  'user',
+  'updateUser',
   'projectDetails',
+  'projects',
+  'project',
   'queues',
   'aiUsage',
   'aiUsageBreakdown',

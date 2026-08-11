@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { QueueService, type QueueJobSummary, type QueueMetrics } from '../queue/queue.service';
 import { QUEUE_NAME_LIST, type QueueJobStatus, type QueueName } from '../queue/queue.constants';
+import { ProjectFilterDto } from '../projects/dto/project-filter.dto';
+import { ProjectsListResponseDto } from '../projects/dto/project-response.dto';
 import { ProjectMapper } from '../projects/mappers/project.mapper';
+import { UserQueryDto } from '../users/dto/user-query.dto';
+import { UsersListResponseDto, UserResponseDto } from '../users/dto/user-response.dto';
 import { UserMapper } from '../users/mappers/user.mapper';
+import { AdminUpdateUserDto } from './dto/admin-response.dto';
 
 @Injectable()
 export class AdminService {
@@ -48,6 +54,111 @@ export class AdminService {
         changedFields: item.changedFields,
         createdAt: item.createdAt.toISOString(),
       })),
+    };
+  }
+
+  async users(query: UserQueryDto): Promise<UsersListResponseDto> {
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(query.limit) || 20));
+    const where: Prisma.UserWhereInput = {
+      deletedAt: null,
+      ...(query.search?.trim()
+        ? {
+            OR: [
+              { email: { contains: query.search.trim(), mode: 'insensitive' } },
+              { displayName: { contains: query.search.trim(), mode: 'insensitive' } },
+            ],
+          }
+        : {}),
+    };
+    const [items, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { [query.sort ?? 'createdAt']: query.order ?? 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+    return {
+      items: UserMapper.toResponseList(items),
+      meta: { page, limit, total, pages: total ? Math.ceil(total / limit) : 0 },
+    };
+  }
+
+  async updateUser(id: string, dto: AdminUpdateUserDto): Promise<UserResponseDto> {
+    const existing = await this.prisma.user.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('User not found');
+
+    const data: Prisma.UserUpdateInput = {};
+    if (dto.displayName !== undefined) {
+      const displayName = dto.displayName.trim();
+      if (!displayName) throw new UnprocessableEntityException('Display name cannot be empty');
+      data.displayName = displayName;
+    }
+    if (dto.avatarUrl !== undefined) data.avatarUrl = dto.avatarUrl;
+    if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    if (dto.role !== undefined) data.role = dto.role;
+    if (Object.keys(data).length === 0) {
+      throw new UnprocessableEntityException('At least one user field must be provided');
+    }
+
+    return UserMapper.toResponse(await this.prisma.user.update({ where: { id }, data }));
+  }
+
+  async projects(filter: ProjectFilterDto): Promise<ProjectsListResponseDto> {
+    const page = Math.max(1, Number(filter.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(filter.limit) || 20));
+    const search = filter.search?.trim();
+    const where: Prisma.ProjectWhereInput = {
+      deletedAt: null,
+      ...(search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' } },
+              { description: { contains: search, mode: 'insensitive' } },
+              { language: { contains: search, mode: 'insensitive' } },
+              { tags: { some: { name: { contains: search, mode: 'insensitive' } } } },
+            ],
+          }
+        : {}),
+      ...(filter.status ? { status: filter.status } : {}),
+      ...(filter.visibility ? { visibility: filter.visibility } : {}),
+      ...(filter.tags?.length ? { tags: { some: { name: { in: filter.tags } } } } : {}),
+      ...(filter.language?.trim()
+        ? { language: { equals: filter.language.trim(), mode: 'insensitive' } }
+        : {}),
+      ...(filter.createdFrom || filter.createdTo
+        ? {
+            createdAt: {
+              ...(filter.createdFrom ? { gte: new Date(filter.createdFrom) } : {}),
+              ...(filter.createdTo ? { lte: new Date(filter.createdTo) } : {}),
+            },
+          }
+        : {}),
+    };
+    const orderBy: Prisma.ProjectOrderByWithRelationInput =
+      filter.sort === 'analysesCount'
+        ? { scans: { _count: filter.order ?? 'desc' } }
+        : { [filter.sort ?? 'createdAt']: filter.order ?? 'desc' };
+    const [items, total] = await Promise.all([
+      this.prisma.project.findMany({
+        where,
+        include: {
+          tags: { orderBy: { name: 'asc' } },
+          _count: { select: { scans: true, uploadedFiles: true, reports: true } },
+          scans: { select: { createdAt: true }, orderBy: { createdAt: 'desc' }, take: 1 },
+          owner: { select: { id: true, email: true } },
+        },
+        orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.project.count({ where }),
+    ]);
+    return {
+      data: ProjectMapper.toResponseList(items),
+      meta: { page, limit, total, pages: total ? Math.ceil(total / limit) : 0 },
     };
   }
 

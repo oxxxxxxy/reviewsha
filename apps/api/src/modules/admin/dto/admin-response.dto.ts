@@ -1,6 +1,24 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsDateString, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsDateString,
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Length,
+  Max,
+  MaxLength,
+  Min,
+} from 'class-validator';
+import { Role } from '@prisma/client';
+import {
+  USER_DISPLAY_NAME_MAX_LENGTH,
+  USER_DISPLAY_NAME_MIN_LENGTH,
+} from '../../users/constants/users.constants';
 import { ProjectResponseDto } from '../../projects/dto/project-response.dto';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
 
@@ -19,6 +37,35 @@ export class AdminUserDetailsResponseDto {
   @ApiProperty({ type: () => UserResponseDto }) user!: UserResponseDto;
   @ApiProperty({ type: () => [ProjectResponseDto] }) projects!: ProjectResponseDto[];
   @ApiProperty({ type: [Object] }) activity!: Array<Record<string, unknown>>;
+}
+
+/** Fields an administrator may change without exposing password or token data. */
+export class AdminUpdateUserDto {
+  @ApiPropertyOptional({
+    example: 'Updated Developer',
+    minLength: USER_DISPLAY_NAME_MIN_LENGTH,
+    maxLength: USER_DISPLAY_NAME_MAX_LENGTH,
+  })
+  @IsOptional()
+  @IsString()
+  @Length(USER_DISPLAY_NAME_MIN_LENGTH, USER_DISPLAY_NAME_MAX_LENGTH)
+  displayName?: string;
+
+  @ApiPropertyOptional({ type: String, example: 'https://cdn.reviewsha.local/avatar.png' })
+  @IsOptional()
+  @IsUrl({ require_protocol: true })
+  @MaxLength(2048)
+  avatarUrl?: string;
+
+  @ApiPropertyOptional({ type: Boolean, example: false })
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @ApiPropertyOptional({ enum: Role, example: Role.ADMIN })
+  @IsOptional()
+  @IsEnum(Role)
+  role?: Role;
 }
 
 export class AdminProjectVersionDto {

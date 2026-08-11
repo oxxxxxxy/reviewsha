@@ -28,7 +28,10 @@ class TestJwtGuard implements CanActivate {
 const adminService = {
   overview: vi.fn(async () => ({})),
   userDetails: vi.fn(async () => ({})),
+  users: vi.fn(async () => ({})),
+  updateUser: vi.fn(async () => ({})),
   projectDetails: vi.fn(async () => ({})),
+  projects: vi.fn(async () => ({})),
   queueOverview: vi.fn(async () => ({})),
   aiUsage: vi.fn(async () => ({})),
   aiUsageBreakdown: vi.fn(async () => ({})),
@@ -44,7 +47,12 @@ const adminService = {
 const adminPaths = [
   { method: 'get', path: '/api/v1/admin/overview' },
   { method: 'get', path: '/api/v1/admin/users/00000000-0000-4000-8000-000000000002/details' },
+  { method: 'get', path: '/api/v1/admin/users' },
+  { method: 'get', path: '/api/v1/admin/users/00000000-0000-4000-8000-000000000002' },
+  { method: 'patch', path: '/api/v1/admin/users/00000000-0000-4000-8000-000000000002' },
   { method: 'get', path: '/api/v1/admin/projects/00000000-0000-4000-8000-000000000002/details' },
+  { method: 'get', path: '/api/v1/admin/projects' },
+  { method: 'get', path: '/api/v1/admin/projects/00000000-0000-4000-8000-000000000002' },
   { method: 'get', path: '/api/v1/admin/queues' },
   { method: 'get', path: '/api/v1/admin/ai-usage' },
   { method: 'get', path: '/api/v1/admin/ai-usage/breakdown' },
