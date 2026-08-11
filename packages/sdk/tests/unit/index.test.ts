@@ -35,6 +35,7 @@ describe('@reviewsha/sdk public API', () => {
     const sdk = createReviewshaSDK({ baseURL: 'http://localhost:3000/api/v1' });
     const get = vi.spyOn(sdk.client, 'get').mockResolvedValue({} as never);
     const post = vi.spyOn(sdk.client, 'post').mockResolvedValue({} as never);
+    const patch = vi.spyOn(sdk.client, 'patch').mockResolvedValue({} as never);
     const stream = vi.spyOn(sdk.client, 'stream').mockResolvedValue(undefined);
 
     await sdk.chat.create('project-id');
@@ -42,6 +43,11 @@ describe('@reviewsha/sdk public API', () => {
     await sdk.chat.getMessages('session-id');
     await sdk.chat.stream('session-id', { message: 'Hello' }, () => undefined);
     await sdk.admin.queueOverview();
+    await sdk.admin.users({ page: 2, limit: 20, search: 'admin' });
+    await sdk.admin.userDetails('user-id');
+    await sdk.admin.updateUser('user-id', { isActive: false });
+    await sdk.admin.projects({ page: 2, limit: 20, search: 'reviewsha' });
+    await sdk.admin.projectDetails('project-id');
     await sdk.admin.logs();
     await sdk.admin.aiUsage();
     await sdk.admin.statistics();
@@ -56,6 +62,15 @@ describe('@reviewsha/sdk public API', () => {
       undefined,
     );
     expect(get).toHaveBeenCalledWith('/admin/queues');
+    expect(get).toHaveBeenCalledWith('/admin/users', {
+      params: { page: 2, limit: 20, search: 'admin' },
+    });
+    expect(get).toHaveBeenCalledWith('/admin/users/user-id');
+    expect(patch).toHaveBeenCalledWith('/admin/users/user-id', { isActive: false });
+    expect(get).toHaveBeenCalledWith('/admin/projects', {
+      params: { page: 2, limit: 20, search: 'reviewsha' },
+    });
+    expect(get).toHaveBeenCalledWith('/admin/projects/project-id');
     expect(get).toHaveBeenCalledWith('/admin/logs', { params: undefined });
     expect(get).toHaveBeenCalledWith('/admin/ai-usage', { params: undefined });
     expect(get).toHaveBeenCalledWith('/admin/statistics', { params: undefined });

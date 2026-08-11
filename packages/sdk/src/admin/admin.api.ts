@@ -90,15 +90,22 @@ export class AdminAPI {
     limit?: number;
     search?: string;
   }): Promise<components['schemas']['UsersListResponseDto']> {
-    return this.client.get('/users', { params });
+    return this.client.get('/admin/users', { params });
   }
 
-  user(userId: string): Promise<components['schemas']['UserResponseDto']> {
-    return this.client.get(`/users/${userId}`);
+  user(userId: string): Promise<AdminUserDetails> {
+    return this.client.get<AdminUserDetails>(`/admin/users/${userId}`);
   }
 
   userDetails(userId: string): Promise<AdminUserDetails> {
-    return this.client.get<AdminUserDetails>(`/admin/users/${userId}/details`);
+    return this.client.get<AdminUserDetails>(`/admin/users/${userId}`);
+  }
+
+  updateUser(
+    userId: string,
+    payload: components['schemas']['AdminUpdateUserDto'],
+  ): Promise<components['schemas']['UserResponseDto']> {
+    return this.client.patch(`/admin/users/${userId}`, payload);
   }
 
   projects(params?: {
@@ -107,14 +114,14 @@ export class AdminAPI {
     search?: string;
     status?: string;
   }): Promise<components['schemas']['ProjectsListResponseDto']> {
-    return this.client.get('/projects', { params });
+    return this.client.get('/admin/projects', { params });
   }
 
   project(projectId: string): Promise<components['schemas']['ProjectResponseEnvelopeDto']> {
-    return this.client.get(`/projects/${projectId}`);
+    return this.client.get(`/admin/projects/${projectId}`);
   }
 
   projectDetails(projectId: string): Promise<AdminProjectDetails> {
-    return this.client.get<AdminProjectDetails>(`/admin/projects/${projectId}/details`);
+    return this.client.get<AdminProjectDetails>(`/admin/projects/${projectId}`);
   }
 }

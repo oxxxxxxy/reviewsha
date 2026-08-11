@@ -661,6 +661,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all users for administration */
+        get: operations["Admin_users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an administrative user */
+        get: operations["Admin_user"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update an administrative user */
+        patch: operations["Admin_updateUser"];
+        trace?: never;
+    };
     "/admin/projects/{id}/details": {
         parameters: {
             query?: never;
@@ -670,6 +705,40 @@ export interface paths {
         };
         /** Get an administrative project detail summary */
         get: operations["Admin_projectDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/projects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all projects for administration */
+        get: operations["Admin_projects"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/projects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an administrative project */
+        get: operations["Admin_project"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1322,6 +1391,19 @@ export interface components {
             user: components["schemas"]["UserResponseDto"];
             projects: components["schemas"]["ProjectResponseDto"][];
             activity: Record<string, never>[];
+        };
+        AdminUpdateUserDto: {
+            /** @example Updated Developer */
+            displayName?: string;
+            /** @example https://cdn.reviewsha.local/avatar.png */
+            avatarUrl?: string;
+            /** @example false */
+            isActive?: boolean;
+            /**
+             * @example ADMIN
+             * @enum {string}
+             */
+            role?: "USER" | "ADMIN" | "SUPER_ADMIN";
         };
         AdminProjectVersionDto: {
             /** @example 3 */
@@ -4307,7 +4389,401 @@ export interface operations {
             };
         };
     };
+    Admin_users: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                search?: string;
+                sort?: "createdAt" | "displayName" | "email";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsersListResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Admin_user: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserDetailsResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Admin_updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUpdateUserDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
     Admin_projectDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProjectDetailsResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Admin_projects: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+                search?: string;
+                language?: string;
+                /** @description Comma-separated tag names. */
+                tags?: string;
+                createdFrom?: string;
+                createdTo?: string;
+                status?: "ACTIVE" | "ARCHIVED" | "DELETED";
+                visibility?: "PRIVATE" | "ORGANIZATION" | "PUBLIC";
+                sort?: "createdAt" | "updatedAt" | "name" | "lastAnalysisAt" | "analysesCount";
+                order?: "asc" | "desc";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProjectsListResponseDto"];
+                };
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Admin_project: {
         parameters: {
             query?: never;
             header?: never;
