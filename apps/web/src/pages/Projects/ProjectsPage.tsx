@@ -472,10 +472,10 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           Delete project
         </Button>
       </Modal>
-      <section aria-label="Analysis">
+      <section className="analysis-section" aria-label="Analysis">
         <h2>Analysis</h2>
         {analyses.data?.data[0] ? (
-          <Card>
+          <Card className="analysis-card">
             {(() => {
               const current = analyses.data.data[0] as (typeof analyses.data.data)[0] & {
                 reviewTotal?: number;
@@ -495,7 +495,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
                     >
                       {current.status}
                     </Badge>
-                    <strong>{current.progress}%</strong>
+                    <strong className="analysis-progress-value">{current.progress}%</strong>
                   </div>
                   <div className="analysis-progress-track">
                     <span style={{ width: `${current.progress}%` }} />
@@ -532,7 +532,9 @@ function ProjectDetails({ projectId }: { projectId: string }) {
               );
             })()}
             {analyses.data.data[0].status === 'FAILED' ? (
-              <p role="alert">{analyses.data.data[0].errorMessage ?? 'Analysis failed.'}</p>
+              <p className="analysis-error" role="alert">
+                {analyses.data.data[0].errorMessage ?? 'Analysis failed.'}
+              </p>
             ) : null}
           </Card>
         ) : (

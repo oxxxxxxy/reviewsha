@@ -1132,11 +1132,34 @@ input[type='file'] {
   justify-content: space-between;
   gap: 1rem;
 }
+.analysis-section {
+  display: grid;
+  gap: 0.8rem;
+}
+.analysis-section > h2 {
+  margin: 0;
+}
+.analysis-card {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgb(31 36 47 / 0.96), rgb(23 27 34 / 0.98));
+  padding: clamp(1rem, 2vw, 1.35rem);
+}
+.analysis-card > .analysis-header {
+  padding-bottom: 0.15rem;
+}
+.analysis-progress-value {
+  font-size: 1.1rem;
+  font-variant-numeric: tabular-nums;
+}
 .analysis-progress-track {
-  height: 10px;
+  height: 12px;
   overflow: hidden;
   border-radius: 999px;
   background: #2a313d;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.3);
 }
 .analysis-progress-track span {
   display: block;
@@ -1146,20 +1169,34 @@ input[type='file'] {
   transition: width 0.35s ease;
 }
 .analysis-progress-label {
+  margin: 0;
   color: var(--color-muted);
+  font-size: 0.9rem;
 }
 .analysis-steps {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.5rem;
+  margin-top: 0.1rem;
 }
 .analysis-steps span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   border: 1px solid var(--color-border);
   border-radius: 999px;
-  padding: 0.3rem 0.55rem;
+  padding: 0.38rem 0.65rem;
   color: var(--color-muted);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  font-weight: 700;
   letter-spacing: 0.05em;
+}
+.analysis-steps span::before {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: currentcolor;
+  content: '';
 }
 .analysis-steps span.done {
   border-color: #237b62;
@@ -1169,6 +1206,14 @@ input[type='file'] {
   border-color: #e84578;
   background: #3a1e2b;
   color: #ff7da0;
+}
+.analysis-error {
+  margin: 0;
+  border: 1px solid rgb(255 85 125 / 0.38);
+  border-radius: 10px;
+  background: rgb(255 85 125 / 0.08);
+  padding: 0.75rem 0.9rem;
+  color: #ff9bb3;
 }
 
 .project-details-page {
