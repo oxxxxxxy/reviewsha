@@ -64,6 +64,26 @@ yarn format:check --ignore-unknown
 В этом commit фиксируется checkpoint 12.1 Core Application; функциональные
 ограничения, требующие browser/manual QA, остаются явно отмечены выше.
 
+## 12.2 — User Features checkpoint
+
+Projects, upload/version lifecycle, analysis polling/status, reports
+download/compare, chat UI и settings подключены к API layer. Для destructive
+действий в Projects добавлено доступное подтверждение через общий `Modal`, а
+не `window.confirm`; добавлен UI regression test, проверяющий, что удаление не
+вызывается до подтверждения.
+
+Проверка перед checkpoint:
+
+```text
+yarn workspace @reviewsha/web test
+yarn workspace @reviewsha/web typecheck
+yarn lint
+yarn format:check --ignore-unknown
+```
+
+Полный browser E2E с реальными API/Worker и responsive/accessibility QA по-
+прежнему остаются acceptance-задачами из основного аудита.
+
 ## 13.1 / 13.2 — Admin Core и Administration
 
 Admin app использует RBAC-protected API, overview, users/projects, queues,
