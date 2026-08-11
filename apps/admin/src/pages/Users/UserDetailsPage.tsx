@@ -1,14 +1,33 @@
-import { Card, Loader } from '@reviewsha/ui';
-import { useQuery } from '@tanstack/react-query';
+import { Button, Card, Loader } from '@reviewsha/ui';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { adminSdk } from '../../api/client';
+
+type RoleValue = 'USER' | 'ADMIN' | 'SUPER_ADMIN';
 
 export function UserDetailsPage() {
   const { id } = useParams();
+  const queryClient = useQueryClient();
+  const [role, setRole] = useState<RoleValue>('USER');
+  const [isActive, setIsActive] = useState(true);
+  const [saved, setSaved] = useState(false);
   const user = useQuery({
     enabled: Boolean(id),
     queryKey: ['admin', 'user', id],
     queryFn: () => adminSdk.admin.userDetails(id!),
+  });
+  useEffect(() => {
+    if (!user.data) return;
+    setRole(user.data.user.role);
+    setIsActive(user.data.user.isActive);
+  }, [user.data]);
+  const update = useMutation({
+    mutationFn: () => adminSdk.admin.updateUser(id!, { role, isActive }),
+    onSuccess: async () => {
+      setSaved(true);
+      await queryClient.invalidateQueries({ queryKey: ['admin', 'user', id] });
+    },
   });
   if (user.isLoading)
     return (
@@ -33,6 +52,34 @@ export function UserDetailsPage() {
         <p>Role: {user.data.user.role}</p>
         <p>Status: {user.data.user.isActive === false ? 'BLOCKED' : 'ACTIVE'}</p>
         <p>Created: {user.data.user.createdAt}</p>
+      </Card>
+      <Card>
+        <h2>Administration</h2>
+        <label>
+          Role
+          <select value={role} onChange={(event) => setRole(event.target.value as RoleValue)}>
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+            <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+          </select>
+        </label>{' '}
+        <label>
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(event) => setIsActive(event.target.checked)}
+          />{' '}
+          Active
+        </label>{' '}
+        <Button
+          type="button"
+          onClick={() => void update.mutateAsync()}
+          isLoading={update.isPending}
+        >
+          Save changes
+        </Button>
+        {saved ? <p role="status">Changes saved.</p> : null}
+        {update.isError ? <p role="alert">Unable to save changes.</p> : null}
       </Card>
       <h2>Projects</h2>
       {user.data.projects.length ? (
