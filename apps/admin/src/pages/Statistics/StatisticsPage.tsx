@@ -5,7 +5,8 @@ import { adminSdk } from '../../api/client';
 
 export function StatisticsPage() {
   const [period, setPeriod] = useState('30');
-  const from = new Date(Date.now() - Number(period) * 24 * 60 * 60 * 1000).toISOString();
+  const periodHours = period === '24h' ? 24 : Number(period) * 24;
+  const from = new Date(Date.now() - periodHours * 60 * 60 * 1000).toISOString();
   const statistics = useQuery({
     queryKey: ['admin', 'statistics', period],
     queryFn: () => adminSdk.admin.statistics({ from }),
@@ -40,10 +41,9 @@ export function StatisticsPage() {
       <label>
         Period
         <select value={period} onChange={(event) => setPeriod(event.target.value)}>
-          <option value="1">Today</option>
+          <option value="24h">24 hours</option>
           <option value="7">7 days</option>
           <option value="30">30 days</option>
-          <option value="90">90 days</option>
         </select>
       </label>
       <div className="project-list">

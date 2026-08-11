@@ -109,10 +109,12 @@ Admin security boundary проверяется backend HTTP role matrix; обы�
 ## 13.2 — Administration checkpoint
 
 Queue health/state filters, paginated jobs, safe job details, retry/remove,
-masked logs, AI usage breakdown и date-filtered statistics подключены к Admin
-API/UI. Destructive user/job actions требуют явного подтверждения, а secrets
-не выдаются в job/log payloads. Тесты для текущих queue/logs/usage/statistics
-contracts входят в `yarn test:stage13`; расширенная operational и manual QA
+masked logs, server-side event/request/user log filters, AI usage breakdown and
+user/project filters, и date-filtered statistics подключены к Admin API/UI.
+Statistics UI предоставляет периоды 24h/7d/30d. Destructive user/job actions
+требуют явного подтверждения, а secrets не выдаются в job/log payloads. Тесты
+для текущих queue/logs/usage/statistics contracts входят в `yarn test:stage13`;
+расширенная operational и manual QA
 остаётся явно отмеченной в audit.
 
 Проверка перед checkpoint:

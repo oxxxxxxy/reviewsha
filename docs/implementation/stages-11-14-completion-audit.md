@@ -207,13 +207,16 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 - Queue metrics with backend HEALTHY/DEGRADED status, jobs pagination, retry/remove и polling.
 - Server-side queue state filtering and a safe job-details endpoint (job payloads are never returned).
 - Persisted `AdminLog` с masking чувствительных данных.
-- Server-side logs pagination, search, level/service/date filters и masked details.
+- Server-side logs pagination, search, level/service/event/request/user/date
+  filters и masked details.
 - Log details include a browser copy action for stack traces.
-- AI usage summary and backend breakdown by provider/user/project with date/provider/model/user/project filters.
+- AI usage summary and backend breakdown by provider/user/project with
+  date/provider/model/user/project filters; Admin UI exposes all five filter
+  dimensions.
 - AI failure diagnostics table with provider/model/error/project/timestamp and
   persisted response latency when available; retry count remains unavailable in
   the current `AIRequest` schema and is not fabricated by the UI.
-- Statistics endpoint с date range и UI period selector.
+- Statistics endpoint с date range и UI period selector for 24h/7d/30d.
 - Admin API contracts и OpenAPI response schemas обновляются.
 - Browser operations use the backend Admin API; Redis/BullMQ are never exposed
   directly to the browser, and job/log responses omit sensitive payload data.

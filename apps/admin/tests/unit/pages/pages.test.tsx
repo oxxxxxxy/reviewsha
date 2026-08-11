@@ -58,6 +58,16 @@ describe('admin placeholder pages', () => {
       items: [],
       meta: { page: 1, limit: 50, total: 0, pages: 0 },
     } as never);
+    vi.spyOn(adminSdk.admin, 'statistics').mockResolvedValue({
+      users: 0,
+      projects: 0,
+      analyses: 0,
+      completedAnalyses: 0,
+      failedAnalyses: 0,
+      successRate: 0,
+      averageDurationMs: 0,
+      processing: [],
+    } as never);
   });
 
   afterEach(() => vi.restoreAllMocks());

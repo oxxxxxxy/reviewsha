@@ -450,7 +450,10 @@ export class AdminService {
     limit?: number;
     level?: string;
     service?: string;
+    event?: string;
     search?: string;
+    requestId?: string;
+    userId?: string;
     from?: string;
     to?: string;
   }) {
@@ -459,6 +462,9 @@ export class AdminService {
     const where = {
       ...(params.level ? { level: params.level } : {}),
       ...(params.service ? { service: params.service } : {}),
+      ...(params.event ? { event: params.event } : {}),
+      ...(params.requestId ? { requestId: params.requestId } : {}),
+      ...(params.userId ? { userId: params.userId } : {}),
       ...(params.search
         ? {
             OR: [

@@ -8,11 +8,15 @@ export function AIPage() {
   const [to, setTo] = useState('');
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
+  const [userId, setUserId] = useState('');
+  const [projectId, setProjectId] = useState('');
   const params = {
     ...(from ? { from: new Date(`${from}T00:00:00.000Z`).toISOString() } : {}),
     ...(to ? { to: new Date(`${to}T23:59:59.999Z`).toISOString() } : {}),
     ...(provider ? { provider } : {}),
     ...(model ? { model } : {}),
+    ...(userId ? { userId } : {}),
+    ...(projectId ? { projectId } : {}),
   };
   const usage = useQuery({
     queryKey: ['admin', 'ai-usage', params],
@@ -53,6 +57,13 @@ export function AIPage() {
         </label>{' '}
         <label>
           Model <input value={model} onChange={(event) => setModel(event.target.value)} />
+        </label>
+        <label>
+          User ID <input value={userId} onChange={(event) => setUserId(event.target.value)} />
+        </label>
+        <label>
+          Project ID{' '}
+          <input value={projectId} onChange={(event) => setProjectId(event.target.value)} />
         </label>
       </fieldset>
       <div className="project-list">

@@ -301,6 +301,27 @@ describe('AdminService', () => {
     );
   });
 
+  it('applies event, request and user filters to logs', async () => {
+    prisma.adminLog.findMany.mockResolvedValue([]);
+    prisma.adminLog.count.mockResolvedValue(0);
+
+    await service.logs({
+      event: 'chat.generation.failed',
+      requestId: 'request-1',
+      userId: 'user-1',
+    });
+
+    expect(prisma.adminLog.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          event: 'chat.generation.failed',
+          requestId: 'request-1',
+          userId: 'user-1',
+        }),
+      }),
+    );
+  });
+
   it('rejects unknown queues before touching BullMQ', async () => {
     await expect(service.queueJobs('not-a-queue')).rejects.toThrow('Queue not found');
     expect(queues.listJobs).not.toHaveBeenCalled();

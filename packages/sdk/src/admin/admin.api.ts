@@ -52,7 +52,10 @@ export class AdminAPI {
     limit?: number;
     level?: string;
     service?: string;
+    event?: string;
     search?: string;
+    requestId?: string;
+    userId?: string;
     from?: string;
     to?: string;
   }): Promise<{

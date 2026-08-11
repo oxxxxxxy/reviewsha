@@ -234,10 +234,25 @@ export class AdminLogsQueryDto {
   @IsString()
   service?: string;
 
+  @ApiPropertyOptional({ type: String, example: 'chat.generation.failed' })
+  @IsOptional()
+  @IsString()
+  event?: string;
+
   @ApiPropertyOptional({ type: String, example: 'timeout' })
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({ type: String, format: 'uuid' })
+  @IsOptional()
+  @IsString()
+  requestId?: string;
+
+  @ApiPropertyOptional({ type: String, format: 'uuid' })
+  @IsOptional()
+  @IsString()
+  userId?: string;
 
   @ApiPropertyOptional({ type: String, format: 'date-time' })
   @IsOptional()

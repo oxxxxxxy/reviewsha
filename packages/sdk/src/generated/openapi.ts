@@ -5176,7 +5176,10 @@ export interface operations {
                 limit?: number;
                 level?: string;
                 service?: string;
+                event?: string;
                 search?: string;
+                requestId?: string;
+                userId?: string;
                 from?: string;
                 to?: string;
             };

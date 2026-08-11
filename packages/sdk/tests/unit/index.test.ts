@@ -54,7 +54,11 @@ describe('@reviewsha/sdk public API', () => {
     await sdk.admin.updateUser('user-id', { isActive: false });
     await sdk.admin.projects({ page: 2, limit: 20, search: 'reviewsha' });
     await sdk.admin.projectDetails('project-id');
-    await sdk.admin.logs();
+    await sdk.admin.logs({
+      event: 'chat.generation.failed',
+      requestId: 'request-1',
+      userId: 'user-1',
+    });
     await sdk.admin.aiUsage();
     await sdk.admin.statistics();
 
@@ -77,7 +81,13 @@ describe('@reviewsha/sdk public API', () => {
       params: { page: 2, limit: 20, search: 'reviewsha' },
     });
     expect(get).toHaveBeenCalledWith('/admin/projects/project-id');
-    expect(get).toHaveBeenCalledWith('/admin/logs', { params: undefined });
+    expect(get).toHaveBeenCalledWith('/admin/logs', {
+      params: {
+        event: 'chat.generation.failed',
+        requestId: 'request-1',
+        userId: 'user-1',
+      },
+    });
     expect(get).toHaveBeenCalledWith('/admin/ai-usage', { params: undefined });
     expect(get).toHaveBeenCalledWith('/admin/statistics', { params: undefined });
   });
