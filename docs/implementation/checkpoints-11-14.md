@@ -139,3 +139,22 @@ yarn workspace @reviewsha/sdk typecheck
 yarn lint
 yarn format:check --ignore-unknown
 ```
+
+## 14.2 — Frontend Integration checkpoint
+
+Web и Admin используют единый SDK client с централизованными base URL,
+Authorization, refresh и typed API/query layers. SSE остаётся отдельным
+typed transport в SDK, а React query functions передают cancellation signals.
+
+Проверка перед checkpoint:
+
+```text
+yarn test:stage14
+yarn workspace @reviewsha/web test
+yarn workspace @reviewsha/admin test
+yarn lint
+yarn format:check --ignore-unknown
+```
+
+Оставшиеся DTO audit, cache invalidation matrix и real-API browser E2E
+зафиксированы в основном audit и не выдаются за закрытые manual gates.

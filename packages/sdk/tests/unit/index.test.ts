@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_URLS } from '@reviewsha/config';
 import { ApiClient, createAuthorizationHeader, createReviewshaSDK } from '../../src/index.js';
@@ -32,21 +31,34 @@ describe('@reviewsha/sdk public API', () => {
     expect(sdk.admin.users).toBeTypeOf('function');
   });
 
-  it('keeps the generated contract for user chat and administration endpoints', async () => {
-    const document = JSON.parse(
-      readFileSync(new URL('../../../../docs/generated/openapi.json', import.meta.url), 'utf8'),
-    ) as { paths: Record<string, Record<string, unknown>> };
-    const paths = document.paths;
+  it('keeps runtime services aligned with the generated Chat/Admin contract', async () => {
+    const sdk = createReviewshaSDK({ baseURL: 'http://localhost:3000/api/v1' });
+    const get = vi.spyOn(sdk.client, 'get').mockResolvedValue({} as never);
+    const post = vi.spyOn(sdk.client, 'post').mockResolvedValue({} as never);
+    const stream = vi.spyOn(sdk.client, 'stream').mockResolvedValue(undefined);
 
-    expect(paths['/projects/{id}/chat']).toEqual(
-      expect.objectContaining({ get: expect.any(Object), post: expect.any(Object) }),
+    await sdk.chat.create('project-id');
+    await sdk.chat.list('project-id');
+    await sdk.chat.getMessages('session-id');
+    await sdk.chat.stream('session-id', { message: 'Hello' }, () => undefined);
+    await sdk.admin.queueOverview();
+    await sdk.admin.logs();
+    await sdk.admin.aiUsage();
+    await sdk.admin.statistics();
+
+    expect(post).toHaveBeenCalledWith('/projects/project-id/chat', { title: undefined });
+    expect(get).toHaveBeenCalledWith('/projects/project-id/chat', { signal: undefined });
+    expect(get).toHaveBeenCalledWith('/chat/session-id/messages', { signal: undefined });
+    expect(stream).toHaveBeenCalledWith(
+      '/chat/session-id/stream',
+      { message: 'Hello' },
+      expect.any(Function),
+      undefined,
     );
-    expect(paths['/chat/{sessionId}/stream']).toEqual(
-      expect.objectContaining({ post: expect.any(Object) }),
-    );
-    for (const path of ['/admin/queues', '/admin/logs', '/admin/ai-usage', '/admin/statistics']) {
-      expect(paths[path]).toEqual(expect.objectContaining({ get: expect.any(Object) }));
-    }
+    expect(get).toHaveBeenCalledWith('/admin/queues');
+    expect(get).toHaveBeenCalledWith('/admin/logs', { params: undefined });
+    expect(get).toHaveBeenCalledWith('/admin/ai-usage', { params: undefined });
+    expect(get).toHaveBeenCalledWith('/admin/statistics', { params: undefined });
   });
 
   it('parses SSE chunks through the shared streaming transport', async () => {
