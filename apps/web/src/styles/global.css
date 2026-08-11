@@ -341,6 +341,9 @@ a {
   min-height: 78px;
   border-bottom: 1px solid var(--color-border);
 }
+.reports-history-row > * {
+  min-width: 0;
+}
 .reports-history-row:last-child {
   border-bottom: 0;
 }
@@ -355,6 +358,8 @@ a {
 }
 .reports-history-name > div:last-child {
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 .reports-select input {
   width: 1rem;
@@ -363,6 +368,7 @@ a {
 }
 .reports-title-link {
   display: block;
+  min-width: 0;
   width: 100%;
   max-width: 100%;
   overflow: hidden;

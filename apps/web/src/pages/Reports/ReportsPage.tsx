@@ -265,10 +265,11 @@ function ReportsList({ projectId }: { projectId?: string }) {
                   <button
                     className="reports-title-link"
                     type="button"
+                    title={report.summary || 'Analysis report'}
                     onClick={() => navigate(`/reports/${report.id}`)}
                   >
-                    {report.summary ? report.summary.slice(0, 84) : 'Analysis report'}
-                    {(report.summary?.length ?? 0) > 84 ? '…' : ''}
+                    {report.summary ? report.summary.slice(0, 64) : 'Analysis report'}
+                    {(report.summary?.length ?? 0) > 64 ? '…' : ''}
                   </button>
                   <small className="muted">
                     Report {reports.data!.meta.total - index - (page - 1) * 20}
