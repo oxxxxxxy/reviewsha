@@ -18,4 +18,12 @@ for (const [route, item] of Object.entries(document.paths)) {
   }
 }
 if (operations === 0) throw new Error('OpenAPI has no operations');
+const schemas = document.components?.schemas ?? {};
+for (const schema of ['ApiErrorResponseDto', 'SendMessageDto', 'AdminUpdateUserDto']) {
+  if (!schemas[schema]) throw new Error(`Required schema is missing: ${schema}`);
+}
+const stream = document.paths['/chat/{sessionId}/stream']?.post;
+if (!stream?.responses?.['200']?.content?.['text/event-stream']) {
+  throw new Error('Chat streaming response must document text/event-stream content');
+}
 console.log(`Validated OpenAPI ${document.openapi}: ${operations} operations`);

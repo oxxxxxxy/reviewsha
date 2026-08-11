@@ -24,6 +24,7 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiResponse,
   ApiParam,
   ApiServiceUnavailableResponse,
   ApiTags,
@@ -154,6 +155,18 @@ export class ChatController {
     description: 'Stable client key used to safely retry the same stream submission.',
   })
   @ApiBadRequestResponse({ description: 'The message or idempotency key is invalid.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Server-Sent Events stream containing token, complete and error events.',
+    content: {
+      'text/event-stream': {
+        schema: {
+          type: 'string',
+          example: 'event: token\\ndata: {"token":"Hello"}\\n\\n',
+        },
+      },
+    },
+  })
   @ApiProduces('text/event-stream')
   async stream(
     @CurrentUser() user: AuthenticatedUser,

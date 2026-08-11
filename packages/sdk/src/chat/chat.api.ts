@@ -8,6 +8,10 @@ export type ChatMessageListResponse = components['schemas']['ChatMessageListResp
 export type CreateChatRequest = components['schemas']['CreateChatDto'];
 
 export type ChatMessageRequest = components['schemas']['SendMessageDto'];
+export type ChatStreamEvent =
+  | { event: 'token'; data: { token: string } }
+  | { event: 'complete'; data: { messageId: string; tokens: number } }
+  | { event: 'error'; data: { message: string } };
 
 export type ChatMessageResponse = components['schemas']['ChatMessageResponseDto'];
 
@@ -41,9 +45,14 @@ export class ChatAPI {
   stream(
     sessionId: string,
     payload: ChatMessageRequest,
-    onEvent: (event: { event: string; data: unknown }) => void,
+    onEvent: (event: ChatStreamEvent) => void,
     signal?: AbortSignal,
   ): Promise<void> {
-    return this.client.stream(`/chat/${sessionId}/stream`, payload, onEvent, signal);
+    return this.client.stream<ChatStreamEvent>(
+      `/chat/${sessionId}/stream`,
+      payload,
+      onEvent,
+      signal,
+    );
   }
 }

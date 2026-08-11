@@ -4187,6 +4187,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Server-Sent Events stream containing token, complete and error events. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
             /** @description The message or idempotency key is invalid. */
             400: {
                 headers: {

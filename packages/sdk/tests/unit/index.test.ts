@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_URLS } from '@reviewsha/config';
-import { ApiClient, createAuthorizationHeader, createReviewshaSDK } from '../../src/index.js';
+import {
+  ApiClient,
+  createAuthorizationHeader,
+  createReviewshaSDK,
+  type ChatStreamEvent,
+} from '../../src/index.js';
 
 describe('@reviewsha/sdk public API', () => {
   it('creates axios client with shared defaults', () => {
@@ -123,6 +128,21 @@ describe('@reviewsha/sdk public API', () => {
       { event: 'done', data: { ok: true } },
     ]);
     fetchMock.mockRestore();
+  });
+
+  it('exposes a typed Chat stream event protocol', async () => {
+    const sdk = createReviewshaSDK({ baseURL: 'http://localhost:3000/api/v1' });
+    const stream = vi.spyOn(sdk.client, 'stream').mockResolvedValue(undefined);
+    const events: ChatStreamEvent[] = [];
+
+    await sdk.chat.stream('session-id', { message: 'Hello' }, (event) => events.push(event));
+
+    expect(stream).toHaveBeenCalledWith(
+      '/chat/session-id/stream',
+      { message: 'Hello' },
+      expect.any(Function),
+      undefined,
+    );
   });
 
   it('passes AbortSignal through list and report download transports', async () => {

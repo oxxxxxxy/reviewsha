@@ -4,6 +4,7 @@ import { DEFAULT_API_TIMEOUT_MS, DEFAULT_URLS } from '@reviewsha/config';
 /** Supplies an access token for SDK requests at call time. */
 export type AccessTokenProvider = () => string | null | undefined;
 export type RefreshTokenHandler = () => Promise<string | null>;
+export type ServerSentEvent = { event: string; data: unknown };
 
 /** Runtime options used to configure the shared Axios-backed API client. */
 export interface ApiClientOptions {
@@ -89,10 +90,10 @@ export class ApiClient {
   }
 
   /** Streams an SSE response while preserving the shared auth/refresh policy. */
-  async stream(
+  async stream<TEvent extends ServerSentEvent = ServerSentEvent>(
     url: string,
     body: unknown,
-    onEvent: (event: { event: string; data: unknown }) => void,
+    onEvent: (event: TEvent) => void,
     signal?: AbortSignal,
   ): Promise<void> {
     const request = async (retry = false): Promise<Response> => {
@@ -134,9 +135,9 @@ export class ApiClient {
         const data = raw.match(/^data:\s*(.+)$/m)?.[1];
         if (data !== undefined) {
           try {
-            onEvent({ event, data: JSON.parse(data) });
+            onEvent({ event, data: JSON.parse(data) } as TEvent);
           } catch {
-            onEvent({ event, data });
+            onEvent({ event, data } as TEvent);
           }
         }
       }

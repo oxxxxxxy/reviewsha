@@ -129,10 +129,12 @@ yarn format:check --ignore-unknown
 
 ## 14.1 / 14.2 — OpenAPI, SDK и frontend integration
 
-Canonical OpenAPI генерируется в `docs/generated/openapi.json`, SDK drift
+Canonical OpenAPI генерируется в `docs/generated/openapi.json`, validation
+проверяет обязательные error/admin/chat schemas и SSE response content, SDK drift
 проверяется `yarn sdk:check`, а Web/Admin используют общий typed SDK client.
 Admin users/projects list, details and update operations теперь также проходят
-через generated contract; SSE остаётся отдельным typed transport. Оставшаяся
+через generated contract; SSE остаётся отдельным typed transport с
+`ChatStreamEvent` (`token`, `complete`, `error`). Оставшаяся
 миграция ручных DTO и полный contract/E2E coverage отмечены в основном аудите.
 
 Для checkpoint 14.1 добавлен SDK contract regression test для Chat, streaming

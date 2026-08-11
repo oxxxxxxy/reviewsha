@@ -264,6 +264,9 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
   nullable pipeline fields are explicitly typed in the backend DTO metadata.
 - Dedicated Admin users/projects list, details and update routes are generated
   in the canonical OpenAPI artifact and covered by SDK runtime path tests.
+- The OpenAPI validator now requires the shared error/admin/chat schemas and
+  the Chat SSE `text/event-stream` response; SDK exposes a typed
+  `ChatStreamEvent` union for token/complete/error events.
 
 ### Что доработать
 

@@ -70,21 +70,13 @@ export function ChatPage() {
           message: prompt,
           idempotencyKey: globalThis.crypto.randomUUID(),
           language: localStorage.getItem('reviewsha.language') === 'ru' ? 'ru' : 'en',
-        } as never,
+        },
         ({ event, data }) => {
           if (event === 'token') {
-            const token =
-              typeof data === 'object' && data !== null && 'token' in data
-                ? String(data.token)
-                : String(data);
-            setStreamText((current) => current + token);
+            setStreamText((current) => current + data.token);
           }
           if (event === 'error') {
-            setStreamError(
-              typeof data === 'object' && data !== null && 'message' in data
-                ? String(data.message)
-                : 'AI is unavailable. Try again.',
-            );
+            setStreamError(data.message || 'AI is unavailable. Try again.');
           }
         },
         streamAbort.current.signal,
