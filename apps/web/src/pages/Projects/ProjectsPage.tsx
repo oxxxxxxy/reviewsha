@@ -15,6 +15,7 @@ function ProjectsList() {
   const [sort, setSort] = useState<'updatedAt' | 'name'>('updatedAt');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [language, setLanguage] = useState('');
   const [tags, setTags] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [githubBranch, setGithubBranch] = useState('');
@@ -35,6 +36,7 @@ function ProjectsList() {
       reviewshaSdk.projects.create({
         name,
         description: description || undefined,
+        language: language.trim() || undefined,
         tags: tags
           .split(',')
           .map((tag) => tag.trim())
@@ -149,6 +151,12 @@ function ProjectsList() {
             aria-label="Project tags"
           />
           <Input
+            value={language}
+            onChange={(event) => setLanguage(event.target.value)}
+            placeholder="Language (e.g. TypeScript)"
+            aria-label="Project language"
+          />
+          <Input
             value={githubUrl}
             onChange={(event) => setGithubUrl(event.target.value)}
             placeholder="GitHub repository (optional)"
@@ -181,8 +189,18 @@ function ProjectsList() {
                   <h2 title={project.name}>{project.name}</h2>
                   <p>{project.description || 'No description yet'}</p>
                 </div>
-                <span className="project-language">{project.language || 'Unknown'}</span>
+                <span className="project-language">
+                  {project.language || 'Language not specified'}
+                </span>
               </div>
+              {project.tags?.length ? (
+                <div className="project-card-tags" aria-label="Project tags">
+                  {project.tags.slice(0, 3).map((tag) => (
+                    <span key={tag}>#{tag}</span>
+                  ))}
+                  {project.tags.length > 3 ? <span>+{project.tags.length - 3}</span> : null}
+                </div>
+              ) : null}
               <div className="project-card-stats" aria-label="Project activity">
                 <span>
                   <strong>{project.stats?.analysesCount ?? 0}</strong> analyses
@@ -302,6 +320,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       setUploadProgress(100);
       uploadController.current = undefined;
       void client.invalidateQueries({ queryKey: ['uploads', projectId] });
+      void client.invalidateQueries({ queryKey: ['projects'] });
     },
     onError: (error) => {
       uploadController.current = undefined;
@@ -330,7 +349,10 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         selectedUploadId,
         localStorage.getItem('reviewsha.language') === 'en' ? 'en' : 'ru',
       ),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ['analyses', projectId] }),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ['analyses', projectId] });
+      void client.invalidateQueries({ queryKey: ['projects'] });
+    },
   });
   const cancel = useMutation({
     mutationFn: () => {
@@ -376,7 +398,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       <h1>{item.name}</h1>
       <p>{item.description || 'No description'}</p>
       <p>Status: {item.status}</p>
-      <p>Language: {item.language || 'Unknown'}</p>
+      <p>Language: {item.language || 'Not specified'}</p>
       <p>Tags: {projectTags.length ? projectTags.join(', ') : 'None'}</p>
       <div className="project-action-bar" role="group" aria-label="Project actions">
         <Link className="action-button project-action" to={`/projects/${projectId}/settings`}>

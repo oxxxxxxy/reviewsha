@@ -16,6 +16,7 @@ export function ProjectSettingsPage() {
   const [name, setName] = useState<string>();
   const [description, setDescription] = useState<string>();
   const [tags, setTags] = useState<string>();
+  const [language, setLanguage] = useState<string>();
   const update = useMutation({
     mutationFn: () =>
       reviewshaSdk.projects.update(id!, {
@@ -25,8 +26,12 @@ export function ProjectSettingsPage() {
           .split(',')
           .map((tag) => tag.trim())
           .filter(Boolean),
+        language: language?.trim() || item?.language || null,
       }),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ['project', id] }),
+    onSuccess: () => {
+      void client.invalidateQueries({ queryKey: ['project', id] });
+      void client.invalidateQueries({ queryKey: ['projects'] });
+    },
   });
   if (project.isLoading) return <Loader label="Loading project settings" />;
   if (project.isError || !item)
@@ -55,6 +60,12 @@ export function ProjectSettingsPage() {
             value={tags ?? item.tags?.join(', ') ?? ''}
             onChange={(event) => setTags(event.target.value)}
             aria-label="Project tags"
+          />
+          <Input
+            value={language ?? item.language ?? ''}
+            onChange={(event) => setLanguage(event.target.value)}
+            placeholder="Language (e.g. TypeScript)"
+            aria-label="Project language"
           />
           <Button
             disabled={item.status === 'ARCHIVED'}

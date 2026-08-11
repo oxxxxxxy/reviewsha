@@ -884,6 +884,18 @@ a {
   color: var(--color-muted);
   font-size: 0.75rem;
 }
+.project-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+}
+.project-card-tags span {
+  border-radius: 999px;
+  background: rgb(232 69 120 / 0.09);
+  padding: 0.2rem 0.45rem;
+}
 .project-card-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
