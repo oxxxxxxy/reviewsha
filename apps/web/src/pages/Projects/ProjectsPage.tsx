@@ -390,38 +390,57 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     upload.mutate(file);
   };
   return (
-    <section className="page">
-      <Link to="/projects">← Projects</Link>
-      <h1>{item.name}</h1>
-      <p>{item.description || 'No description'}</p>
-      <p>Language: {item.language || 'Not specified'}</p>
-      <p>Tags: {projectTags.length ? projectTags.join(', ') : 'None'}</p>
-      <div className="project-action-bar" role="group" aria-label="Project actions">
-        <Link className="action-button project-action" to={`/projects/${projectId}/settings`}>
-          Project settings
-        </Link>
-        <Button
-          className="project-action project-action-danger"
-          variant="ghost"
-          isLoading={removeProject.isPending}
-          onClick={() => setDeleteProjectOpen(true)}
-        >
-          Delete project
-        </Button>
-        <Button
-          className="project-action"
-          disabled={analyze.isPending}
-          isLoading={analyze.isPending}
-          onClick={() => analyze.mutate()}
-        >
-          Start analysis
-        </Button>
-        <Link className="action-button project-action" to={`/projects/${projectId}/reports`}>
-          Open reports
-        </Link>
-        <Link className="action-button project-action" to={`/projects/${projectId}/chat`}>
-          Open chat
-        </Link>
+    <section className="page project-details-page">
+      <Link className="project-breadcrumb" to="/projects">
+        ← All projects
+      </Link>
+      <header className="project-hero">
+        <div className="project-hero-main">
+          <span className="eyebrow">Project workspace</span>
+          <h1>{item.name}</h1>
+          <p className="project-hero-description">{item.description || 'No description yet'}</p>
+          <div className="project-hero-meta">
+            <span>{item.language || 'Language not specified'}</span>
+            {projectTags.length ? (
+              <span>{projectTags.map((tag) => `#${tag}`).join(' ')}</span>
+            ) : null}
+          </div>
+        </div>
+        <div className="project-hero-actions" role="group" aria-label="Project actions">
+          <Button
+            className="project-primary-action"
+            disabled={analyze.isPending}
+            isLoading={analyze.isPending}
+            onClick={() => analyze.mutate()}
+          >
+            Start analysis
+          </Button>
+          <Button
+            className="project-delete-action"
+            variant="ghost"
+            isLoading={removeProject.isPending}
+            onClick={() => setDeleteProjectOpen(true)}
+          >
+            Delete project
+          </Button>
+        </div>
+      </header>
+      <nav className="project-section-nav" aria-label="Project sections">
+        <span className="project-section-nav-current">Overview</span>
+        <Link to={`/projects/${projectId}/reports`}>Reports</Link>
+        <Link to={`/projects/${projectId}/chat`}>Chat</Link>
+        <Link to={`/projects/${projectId}/settings`}>Settings</Link>
+      </nav>
+      <div className="project-details-summary">
+        <span>
+          <strong>{item.stats?.analysesCount ?? 0}</strong> analyses
+        </span>
+        <span>
+          <strong>{item.stats?.reportsCount ?? 0}</strong> reports
+        </span>
+        <span>
+          <strong>{item.stats?.uploadsCount ?? 0}</strong> uploads
+        </span>
       </div>
       <Modal
         isOpen={deleteProjectOpen}
