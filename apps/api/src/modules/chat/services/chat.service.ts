@@ -92,6 +92,11 @@ export class ChatService {
     };
   }
 
+  async assertAvailable(user: AuthenticatedUser, sessionId: string): Promise<void> {
+    const session = await this.sessions.requireOwned(user, sessionId);
+    await this.contexts.assertAvailable(session.projectId);
+  }
+
   async send(user: AuthenticatedUser, sessionId: string, dto: SendMessageDto) {
     const idempotencyKey = dto.idempotencyKey?.trim();
     const lockKey = idempotencyKey ? `${user.id}:${sessionId}:${idempotencyKey}` : undefined;
@@ -211,6 +216,7 @@ export class ChatService {
     language?: 'en' | 'ru',
   ): Promise<{ requestId: string }> {
     const session = await this.sessions.requireOwned(user, sessionId);
+    await this.contexts.assertAvailable(session.projectId);
     const maxLength = this.config.get<number>('chat.messageMaxLength', 4000);
     if (!message || message.length > maxLength) {
       throw new BadRequestException('Chat message length is invalid');

@@ -24,6 +24,16 @@ export function ChatPage() {
     queryKey: ['chat-sessions', projectId],
     queryFn: ({ signal }) => reviewshaSdk.chat.list(projectId!, signal),
   });
+  const analyses = useQuery({
+    enabled: Boolean(projectId),
+    queryKey: ['analyses', projectId],
+    queryFn: ({ signal }) => reviewshaSdk.analyses.list(projectId!, 1, 20, signal),
+  });
+  const hasCompletedAnalysis = Boolean(
+    analyses.data?.data.some(
+      (item) => item.status === 'COMPLETED' || item.pipelineStatus === 'COMPLETED',
+    ),
+  );
   const create = useMutation({
     mutationFn: () => reviewshaSdk.chat.create(projectId!),
     onSuccess: (session) => {
@@ -46,7 +56,7 @@ export function ChatPage() {
   });
   const stream = async (requestedMessage = message) => {
     const prompt = requestedMessage.trim();
-    if (!sessionId || !prompt || streaming) return;
+    if (!hasCompletedAnalysis || !sessionId || !prompt || streaming) return;
     setMessage('');
     setRetryPrompt(prompt);
     setStreamText('');
@@ -108,7 +118,11 @@ export function ChatPage() {
       </div>
       <div className="chat-layout">
         <aside>
-          <Button onClick={() => create.mutate()} isLoading={create.isPending}>
+          <Button
+            onClick={() => create.mutate()}
+            isLoading={create.isPending}
+            disabled={!hasCompletedAnalysis}
+          >
             New Chat
           </Button>
           {sessions.data?.data.map((session) => (
@@ -127,6 +141,17 @@ export function ChatPage() {
           ))}
         </aside>
         <div className="chat-main">
+          {!analyses.isLoading && !hasCompletedAnalysis ? (
+            <Card className="chat-gate" role="status">
+              <strong>Chat is unavailable</strong>
+              <p className="muted">
+                Complete at least one project analysis before sending messages to the AI.
+              </p>
+              <Link className="button button-secondary" to={`/projects/${projectId}`}>
+                Open project analysis
+              </Link>
+            </Card>
+          ) : null}
           {messages.isLoading ? (
             <Loader label="Loading messages" />
           ) : (
@@ -144,7 +169,7 @@ export function ChatPage() {
             </Card>
           ) : null}
           <div ref={messagesEnd} />
-          {sessionId ? (
+          {sessionId && hasCompletedAnalysis ? (
             <form
               className="form"
               onSubmit={(event) => {

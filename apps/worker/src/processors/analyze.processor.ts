@@ -62,12 +62,12 @@ export class AnalyzeProcessor implements JobHandler {
     ) as MergedContext;
     const scan = await this.db.scan.findUnique({ where: { id: payload.pipelineId } });
     if (!scan) throw new Error(`Analysis not found: ${payload.pipelineId}`);
+    await assertPipelineActive(this.db, scan.id);
 
     await this.db.scan.update({
       where: { id: scan.id },
       data: { status: ScanStatus.ANALYZING, pipelineStep: PipelineStep.ANALYZE, progress: 60 },
     });
-    await assertPipelineActive(this.db, scan.id);
 
     const cacheKey = createHash('sha256')
       .update(JSON.stringify({ files: context.files, statistics: context.statistics }))

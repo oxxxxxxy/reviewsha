@@ -1,4 +1,4 @@
-import { Inject, Injectable, PreconditionFailedException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, PreconditionFailedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'node:crypto';
 import type { ChatContextSnapshot } from '../interfaces/chat.interfaces';
@@ -23,6 +23,18 @@ export class ChatContextService {
     this.config = config;
     this.secrets = secrets;
     this.cache = cache;
+  }
+
+  /**
+   * Chat must never enqueue a request for a project without a completed
+   * report.  Keep this check before the user message is persisted: otherwise
+   * a rejected request leaves a misleading message in the conversation.
+   */
+  async assertAvailable(projectId: string): Promise<void> {
+    const project = await this.repository.latestContext(projectId);
+    if (!project?.scans?.[0]?.report) {
+      throw new ConflictException('Chat is unavailable until the project analysis is completed');
+    }
   }
 
   async build(projectId: string, question = ''): Promise<ChatContextSnapshot> {

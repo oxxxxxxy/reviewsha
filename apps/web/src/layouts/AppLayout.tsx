@@ -7,12 +7,23 @@ import { useAuthStore } from '../stores/auth.store';
 import { useNavigate } from 'react-router-dom';
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: '⌂' },
-  { to: '/projects', label: 'Projects', icon: '▦' },
-  { to: '/reports', label: 'Reports', icon: '▤' },
-  { to: '/chat', label: 'Chat', icon: '◌' },
-  { to: '/settings', label: 'Settings', icon: '⚙' },
+  { to: '/dashboard', label: 'Dashboard', icon: 'home' },
+  { to: '/projects', label: 'Projects', icon: 'grid' },
+  { to: '/reports', label: 'Reports', icon: 'report' },
+  { to: '/chat', label: 'Chat', icon: 'chat' },
+  { to: '/settings', label: 'Settings', icon: 'settings' },
 ];
+
+function NavIcon({ name }: { name: string }) {
+  const paths: Record<string, string> = {
+    home: 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z',
+    grid: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z',
+    report: 'M6 3h12v18H6zM9 7h6M9 11h6M9 15h4',
+    chat: 'M4 5h16v11H8l-4 4z',
+    settings: 'M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z',
+  };
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d={paths[name] ?? paths.grid} /></svg>;
+}
 
 export function AppLayout() {
   const user = useAuthStore((state) => state.user);
@@ -41,7 +52,7 @@ export function AppLayout() {
               onClick={() => useUiStore.getState().setSidebarOpen(false)}
             >
               <span className="nav-icon" aria-hidden="true">
-                {item.icon}
+                <NavIcon name={item.icon} />
               </span>
               <span className="nav-label">{item.label}</span>
             </NavLink>
