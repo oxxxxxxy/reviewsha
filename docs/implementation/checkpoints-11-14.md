@@ -153,8 +153,9 @@ yarn format:check --ignore-unknown
 ## 14.2 — Frontend Integration checkpoint
 
 Web и Admin используют единый SDK client с централизованными base URL,
-Authorization, refresh и typed API/query layers. SSE остаётся отдельным
-typed transport в SDK, а React query functions передают cancellation signals.
+Authorization, refresh, нормализованным `ApiClientError` и typed API/query
+layers. SSE остаётся отдельным typed transport в SDK, а React query functions
+передают cancellation signals.
 
 Проверка перед checkpoint:
 

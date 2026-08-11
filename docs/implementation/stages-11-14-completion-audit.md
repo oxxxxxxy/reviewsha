@@ -292,6 +292,8 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 - Основные Web/Admin features используют typed SDK вместо feature-level fetch.
 - Admin user/project list, details and role/status mutation use the shared SDK
   and React Query invalidation rather than ad-hoc HTTP calls.
+- Shared SDK normalizes documented JSON error envelopes to `ApiClientError`, so
+  Web/Admin do not need to depend on Axios internals for status/message handling.
 - Typecheck, build/quality и app tests проходят.
 
 ### Что доработать

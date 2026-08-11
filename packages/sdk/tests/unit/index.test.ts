@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_URLS } from '@reviewsha/config';
 import {
   ApiClient,
+  ApiClientError,
   createAuthorizationHeader,
   createReviewshaSDK,
   type ChatStreamEvent,
@@ -19,6 +20,36 @@ describe('@reviewsha/sdk public API', () => {
   it('creates authorization header only when token exists', () => {
     expect(createAuthorizationHeader('token')).toEqual({ Authorization: 'Bearer token' });
     expect(createAuthorizationHeader(undefined)).toEqual({});
+  });
+
+  it('normalizes documented API errors without exposing Axios internals', async () => {
+    const client = new ApiClient({ baseURL: 'http://localhost:3000/api/v1' });
+    vi.spyOn(client.http, 'get').mockRejectedValue(
+      Object.assign(new Error('request failed'), {
+        isAxiosError: true,
+        response: {
+          status: 422,
+          data: {
+            success: false,
+            error: {
+              statusCode: 422,
+              error: 'Unprocessable Entity',
+              message: 'Invalid project name',
+              path: '/api/v1/projects',
+              timestamp: '2026-08-11T00:00:00.000Z',
+            },
+          },
+        },
+      }),
+    );
+
+    const result = client.get('/projects');
+    await expect(result).rejects.toBeInstanceOf(ApiClientError);
+    await expect(result).rejects.toMatchObject({
+      status: 422,
+      message: 'Invalid project name',
+      payload: { error: { statusCode: 422 } },
+    });
   });
 
   it('creates all domain API services', () => {

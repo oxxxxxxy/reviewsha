@@ -1,10 +1,25 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { DEFAULT_API_TIMEOUT_MS, DEFAULT_URLS } from '@reviewsha/config';
+import type { components } from '../generated/openapi.js';
 
 /** Supplies an access token for SDK requests at call time. */
 export type AccessTokenProvider = () => string | null | undefined;
 export type RefreshTokenHandler = () => Promise<string | null>;
 export type ServerSentEvent = { event: string; data: unknown };
+export type ApiErrorResponse = components['schemas']['ApiErrorResponseDto'];
+
+/** Stable error shape exposed to Web/Admin instead of leaking Axios internals. */
+export class ApiClientError extends Error {
+  readonly status: number;
+  readonly payload: ApiErrorResponse | null;
+
+  constructor(status: number, payload: ApiErrorResponse | null = null) {
+    super(payload?.error.message ?? `API request failed with status ${status}`);
+    this.name = 'ApiClientError';
+    this.status = status;
+    this.payload = payload;
+  }
+}
 
 /** Runtime options used to configure the shared Axios-backed API client. */
 export interface ApiClientOptions {
@@ -60,10 +75,12 @@ export class ApiClient {
         !this.refreshHandler ||
         error.config?.url?.includes('/auth/refresh')
       ) {
-        throw error;
+        throw this.toApiClientError(error);
       }
       const config = error.config;
-      if (!config || (config as AxiosRequestConfig & { _retry?: boolean })._retry) throw error;
+      if (!config || (config as AxiosRequestConfig & { _retry?: boolean })._retry) {
+        throw this.toApiClientError(error);
+      }
       (config as AxiosRequestConfig & { _retry?: boolean })._retry = true;
       this.refreshing ??= this.refreshHandler().finally(() => {
         this.refreshing = undefined;
@@ -170,7 +187,25 @@ export class ApiClient {
   }
 
   private async unwrap<TResponse>(request: Promise<AxiosResponse<TResponse>>): Promise<TResponse> {
-    const response = await request;
-    return response.data;
+    try {
+      const response = await request;
+      return response.data;
+    } catch (error) {
+      throw this.toApiClientError(error);
+    }
   }
+
+  private toApiClientError(error: unknown): unknown {
+    if (error instanceof ApiClientError || !axios.isAxiosError(error) || !error.response) {
+      return error;
+    }
+    const payload = isApiErrorResponse(error.response.data) ? error.response.data : null;
+    return new ApiClientError(error.response.status, payload);
+  }
+}
+
+function isApiErrorResponse(value: unknown): value is ApiErrorResponse {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as { success?: unknown; error?: { message?: unknown } };
+  return candidate.success === false && typeof candidate.error?.message === 'string';
 }
