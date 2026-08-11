@@ -16,7 +16,7 @@
     "predev": "yarn build:deps"
   },
   "dependencies": {
-    "@hookform/resolvers": "^5.5.7",
+    "@hookform/resolvers": "^5.7.1",
     "@reviewsha/config": "0.0.0",
     "@reviewsha/sdk": "0.0.0",
     "@reviewsha/types": "0.0.0",
