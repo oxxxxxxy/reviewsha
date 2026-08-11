@@ -50,7 +50,13 @@ export function ProjectsPage() {
               header: 'Name',
               render: (project) => <Link to={`/projects/${project.id}`}>{project.name}</Link>,
             },
+            { key: 'owner', header: 'Owner', render: (project) => <code>{project.ownerId}</code> },
             { key: 'status', header: 'Status', render: (project) => project.status },
+            {
+              key: 'analysis-count',
+              header: 'Analyses',
+              render: (project) => project.stats.analysesCount,
+            },
             { key: 'updated', header: 'Updated', render: (project) => project.updatedAt },
           ]}
         />

@@ -87,6 +87,22 @@ describe('AdminService', () => {
     );
   });
 
+  it('applies role and active-status filters to the admin user list', async () => {
+    prisma.user.findMany.mockResolvedValue([]);
+    prisma.user.count.mockResolvedValue(0);
+
+    await service.users({ role: 'ADMIN', isActive: false } as never);
+
+    expect(prisma.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ role: 'ADMIN', isActive: false }),
+      }),
+    );
+    expect(prisma.user.count).toHaveBeenCalledWith({
+      where: expect.objectContaining({ role: 'ADMIN', isActive: false }),
+    });
+  });
+
   it('updates only explicit administrative user fields', async () => {
     prisma.user.findUnique.mockResolvedValue({ id: 'user-1' });
     prisma.user.update.mockResolvedValue({

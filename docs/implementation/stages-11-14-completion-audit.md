@@ -177,9 +177,12 @@ GitHub Actions для предыдущего SDK/docs блока `30cb570` за�
 - Admin user details now include owned projects and recent project activity;
   admin project details include owner, uploaded versions and analysis summary.
 - Dedicated `/admin/users` and `/admin/projects` endpoints provide server-side
-  search/pagination; `/admin/users/:id` and `/admin/projects/:id` expose detail
-  views, while `PATCH /admin/users/:id` supports validated role, active-status
-  and profile updates.
+  search/pagination and the admin user endpoint additionally supports validated
+  `role` and `isActive` filters; `/admin/users/:id` and `/admin/projects/:id`
+  expose detail views, while `PATCH /admin/users/:id` supports validated role,
+  active-status and profile updates.
+- Admin users/projects tables expose stable IDs, user role/status, project owner
+  IDs and analysis aggregates so triage does not depend on hidden client state.
 - Admin user details expose explicit role/status controls and invalidate the
   user query after a successful mutation.
 - Queue overview, jobs, retry/remove API и UI.

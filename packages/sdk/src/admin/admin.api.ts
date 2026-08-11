@@ -89,6 +89,8 @@ export class AdminAPI {
     page?: number;
     limit?: number;
     search?: string;
+    role?: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
+    isActive?: boolean;
   }): Promise<components['schemas']['UsersListResponseDto']> {
     return this.client.get('/admin/users', { params });
   }

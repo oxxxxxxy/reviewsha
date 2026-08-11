@@ -54,6 +54,11 @@ AI SaaS platform for automated code review.
 
 Текущий статус:
 
+Для Admin Core также доступны серверные фильтры пользователей по роли и
+активности, а таблицы Admin показывают стабильные ID, статусы и агрегаты
+проектов. Этапы 13–14 остаются `PARTIAL` до прохождения security/IDOR,
+real-API E2E и browser/manual QA.
+
 ```txt
 Текущий результат сверки: 11–12 функционально готовы, но не закрыты manual/browser
 acceptance gates. 13–14 остаются PARTIAL до завершения security, contract и E2E

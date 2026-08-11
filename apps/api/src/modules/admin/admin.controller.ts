@@ -16,7 +16,7 @@ import { ApiStandardErrors } from '../../common/swagger';
 import { AdminService } from './admin.service';
 import { ProjectFilterDto } from '../projects/dto/project-filter.dto';
 import { ProjectsListResponseDto } from '../projects/dto/project-response.dto';
-import { UserQueryDto } from '../users/dto/user-query.dto';
+import { AdminUserQueryDto } from './dto/admin-user-query.dto';
 import { UserResponseDto, UsersListResponseDto } from '../users/dto/user-response.dto';
 import {
   AdminActionResponseDto,
@@ -63,7 +63,7 @@ export class AdminController {
   @Get('users')
   @ApiOperation({ summary: 'List all users for administration' })
   @ApiOkResponse({ type: UsersListResponseDto })
-  users(@Query() query: UserQueryDto) {
+  users(@Query() query: AdminUserQueryDto) {
     return this.admin.users(query);
   }
 

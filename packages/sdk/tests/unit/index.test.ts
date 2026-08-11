@@ -43,7 +43,13 @@ describe('@reviewsha/sdk public API', () => {
     await sdk.chat.getMessages('session-id');
     await sdk.chat.stream('session-id', { message: 'Hello' }, () => undefined);
     await sdk.admin.queueOverview();
-    await sdk.admin.users({ page: 2, limit: 20, search: 'admin' });
+    await sdk.admin.users({
+      page: 2,
+      limit: 20,
+      search: 'admin',
+      role: 'ADMIN',
+      isActive: false,
+    });
     await sdk.admin.userDetails('user-id');
     await sdk.admin.updateUser('user-id', { isActive: false });
     await sdk.admin.projects({ page: 2, limit: 20, search: 'reviewsha' });
@@ -63,7 +69,7 @@ describe('@reviewsha/sdk public API', () => {
     );
     expect(get).toHaveBeenCalledWith('/admin/queues');
     expect(get).toHaveBeenCalledWith('/admin/users', {
-      params: { page: 2, limit: 20, search: 'admin' },
+      params: { page: 2, limit: 20, search: 'admin', role: 'ADMIN', isActive: false },
     });
     expect(get).toHaveBeenCalledWith('/admin/users/user-id');
     expect(patch).toHaveBeenCalledWith('/admin/users/user-id', { isActive: false });

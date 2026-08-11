@@ -6,7 +6,7 @@ import { QUEUE_NAME_LIST, type QueueJobStatus, type QueueName } from '../queue/q
 import { ProjectFilterDto } from '../projects/dto/project-filter.dto';
 import { ProjectsListResponseDto } from '../projects/dto/project-response.dto';
 import { ProjectMapper } from '../projects/mappers/project.mapper';
-import { UserQueryDto } from '../users/dto/user-query.dto';
+import { AdminUserQueryDto } from './dto/admin-user-query.dto';
 import { UsersListResponseDto, UserResponseDto } from '../users/dto/user-response.dto';
 import { UserMapper } from '../users/mappers/user.mapper';
 import { AdminUpdateUserDto } from './dto/admin-response.dto';
@@ -57,11 +57,13 @@ export class AdminService {
     };
   }
 
-  async users(query: UserQueryDto): Promise<UsersListResponseDto> {
+  async users(query: AdminUserQueryDto): Promise<UsersListResponseDto> {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(100, Math.max(1, Number(query.limit) || 20));
     const where: Prisma.UserWhereInput = {
       deletedAt: null,
+      ...(query.role ? { role: query.role } : {}),
+      ...(query.isActive === undefined ? {} : { isActive: query.isActive }),
       ...(query.search?.trim()
         ? {
             OR: [

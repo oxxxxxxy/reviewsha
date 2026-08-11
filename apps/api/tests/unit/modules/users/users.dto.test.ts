@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { CreateUserDto } from '../../../../src/modules/users/dto/create-user.dto';
 import { UpdateUserDto } from '../../../../src/modules/users/dto/update-user.dto';
 import { UserQueryDto } from '../../../../src/modules/users/dto/user-query.dto';
+import { AdminUserQueryDto } from '../../../../src/modules/admin/dto/admin-user-query.dto';
 
 describe('Users DTO validation', () => {
   it('accepts a valid CreateUserDto', async () => {
@@ -63,6 +64,17 @@ describe('Users DTO validation', () => {
     const dto = plainToInstance(UserQueryDto, { sort: 'passwordHash' });
 
     expect(await validate(dto)).not.toHaveLength(0);
+  });
+
+  it('transforms and validates administrative role/status filters', async () => {
+    const dto = plainToInstance(AdminUserQueryDto, {
+      role: 'ADMIN',
+      isActive: 'false',
+    });
+
+    await expect(validate(dto)).resolves.toHaveLength(0);
+    expect(dto.role).toBe('ADMIN');
+    expect(dto.isActive).toBe(false);
   });
 
   it('accepts valid UpdateUserDto', async () => {

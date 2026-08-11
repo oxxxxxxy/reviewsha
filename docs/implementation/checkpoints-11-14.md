@@ -87,8 +87,10 @@ yarn format:check --ignore-unknown
 ## 13.1 / 13.2 — Admin Core и Administration
 
 Admin app использует RBAC-protected API, overview, dedicated users/projects
-endpoints, server-side search/pagination, details pages and explicit role/status
-mutations. Queues, logs, AI usage и statistics остаются backend-owned
+endpoints, server-side search/pagination, role/status filters, details pages and
+explicit role/status mutations. Users and projects tables expose the
+administrative identifiers/status/aggregate fields needed for triage. Queues,
+logs, AI usage и statistics остаются backend-owned
 operational APIs. Операционные E2E/security IDOR matrix и manual QA остаются
 отдельными acceptance-задачами.
 
