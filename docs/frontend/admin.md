@@ -22,6 +22,8 @@ Settings.
 environment variables и без доступа браузера к Redis/BullMQ:
 
 - provider и gateway base URL;
+- отдельный browser URL для открытия OmniRoute dashboard (в Kubernetes он не
+  должен быть внутренним DNS-именем Service);
 - API key с маскированием в ответах и шифрованием при хранении;
 - выбор модели из каталога OmniRoute или ручной ввод model id;
 - `maxTokens`, `temperature` и request timeout;

@@ -1540,6 +1540,8 @@ export interface components {
             provider: string;
             /** @example http://localhost:20128/v1 */
             baseUrl: string;
+            /** @example http://localhost:20128 */
+            dashboardUrl: string;
             /** @example auto/best-coding */
             model: string;
             /** @example true */

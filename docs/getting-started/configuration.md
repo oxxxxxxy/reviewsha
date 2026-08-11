@@ -46,6 +46,7 @@ JWT, internal API key и MinIO credentials.
 | `AI_MAX_CONCURRENCY` | provider concurrency | `3` |
 | `AI_DAILY_REQUEST_LIMIT` | daily quota | `500` |
 | `AI_INPUT_MAX_TOKENS` | input budget | `12000` |
+| `OMNIROUTE_DASHBOARD_URL` | URL OmniRoute, доступный браузеру Admin | `http://localhost:20128` locally |
 
 ## Web и Admin
 

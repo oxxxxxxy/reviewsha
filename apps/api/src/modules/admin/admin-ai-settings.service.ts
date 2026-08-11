@@ -145,6 +145,7 @@ export class AdminAiSettingsService {
     return {
       provider: settings.provider,
       baseUrl: settings.baseUrl,
+      dashboardUrl: process.env.OMNIROUTE_DASHBOARD_URL ?? this.dashboardUrl(settings.baseUrl),
       model: settings.model,
       apiKeyConfigured: Boolean(settings.apiKey),
       apiKeyMasked: settings.apiKey ? this.mask(settings.apiKey) : null,
@@ -161,6 +162,15 @@ export class AdminAiSettingsService {
   private mask(value: string): string {
     if (value.length <= 8) return '••••••••';
     return `${value.slice(0, 4)}••••••••${value.slice(-4)}`;
+  }
+
+  private dashboardUrl(baseUrl: string): string {
+    try {
+      const url = new URL(baseUrl);
+      return `${url.origin}`;
+    } catch {
+      return baseUrl.replace(/\/v1\/?$/u, '');
+    }
   }
 
   private encryptionKey(): string {

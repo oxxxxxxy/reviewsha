@@ -33,6 +33,7 @@ describe('AdminRouter', () => {
     vi.spyOn(adminSdk.admin, 'aiSettings').mockResolvedValue({
       provider: 'deepseek',
       baseUrl: 'http://localhost:20128/v1',
+      dashboardUrl: 'http://localhost:20128',
       model: 'auto/best-coding',
       apiKeyConfigured: true,
       apiKeyMasked: 'sk-••••••••1234',

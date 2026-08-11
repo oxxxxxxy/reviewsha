@@ -52,6 +52,7 @@ describe('AdminAiSettingsService', () => {
 
     expect(result).toMatchObject({
       provider: 'omniroute',
+      dashboardUrl: 'http://localhost:20128',
       model: 'auto/best-coding',
       apiKeyConfigured: true,
       apiKeyMasked: 'sk-t••••••••1234',

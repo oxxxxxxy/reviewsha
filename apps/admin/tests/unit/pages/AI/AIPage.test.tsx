@@ -8,6 +8,7 @@ import { renderWithAdminProviders } from '../../../../src/test/render';
 const settings = {
   provider: 'omniroute',
   baseUrl: 'http://localhost:20128/v1',
+  dashboardUrl: 'http://localhost:20128',
   model: 'auto/best-coding',
   apiKeyConfigured: true,
   apiKeyMasked: 'sk-t••••••••1234',

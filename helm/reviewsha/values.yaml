@@ -49,6 +49,7 @@ env:
   REDIS_HOST: redis
   REDIS_PORT: '6379'
   MINIO_ENDPOINT: ''
+  OMNIROUTE_DASHBOARD_URL: http://localhost:20128
 
 secretName: reviewsha-secrets
 secrets:

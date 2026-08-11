@@ -36,6 +36,7 @@ export function AIPage() {
   const [projectId, setProjectId] = useState('');
   const [connectionMessage, setConnectionMessage] = useState<string>();
   const [connectionOk, setConnectionOk] = useState<boolean>();
+  const [dashboardUrl, setDashboardUrl] = useState('');
   const settings = useQuery({
     queryKey: ['admin', 'ai-settings'],
     queryFn: () => adminSdk.admin.aiSettings(),
@@ -71,6 +72,7 @@ export function AIPage() {
         temperature: data.temperature,
         timeoutMs: data.timeoutMs,
       }));
+      setDashboardUrl(data.dashboardUrl);
       await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
     },
   });
@@ -99,6 +101,7 @@ export function AIPage() {
       temperature: settings.data.temperature,
       timeoutMs: settings.data.timeoutMs,
     }));
+    setDashboardUrl(settings.data.dashboardUrl);
   }, [settings.data]);
 
   if (settings.isLoading || usage.isLoading)
@@ -136,7 +139,7 @@ export function AIPage() {
         </div>
         <a
           className="button-link"
-          href={form.baseUrl.replace(/\/v1\/?$/u, '')}
+          href={dashboardUrl || form.baseUrl.replace(/\/v1\/?$/u, '')}
           target="_blank"
           rel="noreferrer"
         >

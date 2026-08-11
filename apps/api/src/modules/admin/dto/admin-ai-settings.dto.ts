@@ -15,6 +15,7 @@ import {
 export class AdminAiSettingsResponseDto {
   @ApiProperty({ example: 'deepseek' }) provider!: string;
   @ApiProperty({ example: 'http://localhost:20128/v1' }) baseUrl!: string;
+  @ApiProperty({ example: 'http://localhost:20128' }) dashboardUrl!: string;
   @ApiProperty({ example: 'auto/best-coding' }) model!: string;
   @ApiProperty({ example: true }) apiKeyConfigured!: boolean;
   @ApiPropertyOptional({ example: 'sk-••••••••7b2e', nullable: true }) apiKeyMasked!: string | null;
