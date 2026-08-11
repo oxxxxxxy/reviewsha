@@ -424,6 +424,273 @@ a {
   gap: 1rem;
   margin-top: 1rem;
 }
+.report-detail-heading {
+  align-items: center;
+}
+.report-score-hero {
+  display: grid;
+  min-width: 7rem;
+  justify-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+  padding: 0.8rem 1rem;
+}
+.report-score-hero span,
+.report-score-hero small {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
+.report-score-hero strong {
+  color: var(--color-primary);
+  font-size: 2.4rem;
+  line-height: 1;
+}
+.report-summary-card,
+.file-review-section,
+.findings-section {
+  display: grid;
+  gap: 1.2rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-surface);
+  padding: 1.25rem;
+}
+.report-summary-topline,
+.section-heading-row,
+.file-review-content-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.report-summary-topline h2,
+.section-heading-row h2 {
+  margin: 0.25rem 0 0;
+}
+.report-downloads {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+.report-downloads button {
+  padding: 0.55rem 0.7rem;
+  font-size: 0.8rem;
+}
+.report-summary-text {
+  max-width: 80ch;
+  color: var(--color-foreground);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.report-summary-text .markdown-content p:first-child {
+  margin-top: 0;
+}
+.report-severity-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+.report-severity {
+  display: grid;
+  gap: 0.2rem;
+  border-left: 3px solid var(--color-border);
+  padding: 0.65rem 0.8rem;
+}
+.report-severity strong {
+  font-size: 1.35rem;
+}
+.report-severity span {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.report-severity.critical {
+  border-color: #fb7185;
+}
+.report-severity.high {
+  border-color: #f97316;
+}
+.report-severity.medium {
+  border-color: #facc15;
+}
+.report-severity.low {
+  border-color: #4ade80;
+}
+.file-review-section,
+.findings-section {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.file-review-explorer {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.35fr) minmax(0, 1fr);
+  min-height: 300px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+.file-review-sidebar {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  max-height: 460px;
+  overflow-y: auto;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  padding: 0.6rem;
+}
+.file-review-nav-item {
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-foreground);
+  padding: 0.7rem 0.75rem;
+  text-align: left;
+}
+.file-review-nav-item:hover,
+.file-review-nav-item.is-active {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+.file-review-nav-item code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-review-nav-item span,
+.file-review-content-heading > span {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.file-review-content {
+  min-width: 0;
+  padding: 1.25rem;
+}
+.file-review-content-heading h3 {
+  max-width: 60ch;
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1rem;
+}
+.file-review-summary {
+  max-width: 78ch;
+  margin: 1.25rem 0;
+  line-height: 1.7;
+}
+.file-review-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1rem;
+}
+.file-review-columns h4 {
+  margin: 0 0 0.6rem;
+}
+.file-review-columns ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--color-muted);
+  line-height: 1.5;
+}
+.file-ok {
+  color: #4ade80;
+}
+.file-issues {
+  color: #fb7185;
+}
+.findings-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 0.75rem;
+}
+.findings-toolbar label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.finding-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.finding-item {
+  display: grid;
+  gap: 0.7rem;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  padding: 1rem 1.1rem;
+}
+.finding-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.finding-item-header code {
+  overflow: hidden;
+  color: var(--color-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.finding-severity {
+  border-radius: 999px;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+.finding-severity.critical {
+  background: rgb(251 113 133 / 0.15);
+  color: #fb7185;
+}
+.finding-severity.high {
+  background: rgb(249 115 22 / 0.15);
+  color: #fb923c;
+}
+.finding-severity.medium {
+  background: rgb(250 204 21 / 0.15);
+  color: #facc15;
+}
+.finding-severity.low {
+  background: rgb(74 222 128 / 0.15);
+  color: #4ade80;
+}
+.finding-item h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.finding-description,
+.finding-recommendation {
+  max-width: 90ch;
+  color: var(--color-muted);
+  line-height: 1.6;
+}
+.finding-description p,
+.finding-recommendation p {
+  margin: 0;
+}
+.finding-recommendation {
+  border-left: 3px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  padding: 0.7rem 0.85rem;
+}
+.finding-recommendation strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--color-foreground);
+}
 .settings-page {
   display: grid;
   gap: 1rem;
@@ -1095,6 +1362,34 @@ input[type='file'] {
   .reports-compare-metrics {
     justify-content: space-between;
     width: 100%;
+  }
+  .report-detail-heading,
+  .report-summary-topline,
+  .section-heading-row,
+  .file-review-content-heading {
+    flex-direction: column;
+  }
+  .report-score-hero {
+    align-self: flex-start;
+  }
+  .report-severity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .file-review-explorer {
+    grid-template-columns: 1fr;
+  }
+  .file-review-sidebar {
+    max-height: 190px;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .file-review-columns,
+  .findings-toolbar {
+    grid-template-columns: 1fr;
+  }
+  .finding-item-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
   .chat-layout {
     grid-template-columns: 1fr;

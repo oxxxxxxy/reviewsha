@@ -372,86 +372,190 @@ function ReportDetails({ reportId }: { reportId: string }) {
     return matchesSeverity && haystack.includes(findingSearch.toLowerCase());
   });
   const fileReviews = (item as unknown as ReportWithFiles).files ?? [];
+  const selectedFile = fileReviews.find((file) => file.path === openFile) ?? fileReviews[0];
+  const severityCounts = item.issues.reduce<Record<string, number>>((counts, issue) => {
+    counts[issue.severity] = (counts[issue.severity] ?? 0) + 1;
+    return counts;
+  }, {});
   return (
-    <section className="page">
-      <h1>Reports</h1>
-      <Card>
-        <h2>Score: {item.score ?? '—'}</h2>
-        <Markdown>{item.summary ?? 'No summary available.'}</Markdown>
+    <section className="page report-detail-page">
+      <div className="page-heading report-detail-heading">
+        <div>
+          <button className="reports-back" type="button" onClick={() => window.history.back()}>
+            ← Back to reports
+          </button>
+          <span className="eyebrow">Analysis report</span>
+          <h1>Code review results</h1>
+          <p className="muted">
+            A structured view of the project score, file reviews and findings.
+          </p>
+        </div>
+        <div className="report-score-hero">
+          <span>Score</span>
+          <strong>{item.score ?? '—'}</strong>
+          <small>out of 100</small>
+        </div>
+      </div>
+      <Card className="report-summary-card">
+        <div className="report-summary-topline">
+          <div>
+            <span className="eyebrow">Executive summary</span>
+            <h2>What matters most</h2>
+          </div>
+          <div className="report-downloads">
+            <Button variant="secondary" onClick={() => void download('md')}>
+              Markdown
+            </Button>
+            <Button variant="secondary" onClick={() => void download('pdf')}>
+              PDF
+            </Button>
+            <Button variant="secondary" onClick={() => void download('json')}>
+              JSON
+            </Button>
+          </div>
+        </div>
+        <div className="report-summary-text">
+          <Markdown>{item.summary ?? 'No summary available.'}</Markdown>
+        </div>
+        <div className="report-severity-grid" aria-label="Finding summary">
+          {(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const).map((level) => (
+            <div className={`report-severity ${level.toLowerCase()}`} key={level}>
+              <strong>{severityCounts[level] ?? 0}</strong>
+              <span>{level}</span>
+            </div>
+          ))}
+        </div>
         {downloadError ? <p role="alert">{downloadError}</p> : null}
-        <Button onClick={() => void download('md')}>Markdown</Button>{' '}
-        <Button onClick={() => void download('pdf')}>PDF</Button>{' '}
-        <Button onClick={() => void download('json')}>JSON</Button>
       </Card>
       {fileReviews.length ? (
-        <>
-          <h2>File-by-file review</h2>
-          <div className="file-review-grid">
-            {fileReviews.map((file) => (
-              <Card key={file.path}>
+        <section className="file-review-section" aria-labelledby="file-review-title">
+          <div className="section-heading-row">
+            <div>
+              <span className="eyebrow">Deep dive</span>
+              <h2 id="file-review-title">Review by file</h2>
+              <p className="muted">Select a file to read its review without losing your place.</p>
+            </div>
+            <span className="reports-count">{fileReviews.length} files</span>
+          </div>
+          <div className="file-review-explorer">
+            <nav className="file-review-sidebar" aria-label="Reviewed files">
+              {fileReviews.map((file) => (
                 <button
-                  className="file-review-toggle"
+                  className={`file-review-nav-item ${selectedFile?.path === file.path ? 'is-active' : ''}`}
                   type="button"
-                  onClick={() => setOpenFile(openFile === file.path ? undefined : file.path)}
+                  key={file.path}
+                  onClick={() => setOpenFile(file.path)}
                 >
                   <code>{file.path}</code>
                   <span className={file.issueCount ? 'file-issues' : 'file-ok'}>
-                    {file.issueCount ? `${file.issueCount} issue(s)` : 'Reviewed · no findings'}
+                    {file.issueCount ? `${file.issueCount} findings` : 'No findings'}
                   </span>
                 </button>
-                {openFile === file.path ? (
-                  <div className="file-review-details">
-                    <Markdown>{file.summary}</Markdown>
-                    <p>
-                      <strong>Strengths:</strong> {file.strengths.join(' · ') || '—'}
-                    </p>
-                    <p>
-                      <strong>Risks:</strong> {file.weaknesses.join(' · ') || '—'}
-                    </p>
+              ))}
+            </nav>
+            {selectedFile ? (
+              <article className="file-review-content">
+                <div className="file-review-content-heading">
+                  <div>
+                    <span className="eyebrow">Selected file</span>
+                    <h3>{selectedFile.path}</h3>
                   </div>
-                ) : null}
-              </Card>
+                  <span className={selectedFile.issueCount ? 'file-issues' : 'file-ok'}>
+                    {selectedFile.issueCount
+                      ? `${selectedFile.issueCount} findings`
+                      : 'Reviewed · no findings'}
+                  </span>
+                </div>
+                <div className="file-review-summary">
+                  <Markdown>{selectedFile.summary || 'No file summary available.'}</Markdown>
+                </div>
+                <div className="file-review-columns">
+                  <div>
+                    <h4>Strengths</h4>
+                    {selectedFile.strengths.length ? (
+                      <ul>
+                        {selectedFile.strengths.map((value) => (
+                          <li key={value}>{value}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="muted">No strengths noted.</p>
+                    )}
+                  </div>
+                  <div>
+                    <h4>Risks and improvements</h4>
+                    {selectedFile.weaknesses.length ? (
+                      <ul>
+                        {selectedFile.weaknesses.map((value) => (
+                          <li key={value}>{value}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="muted">No additional risks noted.</p>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+      <section className="findings-section" aria-labelledby="findings-title">
+        <div className="section-heading-row">
+          <div>
+            <span className="eyebrow">Action items</span>
+            <h2 id="findings-title">Findings</h2>
+            <p className="muted">Prioritized issues with a location and recommended fix.</p>
+          </div>
+          <span className="reports-count">{findings.length} shown</span>
+        </div>
+        <div className="findings-toolbar">
+          <Input
+            value={findingSearch}
+            onChange={(event) => setFindingSearch(event.target.value)}
+            placeholder="Search title, description or file path"
+            aria-label="Search findings"
+          />
+          <label>
+            Severity
+            <select value={severity} onChange={(event) => setSeverity(event.target.value)}>
+              <option value="ALL">All severities</option>
+              {[...new Set(item.issues.map((issue) => issue.severity))].map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {findings.length ? (
+          <div className="finding-list">
+            {findings.map((issue) => (
+              <article className="finding-item" key={issue.id}>
+                <div className="finding-item-header">
+                  <span className={`finding-severity ${issue.severity.toLowerCase()}`}>
+                    {issue.severity}
+                  </span>
+                  <code>
+                    {issue.filePath}
+                    {issue.line ? `:${issue.line}` : ''}
+                  </code>
+                </div>
+                <h3>{issue.title}</h3>
+                <div className="finding-description">
+                  <Markdown>{issue.description}</Markdown>
+                </div>
+                <div className="finding-recommendation">
+                  <strong>Recommended fix</strong>
+                  <Markdown>{issue.recommendation ?? 'No recommendation.'}</Markdown>
+                </div>
+              </article>
             ))}
           </div>
-        </>
-      ) : null}
-      <h2>Findings</h2>
-      <div className="form">
-        <Input
-          value={findingSearch}
-          onChange={(event) => setFindingSearch(event.target.value)}
-          placeholder="Search findings"
-          aria-label="Search findings"
-        />
-        <label>
-          Severity
-          <select value={severity} onChange={(event) => setSeverity(event.target.value)}>
-            <option value="ALL">All</option>
-            {[...new Set(item.issues.map((issue) => issue.severity))].map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      {findings.length ? (
-        findings.map((issue) => (
-          <Card key={issue.id}>
-            <strong>
-              {issue.severity}: {issue.title}
-            </strong>
-            <Markdown>{issue.description}</Markdown>
-            <p>
-              {issue.filePath}
-              {issue.line ? `:${issue.line}` : ''}
-            </p>
-            <Markdown>{issue.recommendation ?? 'No recommendation.'}</Markdown>
-          </Card>
-        ))
-      ) : (
-        <EmptyState title={item.issues.length ? 'No matching findings' : 'No findings'} />
-      )}
+        ) : (
+          <EmptyState title={item.issues.length ? 'No matching findings' : 'No findings'} />
+        )}
+      </section>
     </section>
   );
 }
