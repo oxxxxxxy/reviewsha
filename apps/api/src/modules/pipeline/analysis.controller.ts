@@ -1,4 +1,13 @@
-import { Controller, Get, Param, ParseIntPipe, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Inject,
+  Param,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  Post,
+  Query,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
@@ -19,7 +28,11 @@ import { AnalysisService } from './analysis.service';
 @Roles(...AUTHORIZATION_POLICIES.projects.readOwnOrAdmin.roles)
 @Controller('projects/:projectId/analyses')
 export class AnalysisController {
-  constructor(private readonly analyses: AnalysisService) {}
+  private readonly analyses: AnalysisService;
+
+  constructor(@Inject(AnalysisService) analyses: AnalysisService) {
+    this.analyses = analyses;
+  }
 
   @Get()
   @ApiOperation({ summary: 'List project analyses' })

@@ -7,11 +7,14 @@ import {
   Badge,
   Button,
   Card,
+  Checkbox,
   EmptyState,
+  Header,
   Input,
   Modal,
   Pagination,
   Select,
+  Sidebar,
   Table,
   Textarea,
   Tooltip,
@@ -142,5 +145,18 @@ describe('@reviewsha/ui components', () => {
 
   it('exports theme tokens', () => {
     expect(colors.primary).toBe('#2563eb');
+  });
+
+  it('renders accessible checkbox and layout primitives', () => {
+    render(
+      <>
+        <Checkbox label="Remember me" />
+        <Header aria-label="Header">Header</Header>
+        <Sidebar aria-label="Sidebar">Sidebar</Sidebar>
+      </>,
+    );
+    expect(screen.getByRole('checkbox', { name: 'Remember me' })).toBeInTheDocument();
+    expect(screen.getByRole('banner', { name: 'Header' })).toHaveTextContent('Header');
+    expect(screen.getByRole('complementary', { name: 'Sidebar' })).toHaveTextContent('Sidebar');
   });
 });

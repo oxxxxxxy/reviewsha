@@ -1,6 +1,7 @@
 import type { Job } from 'bullmq';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import type { WorkerDatabaseService } from '../database/worker-database.service';
 
 export type ProcessingPayload = {
   uploadId: string;
@@ -20,6 +21,16 @@ export function payloadOf(job: Job): ProcessingPayload {
     ...payload,
     pipelineId: payload.pipelineId ?? String(job.id ?? 'unknown'),
   } as ProcessingPayload;
+}
+
+export async function assertPipelineActive(
+  db: WorkerDatabaseService | undefined,
+  pipelineId: string | undefined,
+): Promise<void> {
+  if (!db || !pipelineId) return;
+  const scan = await db.scan.findUnique({ where: { id: pipelineId }, select: { status: true } });
+  if (!scan) throw new Error(`Analysis not found: ${pipelineId}`);
+  if (scan.status === 'CANCELLED') throw new Error('PIPELINE_CANCELLED');
 }
 
 export async function saveJson(path: string, value: unknown): Promise<void> {

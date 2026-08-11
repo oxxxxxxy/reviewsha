@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { rm } from 'node:fs/promises';
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Role, UploadStatus } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
 import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
@@ -14,6 +14,7 @@ import { UploadEvents, UPLOAD_EVENTS } from '../events/upload.events';
 import { ZipValidator } from '../validators/zip.validator';
 import { UploadFailedException } from '../exceptions/upload.exceptions';
 import { UploadListResponseDto, UploadResponseDto } from '../dto/upload-response.dto';
+import type { GithubImportDto } from '../dto/github-import.dto';
 
 export interface UploadFileInput {
   readonly originalname: string;
@@ -21,17 +22,21 @@ export interface UploadFileInput {
   readonly buffer?: Buffer;
   readonly path?: string;
   readonly size?: number;
+  readonly sourceType?: string;
+  readonly sourceCommit?: string;
+  readonly sourceRepo?: string;
+  readonly suppressPipeline?: boolean;
 }
 
 @Injectable()
 export class UploadsService {
   constructor(
-    private readonly projects: ProjectRepository,
-    private readonly uploads: UploadedFileRepository,
-    private readonly storage: StorageService,
-    private readonly validator: ZipValidator,
-    private readonly events: UploadEvents,
-    private readonly logger: ApiLoggerService,
+    @Inject(ProjectRepository) private readonly projects: ProjectRepository,
+    @Inject(UploadedFileRepository) private readonly uploads: UploadedFileRepository,
+    @Inject(StorageService) private readonly storage: StorageService,
+    @Inject(ZipValidator) private readonly validator: ZipValidator,
+    @Inject(UploadEvents) private readonly events: UploadEvents,
+    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
   ) {}
 
   async create(
@@ -59,7 +64,8 @@ export class UploadsService {
     }
 
     const id = randomUUID();
-    const objectKey = `users/${user.id}/projects/${projectId}/uploads/${id}.zip`;
+    const extension = file.originalname.match(/\.[a-z0-9.]+$/i)?.[0]?.toLowerCase() ?? '.bin';
+    const objectKey = `users/${user.id}/projects/${projectId}/uploads/${id}${extension}`;
     const upload = await this.uploads.createNextVersion(projectId, {
       id,
       project: { connect: { id: projectId } },
@@ -71,6 +77,9 @@ export class UploadsService {
       mimeType: file.mimetype,
       checksum: 'pending',
       status: UploadStatus.PENDING,
+      sourceType: file.sourceType ?? 'UPLOAD',
+      sourceCommit: file.sourceCommit,
+      sourceRepo: file.sourceRepo,
     });
     const version = upload.version;
     this.events.publish(UPLOAD_EVENTS.created, this.event(upload));
@@ -103,7 +112,8 @@ export class UploadsService {
       });
       objectStored = true;
       const completed = await this.uploads.update(id, { checksum, status: UploadStatus.COMPLETED });
-      this.events.publish(UPLOAD_EVENTS.completed, this.event(completed));
+      if (!file.suppressPipeline)
+        this.events.publish(UPLOAD_EVENTS.completed, this.event(completed));
       this.logger.log(`Upload completed: ${id} version=${version}`, 'UploadsService');
       return UploadMapper.toResponse(completed);
     } catch (error) {
@@ -139,6 +149,74 @@ export class UploadsService {
       throw new ForbiddenException('You cannot access uploads for this project');
     }
     return UploadMapper.toListResponse(await this.uploads.findByProject(projectId));
+  }
+
+  async remove(user: AuthenticatedUser, projectId: string, uploadId: string): Promise<void> {
+    const project = await this.projects.findActiveById(projectId);
+    if (!project) throw new NotFoundException('Project not found');
+    if (user.role !== Role.ADMIN && user.role !== Role.SUPER_ADMIN && project.ownerId !== user.id)
+      throw new ForbiddenException('You cannot modify uploads for this project');
+    const upload = await this.uploads.findById(uploadId);
+    if (!upload || upload.projectId !== projectId) throw new NotFoundException('Version not found');
+    const activeScan = await this.uploads.hasActiveScan(uploadId);
+    if (activeScan)
+      throw new ForbiddenException('Cannot delete a version while it is being analyzed');
+    if (upload.sourceType === 'GITHUB')
+      throw new ForbiddenException('GitHub commit versions cannot be deleted');
+    await this.storage.delete(upload.bucket as 'projects', upload.objectKey).catch(() => undefined);
+    await this.uploads.delete(upload.id);
+  }
+
+  async importGithub(
+    user: AuthenticatedUser,
+    projectId: string,
+    dto: GithubImportDto,
+  ): Promise<UploadListResponseDto> {
+    const project = await this.projects.findActiveById(projectId);
+    if (!project) throw new NotFoundException('Project not found');
+    if (project.ownerId !== user.id && user.role !== Role.ADMIN && user.role !== Role.SUPER_ADMIN)
+      throw new ForbiddenException('You cannot connect GitHub to this project');
+    const parsed = new URL(dto.url);
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    if (parsed.hostname !== 'github.com' || parts.length < 2)
+      throw new NotFoundException('Invalid GitHub repository URL');
+    const owner = parts[0]!;
+    const repo = parts[1]!.replace(/\.git$/, '');
+    const branch = dto.branch ?? 'HEAD';
+    const response = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&per_page=20`,
+      {
+        headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'Reviewsha' },
+      },
+    );
+    if (!response.ok) throw new NotFoundException('Unable to load GitHub commits');
+    const commits = (await response.json()) as Array<{
+      sha: string;
+      commit?: { message?: string };
+      zipball_url?: string;
+    }>;
+    for (const commit of commits.reverse()) {
+      if (!commit.sha || (await this.uploads.findBySourceCommit(projectId, commit.sha))) continue;
+      const archive = await fetch(
+        commit.zipball_url ?? `https://api.github.com/repos/${owner}/${repo}/zipball/${commit.sha}`,
+        {
+          headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'Reviewsha' },
+        },
+      );
+      if (!archive.ok) continue;
+      const buffer = Buffer.from(await archive.arrayBuffer());
+      await this.create(user, projectId, {
+        originalname: `${repo}-${commit.sha.slice(0, 8)}.zip`,
+        mimetype: 'application/zip',
+        buffer,
+        size: buffer.length,
+        sourceType: 'GITHUB',
+        sourceCommit: commit.sha,
+        sourceRepo: `${owner}/${repo}`,
+        suppressPipeline: true,
+      });
+    }
+    return this.list(user, projectId);
   }
 
   private event(upload: {

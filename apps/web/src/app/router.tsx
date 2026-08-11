@@ -9,6 +9,7 @@ import { NotFoundPage } from '../pages/NotFound/NotFoundPage';
 import { ProjectsPage } from '../pages/Projects/ProjectsPage';
 import { ReportsPage } from '../pages/Reports/ReportsPage';
 import { SettingsPage } from '../pages/Settings/SettingsPage';
+import { ProjectSettingsPage } from '../pages/Projects/ProjectSettingsPage';
 import { RegisterPage } from '../pages/Register/RegisterPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
@@ -26,8 +27,10 @@ export function AppRouter() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:id" element={<ProjectsPage />} />
+          <Route path="/projects/:id/settings" element={<ProjectSettingsPage />} />
           <Route path="/projects/:id/chat" element={<ChatPage />} />
           <Route path="/projects/:id/reports" element={<ReportsPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
           <Route path="/reports/:id" element={<ReportsPage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/settings" element={<SettingsPage />} />

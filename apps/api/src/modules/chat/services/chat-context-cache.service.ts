@@ -5,10 +5,12 @@ import type { ChatContextSnapshot } from '../interfaces/chat.interfaces';
 
 @Injectable()
 export class ChatContextCacheService implements OnModuleDestroy {
+  private readonly config: ConfigService;
   private readonly memory = new Map<string, ChatContextSnapshot>();
   private readonly redis: Redis;
 
-  constructor(@Inject(ConfigService) private readonly config: ConfigService) {
+  constructor(@Inject(ConfigService) config: ConfigService) {
+    this.config = config;
     this.redis = new Redis(config.getOrThrow<string>('redis.url'), {
       lazyConnect: true,
       maxRetriesPerRequest: 1,

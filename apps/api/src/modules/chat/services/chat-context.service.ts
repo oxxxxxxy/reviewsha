@@ -8,12 +8,22 @@ import { ChatContextCacheService } from './chat-context-cache.service';
 
 @Injectable()
 export class ChatContextService {
+  private readonly repository: ChatRepository;
+  private readonly config: ConfigService;
+  private readonly secrets: ChatSecretFilterService;
+  private readonly cache: ChatContextCacheService;
+
   constructor(
-    @Inject(ChatRepository) private readonly repository: ChatRepository,
-    @Inject(ConfigService) private readonly config: ConfigService,
-    @Inject(ChatSecretFilterService) private readonly secrets: ChatSecretFilterService,
-    @Inject(ChatContextCacheService) private readonly cache: ChatContextCacheService,
-  ) {}
+    @Inject(ChatRepository) repository: ChatRepository,
+    @Inject(ConfigService) config: ConfigService,
+    @Inject(ChatSecretFilterService) secrets: ChatSecretFilterService,
+    @Inject(ChatContextCacheService) cache: ChatContextCacheService,
+  ) {
+    this.repository = repository;
+    this.config = config;
+    this.secrets = secrets;
+    this.cache = cache;
+  }
 
   async build(projectId: string, question = ''): Promise<ChatContextSnapshot> {
     const project = await this.repository.latestContext(projectId);
@@ -22,7 +32,7 @@ export class ChatContextService {
     if (!scan?.report) {
       throw new PreconditionFailedException('Project has no completed analysis');
     }
-    const terms = question.toLowerCase().match(/[\p{L}\p{N}_.\/-]{3,}/gu) ?? [];
+    const terms: string[] = question.toLowerCase().match(/[\p{L}\p{N}_.\/-]{3,}/gu) ?? [];
     const questionKey = createHash('sha256')
       .update(terms.sort().join('|'))
       .digest('hex')
@@ -31,6 +41,30 @@ export class ChatContextService {
     const cached = await this.cache.get(cacheKey);
     if (cached) return cached;
 
+    const rawChunks = Array.isArray(scan.analysisContext?.chunks)
+      ? (scan.analysisContext.chunks as Array<{
+          path?: string;
+          content?: string;
+          tokens?: number;
+          filePaths?: string[];
+        }>)
+      : [];
+    const relatedChunks = [...rawChunks]
+      .map((chunk) => ({
+        chunk,
+        rank: (chunk.path ?? '')
+          .toLowerCase()
+          .split(/[^\p{L}\p{N}_.\/-]+/u)
+          .reduce((score, part) => score + (terms.includes(part) ? 3 : 0), 0),
+      }))
+      .sort((left, right) => right.rank - left.rank)
+      .map(({ chunk }) => chunk)
+      .slice(0, 12);
+    const fileContext = relatedChunks.map((chunk) => ({
+      path: chunk.path,
+      files: chunk.filePaths ?? [chunk.path],
+      source: chunk.content,
+    }));
     const context = {
       project: {
         id: project.id,
@@ -55,6 +89,7 @@ export class ChatContextService {
         .sort((left, right) => this.relevance(right, terms) - this.relevance(left, terms))
         .map((finding) => finding.recommendation)
         .filter((value): value is string => Boolean(value)),
+      files: fileContext,
     };
     const maxTokens = this.config.get<number>('chat.contextMaxTokens', 8000);
     const text = this.fit(this.secrets.redact(JSON.stringify(context)), maxTokens);
@@ -62,6 +97,7 @@ export class ChatContextService {
       cacheKey: createHash('sha256').update(text).digest('hex'),
       text,
       tokens: Math.ceil(text.length / 4),
+      files: relatedChunks.flatMap((chunk) => chunk.filePaths ?? (chunk.path ? [chunk.path] : [])),
     };
     await this.cache.set(cacheKey, snapshot);
     return snapshot;

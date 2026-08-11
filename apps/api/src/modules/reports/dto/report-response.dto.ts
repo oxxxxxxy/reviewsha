@@ -18,6 +18,15 @@ export class ReportExportDto {
   @ApiProperty({ type: String, format: 'date-time' }) createdAt!: Date;
 }
 
+export class ReportFileDto {
+  @ApiProperty({ type: String }) path!: string;
+  @ApiProperty({ type: Number }) issueCount!: number;
+  @ApiProperty({ type: String }) status!: 'REVIEWED' | 'ISSUES_FOUND';
+  @ApiProperty({ type: String }) summary!: string;
+  @ApiProperty({ type: [String] }) strengths!: string[];
+  @ApiProperty({ type: [String] }) weaknesses!: string[];
+}
+
 export class ReportResponseDto {
   @ApiProperty({ type: String }) id!: string;
   @ApiProperty({ type: String }) scanId!: string;
@@ -31,6 +40,7 @@ export class ReportResponseDto {
   @ApiProperty({ type: [ReportIssueDto] }) issues!: ReportIssueDto[];
   @ApiProperty({ type: [String] }) recommendations!: string[];
   @ApiProperty({ type: [ReportExportDto] }) exports!: ReportExportDto[];
+  @ApiProperty({ type: [ReportFileDto] }) files!: ReportFileDto[];
 }
 
 export class ReportsListMetaDto {

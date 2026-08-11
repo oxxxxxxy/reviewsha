@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import type { Job, JobsOptions, Queue } from 'bullmq';
@@ -39,8 +39,12 @@ export interface QueueJobSummary {
 }
 
 @Injectable()
-export class QueueService implements OnModuleDestroy {
+export class QueueService implements OnModuleInit, OnModuleDestroy {
   private readonly queues: QueueMap;
+  private readonly registry: QueueRegistry;
+  private readonly events: QueueEvents;
+  private readonly logger: ApiLoggerService;
+  private readonly config: ConfigService;
 
   constructor(
     @InjectQueue(QUEUE_NAMES.scan) scan: Queue<QueueJobData>,
@@ -50,10 +54,10 @@ export class QueueService implements OnModuleDestroy {
     @InjectQueue(QUEUE_NAMES.report) report: Queue<QueueJobData>,
     @InjectQueue(QUEUE_NAMES.notification) notification: Queue<QueueJobData>,
     @InjectQueue(QUEUE_NAMES.deadLetter) deadLetter: Queue<QueueJobData>,
-    private readonly registry: QueueRegistry,
-    private readonly events: QueueEvents,
-    private readonly logger: ApiLoggerService,
-    private readonly config: ConfigService,
+    registry: QueueRegistry,
+    events: QueueEvents,
+    logger: ApiLoggerService,
+    config: ConfigService,
   ) {
     this.queues = {
       [QUEUE_NAMES.scan]: scan,
@@ -64,6 +68,10 @@ export class QueueService implements OnModuleDestroy {
       [QUEUE_NAMES.notification]: notification,
       [QUEUE_NAMES.deadLetter]: deadLetter,
     };
+    this.registry = registry;
+    this.events = events ?? new QueueEvents();
+    this.logger = logger ?? new ApiLoggerService();
+    this.config = config;
   }
 
   async addJob(
@@ -76,7 +84,9 @@ export class QueueService implements OnModuleDestroy {
     const job = await this.queues[queueName].add(type, data, {
       ...DEFAULT_QUEUE_JOB_OPTIONS,
       ...options,
-      jobId: data.id,
+      // A caller may provide a deterministic id for an idempotent job. The
+      // envelope id remains random for ordinary jobs.
+      jobId: options.jobId ?? data.id,
     });
     this.events.publish(QUEUE_EVENTS.created, { queue: queueName, job: data });
     this.logger.log(`Queue job created: ${queueName}/${data.id}`, 'QueueService');
@@ -124,6 +134,21 @@ export class QueueService implements OnModuleDestroy {
 
   async removeJob(queueName: QueueName, id: string): Promise<void> {
     await this.queues[queueName].remove(id);
+  }
+
+  async cancelPipelineJobs(pipelineId: string): Promise<void> {
+    for (const queueName of this.registry.getAll()) {
+      const queue = this.queues[queueName];
+      const jobs = await queue.getJobs(['waiting', 'delayed', 'paused']);
+      await Promise.all(
+        jobs
+          .filter((job) => {
+            const data = job.data as { payload?: { pipelineId?: string } } | undefined;
+            return data?.payload?.pipelineId === pipelineId;
+          })
+          .map((job) => job.remove().catch(() => undefined)),
+      );
+    }
   }
 
   async retryJob(queueName: QueueName, id: string): Promise<void> {
@@ -190,6 +215,34 @@ export class QueueService implements OnModuleDestroy {
 
   getRedisConfig(): { url: string } {
     return { url: this.config.getOrThrow<string>('redis.url') };
+  }
+
+  /**
+   * BullMQ owns the ioredis clients internally.  In a local Redis restart
+   * ioredis can emit an asynchronous `error` event before BullMQ reconnects.
+   * Node treats an unhandled EventEmitter error as fatal, which used to take
+   * the whole API down and made the browser report a misleading CORS error.
+   * Attach a no-op listener to every queue client; BullMQ still performs its
+   * normal reconnect/error handling.
+   */
+  async onModuleInit(): Promise<void> {
+    await Promise.all(
+      Object.values(this.queues).map(async (queue) => {
+        try {
+          const client = await (
+            queue as Queue<QueueJobData> & {
+              client: Promise<{
+                on?: (event: string, handler: (...args: unknown[]) => void) => void;
+              }>;
+            }
+          ).client;
+          client?.on?.('error', () => undefined);
+        } catch {
+          // The first client connection is lazy; BullMQ will retry it when
+          // the queue is used.
+        }
+      }),
+    );
   }
 
   async onModuleDestroy(): Promise<void> {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { MessageRole, type ChatMessage, type ChatSession, type Prisma } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 
@@ -6,7 +6,7 @@ const sessionInclude = { _count: { select: { messages: true } } } as const;
 
 @Injectable()
 export class ChatRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   createSession(data: Prisma.ChatSessionCreateInput) {
     return this.prisma.chatSession.create({ data, include: sessionInclude });
@@ -77,6 +77,36 @@ export class ChatRepository {
     return this.prisma.chatMessage.create({ data });
   }
 
+  findUserMessageByIdempotencyKey(
+    sessionId: string,
+    userId: string,
+    idempotencyKey: string,
+  ): Promise<ChatMessage | null> {
+    return this.prisma.chatMessage.findFirst({
+      where: {
+        sessionId,
+        userId,
+        idempotencyKey,
+        role: MessageRole.USER,
+      },
+    });
+  }
+
+  findAssistantMessageByIdempotencyKey(
+    sessionId: string,
+    userId: string,
+    idempotencyKey: string,
+  ): Promise<ChatMessage | null> {
+    return this.prisma.chatMessage.findFirst({
+      where: {
+        sessionId,
+        idempotencyKey,
+        role: MessageRole.ASSISTANT,
+        session: { userId },
+      },
+    });
+  }
+
   findResponse(requestId: string): Promise<ChatMessage | null> {
     return this.prisma.chatMessage.findUnique({ where: { requestId } });
   }
@@ -123,7 +153,9 @@ export class ChatRepository {
           select: {
             id: true,
             finishedAt: true,
-            analysisContext: { select: { metadata: true, cacheKey: true } },
+            // Chunks contain redacted source captured during the latest scan.
+            // They are used by ChatContextService to answer file-level questions.
+            analysisContext: { select: { metadata: true, cacheKey: true, chunks: true } },
             report: {
               select: {
                 id: true,

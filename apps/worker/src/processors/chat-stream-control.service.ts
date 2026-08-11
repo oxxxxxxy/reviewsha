@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -6,7 +6,11 @@ const controlChannel = (streamId: string) => `reviewsha:chat:control:${streamId}
 
 @Injectable()
 export class ChatStreamControlService {
-  constructor(private readonly config: ConfigService) {}
+  private readonly config: ConfigService;
+
+  constructor(@Inject(ConfigService) config: ConfigService) {
+    this.config = config;
+  }
 
   async listen(streamId: string, controller: AbortController): Promise<() => Promise<void>> {
     const subscriber = new Redis(this.config.getOrThrow<string>('worker.redisUrl'), {

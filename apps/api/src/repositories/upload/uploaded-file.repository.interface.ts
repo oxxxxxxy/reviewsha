@@ -22,5 +22,7 @@ export interface IUploadedFileRepository extends IRepository<UploadedFile> {
     options?: RepositoryOptions,
   ): Promise<UploadedFile>;
   delete(id: string, options?: RepositoryOptions): Promise<UploadedFile>;
+  hasActiveScan(id: string): Promise<boolean>;
+  findBySourceCommit(projectId: string, commit: string): Promise<UploadedFile | null>;
   deleteProjectFiles(projectId: string, options?: RepositoryOptions): Promise<Prisma.BatchPayload>;
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { NotificationType, PipelineStatus, ScanStatus } from '@prisma/client';
 import type { Job } from 'bullmq';
 import { WorkerLoggerService } from '../common/logger/worker-logger.service';
@@ -14,9 +14,9 @@ export class NotifyProcessor implements JobHandler {
   readonly type = 'notify';
 
   constructor(
-    private readonly db: WorkerDatabaseService,
-    private readonly queue: QueueService,
-    private readonly logger: WorkerLoggerService,
+    @Inject(WorkerDatabaseService) private readonly db: WorkerDatabaseService,
+    @Inject(QueueService) private readonly queue: QueueService,
+    @Inject(WorkerLoggerService) private readonly logger: WorkerLoggerService,
   ) {}
 
   async execute(job: Job): Promise<QueueJobResult> {

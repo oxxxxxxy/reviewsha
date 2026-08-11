@@ -10,7 +10,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -k -n api,web,admin,worker -c blue,green,magenta,cyan \"yarn workspace @reviewsha/api dev\" \"yarn workspace @reviewsha/web dev\" \"yarn workspace @reviewsha/admin dev\" \"yarn workspace @reviewsha/worker dev\"",
+    "dev": "concurrently -k -n api,web,admin,worker,omni -c blue,green,magenta,cyan,yellow \"yarn workspace @reviewsha/api dev\" \"yarn workspace @reviewsha/web dev\" \"yarn workspace @reviewsha/admin dev\" \"yarn workspace @reviewsha/worker dev\" \"yarn dev:omniroute\"",
     "build": "yarn build:packages && yarn build:apps",
     "lint": "yarn lint:packages && yarn lint:apps",
     "typecheck": "yarn build:packages && yarn typecheck:packages && yarn typecheck:apps",

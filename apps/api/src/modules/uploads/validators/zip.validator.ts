@@ -10,6 +10,7 @@ import {
   UPLOAD_MAX_UNCOMPRESSED_BYTES,
   UPLOAD_MIN_SIZE_BYTES,
   UPLOAD_MIME_TYPE,
+  UPLOAD_SUPPORTED_EXTENSIONS,
 } from '../constants/upload.constants';
 import {
   FileTooLargeException,
@@ -48,19 +49,26 @@ export class ZipValidator {
     size: number,
     open: (callback: (error: Error | null, zip?: ZipFile) => void) => void,
   ): Promise<ZipValidationResult> {
-    if (
-      !fileName.toLowerCase().endsWith(UPLOAD_ALLOWED_EXTENSION) ||
-      mimeType !== UPLOAD_MIME_TYPE
-    ) {
+    const lowerName = fileName.toLowerCase();
+    const supported = UPLOAD_SUPPORTED_EXTENSIONS.some((extension) =>
+      lowerName.endsWith(extension),
+    );
+    if (!supported) {
       throw new InvalidFileTypeException();
-    }
-    if (size < UPLOAD_MIN_SIZE_BYTES) {
-      throw new InvalidArchiveException('Archive is empty');
     }
     if (size > UPLOAD_MAX_SIZE_BYTES) {
       throw new FileTooLargeException();
     }
 
+    // Non-ZIP inputs are validated by extension/size here and normalized by
+    // the worker. Archives are structurally validated during extraction with
+    // the matching system tool (7z/bsdtar/unrar).
+    if (!lowerName.endsWith(UPLOAD_ALLOWED_EXTENSION) || mimeType !== UPLOAD_MIME_TYPE) {
+      return Promise.resolve({ entries: 1, uncompressedSize: size });
+    }
+    if (size < UPLOAD_MIN_SIZE_BYTES) {
+      throw new InvalidArchiveException('Archive is empty');
+    }
     return new Promise((resolve, reject) => {
       open((error, zip) => {
         if (error || !zip) return reject(new InvalidArchiveException());

@@ -35,14 +35,30 @@ export interface PipelineResult {
 
 @Injectable()
 export class PipelineService {
+  private readonly scans: ScanRepository;
+  private readonly queues: QueueService;
+  private readonly uploadEvents: UploadEvents;
+  private readonly queueEvents: QueueEvents;
+  private readonly events: PipelineEvents;
+  private readonly logger: ApiLoggerService;
+
   constructor(
-    @Inject(ScanRepository) private readonly scans: ScanRepository,
-    @Inject(QueueService) private readonly queues: QueueService,
-    @Inject(UploadEvents) private readonly uploadEvents: UploadEvents,
-    @Inject(QueueEvents) private readonly queueEvents: QueueEvents,
-    @Inject(PipelineEvents) private readonly events: PipelineEvents,
-    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
-  ) {}
+    @Inject(ScanRepository) scans: ScanRepository,
+    @Inject(QueueService) queues: QueueService,
+    @Inject(UploadEvents) uploadEvents: UploadEvents,
+    @Inject(QueueEvents) queueEvents: QueueEvents,
+    @Inject(PipelineEvents) events: PipelineEvents,
+    @Inject(ApiLoggerService) logger: ApiLoggerService,
+  ) {
+    this.scans = scans;
+    this.queues = queues;
+    this.uploadEvents = uploadEvents;
+    this.queueEvents = queueEvents;
+    // Keep the pipeline usable in standalone/dev bootstrap variants where the
+    // optional in-process event provider may not be resolved by the adapter.
+    this.events = events ?? new PipelineEvents();
+    this.logger = logger;
+  }
 
   onModuleInit(): void {
     this.uploadEvents.on(UPLOAD_EVENTS.completed, (event) => {
@@ -69,7 +85,34 @@ export class PipelineService {
 
   async startPipeline(event: UploadEvent) {
     const existing = await this.scans.findBySourceFile(event.uploadId);
-    if (existing) return existing;
+    if (existing) {
+      // An upload may have created the scan while no worker was running. A
+      // subsequent explicit Analyze action must re-enqueue that pending scan.
+      const retryable =
+        existing.pipelineStatus === PipelineStatus.PENDING ||
+        existing.status === ScanStatus.FAILED ||
+        existing.status === ScanStatus.CANCELLED;
+      if (retryable) {
+        await this.enqueueStep(
+          existing.id,
+          event.projectId,
+          event.uploadId,
+          PIPELINE_STEPS.extract,
+        );
+        await this.scans.updateStatus(existing.id, ScanStatus.EXTRACTING);
+        await this.scans.update(existing.id, {
+          pipelineStatus: PipelineStatus.RUNNING,
+          pipelineStartedAt: new Date(),
+          pipelineStep: PrismaPipelineStep.EXTRACT,
+          pipelineErrorCode: null,
+          pipelineErrorMessage: null,
+          pipelineErrorStack: null,
+          pipelineErrorAt: null,
+          pipelineFinishedAt: null,
+        });
+      }
+      return this.scans.findById(existing.id);
+    }
 
     const scan = await this.scans.create({
       project: { connect: { id: event.projectId } },
@@ -200,9 +243,12 @@ export class PipelineService {
   async cancelPipeline(pipelineId: string): Promise<void> {
     const scan = await this.getScan(pipelineId);
     if (!this.isTerminal(scan.status)) {
+      await this.queues.cancelPipelineJobs(scan.id);
       await this.scans.updateStatus(scan.id, ScanStatus.CANCELLED);
       await this.scans.update(scan.id, {
         pipelineStatus: PipelineStatus.CANCELLED,
+        pipelineErrorCode: 'PIPELINE_CANCELLED',
+        pipelineErrorMessage: 'Analysis cancelled by user',
         pipelineFinishedAt: new Date(),
       });
       this.publish(PIPELINE_EVENTS.cancelled, scan.id, scan.projectId, scan.sourceFileId ?? '');
@@ -259,7 +305,13 @@ export class PipelineService {
     step: PipelineStep,
     resultId?: string,
   ): Promise<void> {
-    await this.queues.addJob(PIPELINE_QUEUE[step], step, {
+    // The first file-queue operation is a download. Historically it was
+    // named `extract` and the worker had to reinterpret that job, which made
+    // the follow-up real `extract` job collide with the same deterministic
+    // BullMQ id. Keep the pipeline step as `extract`, but use a distinct job
+    // name so download -> extract can be queued reliably.
+    const jobType = step === PIPELINE_STEPS.extract ? 'download' : step;
+    await this.queues.addJob(PIPELINE_QUEUE[step], jobType, {
       pipelineId,
       projectId,
       uploadId,

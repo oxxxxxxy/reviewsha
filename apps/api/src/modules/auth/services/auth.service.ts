@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -7,7 +8,6 @@ import {
 import * as argon2 from 'argon2';
 import type { User } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
-import { UserRepository } from '../../../repositories/user/user.repository';
 import { SessionService } from '../../sessions/services/session.service';
 import type { SessionContext } from '../../sessions/interfaces/session-context.interface';
 import { UserMapper } from '../../users/mappers/user.mapper';
@@ -22,14 +22,15 @@ import type {
   AuthenticatedUser,
 } from '../../../common/auth/types/auth.types';
 import { TokenService } from './token.service';
+import { UserRepository } from '../../../repositories/user/user.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly users: UserRepository,
-    private readonly sessions: SessionService,
-    private readonly tokenService: TokenService,
-    private readonly logger: ApiLoggerService,
+    @Inject(UserRepository) private readonly users: UserRepository,
+    @Inject(SessionService) private readonly sessions: SessionService,
+    @Inject(TokenService) private readonly tokenService: TokenService,
+    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
   ) {}
 
   async register(dto: RegisterDto, context: SessionContext = {}): Promise<AuthResponseDto> {

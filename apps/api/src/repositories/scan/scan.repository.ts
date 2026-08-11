@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { PipelineStatus, Prisma, Scan, ScanStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -12,7 +12,7 @@ import type { IScanRepository } from './scan.repository.interface';
 
 @Injectable()
 export class ScanRepository extends BaseRepository<Scan> implements IScanRepository {
-  constructor(prisma: PrismaService) {
+  constructor(@Inject(PrismaService) prisma: PrismaService) {
     super(prisma);
   }
 
@@ -31,6 +31,17 @@ export class ScanRepository extends BaseRepository<Scan> implements IScanReposit
 
   countByProject(projectId: string, options?: RepositoryOptions): Promise<number> {
     return this.getClient(options).scan.count({ where: { projectId, deletedAt: null } });
+  }
+
+  async reviewProgress(
+    scanId: string,
+  ): Promise<{ total: number; completed: number; failed: number }> {
+    const [total, completed, failed] = await Promise.all([
+      this.prisma.aIRequest.count({ where: { scanId } }),
+      this.prisma.aIRequest.count({ where: { scanId, status: 'COMPLETED' } }),
+      this.prisma.aIRequest.count({ where: { scanId, status: 'FAILED' } }),
+    ]);
+    return { total, completed, failed };
   }
 
   findBySourceFile(sourceFileId: string, options?: RepositoryOptions): Promise<Scan | null> {

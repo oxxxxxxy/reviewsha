@@ -10,11 +10,19 @@ import { ChatRepository } from '../repositories/chat.repository';
 
 @Injectable()
 export class ChatSessionService {
+  private readonly repository: ChatRepository;
+  private readonly projects: ProjectRepository;
+  private readonly logger: ApiLoggerService;
+
   constructor(
-    @Inject(ChatRepository) private readonly repository: ChatRepository,
-    @Inject(ProjectRepository) private readonly projects: ProjectRepository,
-    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
-  ) {}
+    @Inject(ChatRepository) repository: ChatRepository,
+    @Inject(ProjectRepository) projects: ProjectRepository,
+    @Inject(ApiLoggerService) logger: ApiLoggerService,
+  ) {
+    this.repository = repository;
+    this.projects = projects;
+    this.logger = logger;
+  }
 
   async create(user: AuthenticatedUser, projectId: string, dto: CreateChatDto) {
     await this.assertProjectAccess(user, projectId);
@@ -32,14 +40,21 @@ export class ChatSessionService {
 
   async list(user: AuthenticatedUser, projectId: string, query: ChatPaginationDto) {
     await this.assertProjectAccess(user, projectId);
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.max(1, Number(query.limit) || 50);
     const [sessions, total] = await Promise.all([
-      this.repository.findSessions(projectId, user.id, (query.page - 1) * query.limit, query.limit),
+      this.repository.findSessions(projectId, user.id, (page - 1) * limit, limit),
       this.repository.countSessions(projectId, user.id),
     ]);
     return {
       data: sessions.map((session) => this.toResponse(session)),
-      meta: { page: query.page, limit: query.limit, total },
+      meta: { page, limit, total },
     };
+  }
+
+  async get(user: AuthenticatedUser, sessionId: string) {
+    const session = await this.requireOwned(user, sessionId);
+    return this.toResponse(session);
   }
 
   async remove(user: AuthenticatedUser, sessionId: string): Promise<void> {

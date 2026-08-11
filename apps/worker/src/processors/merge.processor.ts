@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { ScanStatus } from '@prisma/client';
 import type { Job } from 'bullmq';
 import { readFile } from 'node:fs/promises';
@@ -9,21 +9,22 @@ import { QUEUE_NAMES } from '../queue/queue.constants';
 import { WorkerLoggerService } from '../common/logger/worker-logger.service';
 import type { JobHandler } from './job-handler.interface';
 import type { QueueJobResult } from '../queue/queue.events';
-import { payloadOf, saveJson } from './processing.helpers';
+import { assertPipelineActive, payloadOf, saveJson } from './processing.helpers';
 import { WorkerDatabaseService } from '../database/worker-database.service';
 
 @Injectable()
 export class MergeProcessor implements JobHandler {
   readonly type = 'merge';
   constructor(
-    private readonly merger: MergeService,
-    private readonly workspace: WorkspaceService,
-    private readonly queue: QueueService,
-    private readonly logger: WorkerLoggerService,
+    @Inject(MergeService) private readonly merger: MergeService,
+    @Inject(WorkspaceService) private readonly workspace: WorkspaceService,
+    @Inject(QueueService) private readonly queue: QueueService,
+    @Inject(WorkerLoggerService) private readonly logger: WorkerLoggerService,
     @Optional() private readonly db?: WorkerDatabaseService,
   ) {}
   async execute(job: Job): Promise<QueueJobResult> {
     const payload = payloadOf(job);
+    await assertPipelineActive(this.db, payload.pipelineId);
     const paths = await this.workspace.create(payload.pipelineId!);
     const [download, extract, parse] = await Promise.all([
       readFile(`${paths.output}/download.json`, 'utf8').then(JSON.parse),
@@ -38,6 +39,7 @@ export class MergeProcessor implements JobHandler {
       parse,
     });
     await saveJson(`${paths.output}/context.json`, data);
+    await assertPipelineActive(this.db, payload.pipelineId);
     await this.db?.scan.update({
       where: { id: payload.pipelineId },
       data: { status: ScanStatus.ANALYZING, progress: 55 },

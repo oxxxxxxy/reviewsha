@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useAuthStore } from '../../stores/auth.store';
+import { useUiStore } from '../../stores/ui.store';
 
 const schema = z
   .object({
@@ -23,6 +24,7 @@ export function RegisterPage() {
   const registerUser = useAuthStore((state) => state.register);
   const loading = useAuthStore((state) => state.isLoading);
   const navigate = useNavigate();
+  const pushToast = useUiStore((state) => state.pushToast);
   const [apiError, setApiError] = useState('');
   const {
     register,
@@ -32,9 +34,15 @@ export function RegisterPage() {
   const submit = async (values: Values) => {
     try {
       await registerUser(values.email, values.password, values.displayName);
+      pushToast('Account created successfully');
       navigate('/dashboard');
-    } catch {
-      setApiError('Unable to create account');
+    } catch (error) {
+      const status = (error as { response?: { status?: number } }).response?.status;
+      setApiError(
+        status === 409
+          ? 'This email is already registered. Sign in instead.'
+          : 'Unable to create account',
+      );
     }
   };
   return (

@@ -23,6 +23,27 @@ import { ChatMemoryService } from './chat-memory.service';
 
 @Injectable()
 export class ChatService {
+  private readonly repository: ChatRepository;
+  private readonly sessions: ChatSessionService;
+  private readonly contexts: ChatContextService;
+  private readonly queues: QueueService;
+  private readonly config: ConfigService;
+  private readonly logger: ApiLoggerService;
+  private readonly secrets: ChatSecretFilterService;
+  private readonly memory: ChatMemoryService;
+
+  /** Coalesces the complete response lifecycle for concurrent HTTP retries. */
+  private readonly sendInFlight = new Map<
+    string,
+    Promise<{
+      id: string;
+      role: MessageRole;
+      content: string;
+      tokens: number;
+      createdAt: Date;
+    }>
+  >();
+
   /**
    * Closes the in-process race between duplicate retries. BullMQ's stable job
    * id remains the durable deduplication boundary after a process restart.
@@ -30,29 +51,35 @@ export class ChatService {
   private readonly enqueueInFlight = new Map<string, Promise<{ requestId: string }>>();
 
   constructor(
-    @Inject(ChatRepository) private readonly repository: ChatRepository,
-    @Inject(ChatSessionService) private readonly sessions: ChatSessionService,
-    @Inject(ChatContextService) private readonly contexts: ChatContextService,
-    @Inject(QueueService) private readonly queues: QueueService,
-    @Inject(ConfigService) private readonly config: ConfigService,
-    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
-    @Inject(ChatSecretFilterService) private readonly secrets: ChatSecretFilterService,
-    @Inject(ChatMemoryService) private readonly memory: ChatMemoryService,
-  ) {}
+    @Inject(ChatRepository) repository: ChatRepository,
+    @Inject(ChatSessionService) sessions: ChatSessionService,
+    @Inject(ChatContextService) contexts: ChatContextService,
+    @Inject(QueueService) queues: QueueService,
+    @Inject(ConfigService) config: ConfigService,
+    @Inject(ApiLoggerService) logger: ApiLoggerService,
+    @Inject(ChatSecretFilterService) secrets: ChatSecretFilterService,
+    @Inject(ChatMemoryService) memory: ChatMemoryService,
+  ) {
+    this.repository = repository;
+    this.sessions = sessions;
+    this.contexts = contexts;
+    this.queues = queues;
+    this.config = config;
+    this.logger = logger;
+    this.secrets = secrets;
+    this.memory = memory;
+  }
 
   async history(user: AuthenticatedUser, sessionId: string, query: ChatPaginationDto) {
     await this.sessions.requireOwned(user, sessionId);
-    const result = await this.repository.findMessages(
-      sessionId,
-      (query.page - 1) * query.limit,
-      query.limit,
-      {
-        search: query.search?.trim() || undefined,
-        before: query.before ? new Date(query.before) : undefined,
-        after: query.after ? new Date(query.after) : undefined,
-        sort: query.sort,
-      },
-    );
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = Math.max(1, Number(query.limit) || 50);
+    const result = await this.repository.findMessages(sessionId, (page - 1) * limit, limit, {
+      search: query.search?.trim() || undefined,
+      before: query.before ? new Date(query.before) : undefined,
+      after: query.after ? new Date(query.after) : undefined,
+      sort: query.sort,
+    });
     return {
       data: result.data.map((message) => ({
         id: message.id,
@@ -61,11 +88,30 @@ export class ChatService {
         tokens: message.tokens,
         createdAt: message.createdAt,
       })),
-      meta: { page: query.page, limit: query.limit, total: result.total },
+      meta: { page, limit, total: result.total },
     };
   }
 
   async send(user: AuthenticatedUser, sessionId: string, dto: SendMessageDto) {
+    const idempotencyKey = dto.idempotencyKey?.trim();
+    const lockKey = idempotencyKey ? `${user.id}:${sessionId}:${idempotencyKey}` : undefined;
+    if (lockKey) {
+      const inFlight = this.sendInFlight.get(lockKey);
+      if (inFlight) return inFlight;
+
+      const promise = this.sendOnce(user, sessionId, dto);
+      this.sendInFlight.set(lockKey, promise);
+      try {
+        return await promise;
+      } finally {
+        if (this.sendInFlight.get(lockKey) === promise) this.sendInFlight.delete(lockKey);
+      }
+    }
+
+    return this.sendOnce(user, sessionId, dto);
+  }
+
+  private async sendOnce(user: AuthenticatedUser, sessionId: string, dto: SendMessageDto) {
     const message = dto.message.trim();
     const { requestId } = await this.enqueue(
       user,
@@ -73,6 +119,7 @@ export class ChatService {
       message,
       undefined,
       dto.idempotencyKey,
+      dto.language,
     );
     this.logger.log(
       `Chat request started sessionId=${sessionId} jobId=${requestId}`,
@@ -107,6 +154,7 @@ export class ChatService {
       message,
       streamId,
       dto.idempotencyKey,
+      dto.language,
     );
     this.logger.log(
       `Chat streaming request started sessionId=${sessionId} jobId=${requestId} streamId=${streamId}`,
@@ -132,6 +180,7 @@ export class ChatService {
     message: string,
     streamId?: string,
     idempotencyKey?: string,
+    language?: 'en' | 'ru',
   ): Promise<{ requestId: string }> {
     const normalizedKey = idempotencyKey?.trim();
     const lockKey = normalizedKey ? `${user.id}:${sessionId}:${normalizedKey}` : undefined;
@@ -139,7 +188,7 @@ export class ChatService {
       const inFlight = this.enqueueInFlight.get(lockKey);
       if (inFlight) return inFlight;
 
-      const promise = this.enqueueOnce(user, sessionId, message, streamId, normalizedKey);
+      const promise = this.enqueueOnce(user, sessionId, message, streamId, normalizedKey, language);
       this.enqueueInFlight.set(lockKey, promise);
       try {
         return await promise;
@@ -150,7 +199,7 @@ export class ChatService {
       }
     }
 
-    return this.enqueueOnce(user, sessionId, message, streamId, normalizedKey);
+    return this.enqueueOnce(user, sessionId, message, streamId, normalizedKey, language);
   }
 
   private async enqueueOnce(
@@ -159,21 +208,69 @@ export class ChatService {
     message: string,
     streamId?: string,
     idempotencyKey?: string,
+    language?: 'en' | 'ru',
   ): Promise<{ requestId: string }> {
     const session = await this.sessions.requireOwned(user, sessionId);
     const maxLength = this.config.get<number>('chat.messageMaxLength', 4000);
     if (!message || message.length > maxLength) {
       throw new BadRequestException('Chat message length is invalid');
     }
+    // BullMQ job ids are also persisted as ChatMessage.requestId (@db.Uuid),
+    // therefore the deterministic id must be a valid UUID rather than an
+    // arbitrary hash string.
     const deterministicJobId = idempotencyKey
-      ? `chat-${createHash('sha256').update(`${sessionId}:${idempotencyKey}`).digest('hex')}`
+      ? this.deterministicUuid(`${sessionId}:${idempotencyKey}`)
       : undefined;
     if (deterministicJobId) {
+      const existingUserMessage = await this.repository.findUserMessageByIdempotencyKey(
+        sessionId,
+        user.id,
+        idempotencyKey!,
+      );
+      const existingAssistantMessage = await this.repository.findAssistantMessageByIdempotencyKey(
+        sessionId,
+        user.id,
+        idempotencyKey!,
+      );
+      if (existingAssistantMessage?.requestId) {
+        return { requestId: existingAssistantMessage.requestId };
+      }
       const existing = await this.queues.getJob(QUEUE_NAMES.chat, deterministicJobId);
-      if (existing) return { requestId: deterministicJobId };
+      // Keep compatibility with a job that was created before the durable
+      // message marker was written. The worker still owns the final response.
+      if (existing && !existingUserMessage) return { requestId: deterministicJobId };
+      if (existing && existingUserMessage) return { requestId: deterministicJobId };
+      if (!existingUserMessage) {
+        const userMessage = await this.repository.saveMessage({
+          session: { connect: { id: sessionId } },
+          user: { connect: { id: user.id } },
+          role: MessageRole.USER,
+          content: message,
+          tokens: Math.ceil(message.length / 4),
+          idempotencyKey,
+        });
+        return this.enqueueWithMessage(
+          user,
+          session,
+          message,
+          streamId,
+          deterministicJobId,
+          idempotencyKey,
+          userMessage.id,
+          language,
+        );
+      }
+      return this.enqueueWithMessage(
+        user,
+        session,
+        message,
+        streamId,
+        deterministicJobId,
+        idempotencyKey,
+        existingUserMessage.id,
+        language,
+      );
     }
-    const context = await this.contexts.build(session.projectId, message);
-    const history = await this.repository.recentMessages(sessionId, 20);
     const userMessage = await this.repository.saveMessage({
       session: { connect: { id: sessionId } },
       user: { connect: { id: user.id } },
@@ -181,12 +278,43 @@ export class ChatService {
       content: message,
       tokens: Math.ceil(message.length / 4),
     });
+    return this.enqueueWithMessage(
+      user,
+      session,
+      message,
+      streamId,
+      undefined,
+      undefined,
+      userMessage.id,
+      language,
+    );
+  }
+
+  private async enqueueWithMessage(
+    user: AuthenticatedUser,
+    session: {
+      id: string;
+      projectId: string;
+      memory?: unknown;
+      summary?: string | null;
+      activeTopic?: string | null;
+    },
+    message: string,
+    streamId: string | undefined,
+    deterministicJobId: string | undefined,
+    idempotencyKey: string | undefined,
+    userMessageId: string,
+    language?: 'en' | 'ru',
+  ): Promise<{ requestId: string }> {
+    const context = await this.contexts.build(session.projectId, message);
+    const history = await this.repository.recentMessages(session.id, 20);
     const payload = {
-      sessionId,
+      sessionId: session.id,
       projectId: session.projectId,
       userId: user.id,
-      userMessageId: userMessage.id,
+      userMessageId,
       system: CHAT_SYSTEM_PROMPT,
+      ...(language ? { system: `${CHAT_SYSTEM_PROMPT}\nRespond in ${language === 'ru' ? 'Russian' : 'English'} unless the user asks otherwise.` } : {}),
       context: context.text,
       history: history.map(({ role, content }) => ({
         role,
@@ -196,6 +324,7 @@ export class ChatService {
       summary: session.summary ?? null,
       activeTopic: session.activeTopic ?? null,
       message: this.secrets.redact(message),
+      ...(idempotencyKey ? { idempotencyKey } : {}),
       ...(streamId ? { streamId } : {}),
     };
     const queued = deterministicJobId
@@ -204,6 +333,14 @@ export class ChatService {
         })
       : await this.queues.addJob(QUEUE_NAMES.chat, 'chat.generate', payload);
     return { requestId: queued.id };
+  }
+
+  private deterministicUuid(value: string): string {
+    const bytes = createHash('sha256').update(value).digest().subarray(0, 16);
+    bytes[6] = (bytes[6]! & 0x0f) | 0x50;
+    bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+    const hex = bytes.toString('hex');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
   }
 
   private async waitForResponse(requestId: string) {

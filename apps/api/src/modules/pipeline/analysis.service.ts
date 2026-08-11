@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import type { AuthenticatedUser } from '../../common/auth/types/auth.types';
 import { ProjectRepository } from '../../repositories/project/project.repository';
@@ -11,10 +11,10 @@ import { AnalysisResponseDto, AnalysesListResponseDto } from './dto/analysis-res
 @Injectable()
 export class AnalysisService {
   constructor(
-    private readonly projects: ProjectRepository,
-    private readonly scans: ScanRepository,
-    private readonly uploads: UploadedFileRepository,
-    private readonly pipeline: PipelineService,
+    @Inject(ProjectRepository) private readonly projects: ProjectRepository,
+    @Inject(ScanRepository) private readonly scans: ScanRepository,
+    @Inject(UploadedFileRepository) private readonly uploads: UploadedFileRepository,
+    @Inject(PipelineService) private readonly pipeline: PipelineService,
   ) {}
 
   async list(
@@ -34,7 +34,7 @@ export class AnalysisService {
       this.scans.countByProject(projectId),
     ]);
     return {
-      data: data.map((scan) => this.toResponse(scan)),
+      data: await Promise.all(data.map(async (scan) => this.toResponse(scan))),
       meta: {
         page: safePage,
         limit: safeLimit,
@@ -69,7 +69,7 @@ export class AnalysisService {
       occurredAt: new Date().toISOString(),
     } satisfies UploadEvent);
     if (!scan) throw new NotFoundException('Analysis could not be started');
-    return { data: this.toResponse(scan) };
+    return { data: await this.toResponse(scan) };
   }
 
   private async assertProject(user: AuthenticatedUser, projectId: string): Promise<void> {
@@ -83,7 +83,7 @@ export class AnalysisService {
     }
   }
 
-  private toResponse(scan: {
+  private async toResponse(scan: {
     id: string;
     projectId: string;
     sourceFileId: string | null;
@@ -94,7 +94,8 @@ export class AnalysisService {
     pipelineErrorMessage: string | null;
     createdAt: Date;
     finishedAt: Date | null;
-  }): AnalysisResponseDto {
+  }): Promise<AnalysisResponseDto> {
+    const review = await this.scans.reviewProgress(scan.id);
     return {
       id: scan.id,
       projectId: scan.projectId,
@@ -106,6 +107,9 @@ export class AnalysisService {
       errorMessage: scan.pipelineErrorMessage,
       createdAt: scan.createdAt,
       finishedAt: scan.finishedAt,
+      reviewTotal: review.total,
+      reviewCompleted: review.completed,
+      reviewFailed: review.failed,
     };
   }
 }

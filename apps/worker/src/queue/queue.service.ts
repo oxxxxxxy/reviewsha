@@ -186,19 +186,10 @@ export class QueueService implements OnModuleDestroy {
       return { queue: queueName, jobName, disabled: true };
     }
 
-    const pipelineId =
-      typeof payload.pipelineId === 'string'
-        ? payload.pipelineId
-        : payload.payload &&
-            typeof payload.payload === 'object' &&
-            'pipelineId' in payload.payload &&
-            typeof payload.payload.pipelineId === 'string'
-          ? payload.payload.pipelineId
-          : undefined;
-    const job = await queue.add(jobName, payload, {
-      ...DEFAULT_JOB_OPTIONS,
-      ...(pipelineId ? { jobId: `${pipelineId}-${jobName}` } : {}),
-    });
+    // Do not derive the BullMQ id from the pipeline id. A failed analysis can
+    // be retried, and BullMQ would otherwise return the old completed/failed
+    // job instead of creating a new stage execution.
+    const job = await queue.add(jobName, payload, DEFAULT_JOB_OPTIONS);
 
     return { queue: queueName, jobName, jobId: String(job.id), disabled: false };
   }

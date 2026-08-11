@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class SendMessageDto {
   @ApiProperty({ type: String, example: 'Почему AI отметил JWT?' })
@@ -18,4 +18,9 @@ export class SendMessageDto {
   @IsString()
   @MaxLength(128)
   idempotencyKey?: string;
+
+  @ApiProperty({ required: false, enum: ['en', 'ru'] })
+  @IsOptional()
+  @IsIn(['en', 'ru'])
+  language?: 'en' | 'ru';
 }

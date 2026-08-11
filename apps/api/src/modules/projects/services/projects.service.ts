@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -18,19 +19,24 @@ import {
 import { UpdateProjectDto } from '../dto/update-project.dto';
 import { ProjectEvents, PROJECT_EVENTS } from '../events/project.events';
 import { ProjectMapper } from '../mappers/project.mapper';
+import { PROJECT_DEFAULT_LIMIT, PROJECT_DEFAULT_PAGE } from '../constants/projects.constants';
 
 @Injectable()
 export class ProjectsService {
   constructor(
-    private readonly projectRepository: ProjectRepository,
-    private readonly projectEvents: ProjectEvents,
-    private readonly logger: ApiLoggerService,
+    @Inject(ProjectRepository) private readonly projectRepository: ProjectRepository,
+    @Inject(ProjectEvents) private readonly projectEvents: ProjectEvents,
+    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
   ) {}
 
   async findAll(
     user: AuthenticatedUser,
     filter: ProjectFilterDto,
   ): Promise<ProjectsListResponseDto> {
+    // Requests can arrive as plain query objects in development/test adapters;
+    // normalize them here instead of relying only on class-transformer.
+    const page = Math.max(1, Number(filter.page) || PROJECT_DEFAULT_PAGE);
+    const limit = Math.max(1, Number(filter.limit) || PROJECT_DEFAULT_LIMIT);
     const result = await this.projectRepository.findMany({
       ownerId: this.ownerScope(user),
       search: filter.search?.trim() || undefined,
@@ -42,17 +48,18 @@ export class ProjectsService {
       createdTo: filter.createdTo ? new Date(filter.createdTo) : undefined,
       sort: filter.sort,
       order: filter.order,
-      skip: (filter.page - 1) * filter.limit,
-      take: filter.limit,
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
+    const total = Number(result.total) || 0;
     return {
       data: ProjectMapper.toResponseList(result.items),
       meta: {
-        page: filter.page,
-        limit: filter.limit,
-        total: result.total,
-        pages: Math.ceil(result.total / filter.limit),
+        page,
+        limit,
+        total,
+        pages: total === 0 ? 0 : Math.ceil(total / limit),
       },
     };
   }

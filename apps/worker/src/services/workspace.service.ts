@@ -1,9 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { FilesystemService } from './filesystem.service';
 
 @Injectable()
 export class WorkspaceService {
-  constructor(private readonly filesystem: FilesystemService) {}
+  private readonly filesystem: FilesystemService;
+
+  constructor(@Inject(FilesystemService) filesystem: FilesystemService) {
+    this.filesystem = filesystem;
+  }
 
   create(jobId: string) {
     return this.filesystem.createWorkspace(jobId);

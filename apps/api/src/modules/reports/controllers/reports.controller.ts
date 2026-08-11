@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   Query,
   Res,
+  Inject,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -29,7 +30,7 @@ import { ParseIntPipe } from '@nestjs/common';
 @ApiBearerAuth('bearer')
 @Controller()
 export class ReportsController {
-  constructor(private readonly service: ReportsService) {}
+  constructor(@Inject(ReportsService) private readonly service: ReportsService) {}
   @Get('reports/compare')
   @ApiOperation({ summary: 'Compare two report versions' })
   compare(

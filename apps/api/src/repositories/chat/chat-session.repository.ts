@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { ChatSession, Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -15,7 +15,7 @@ export class ChatSessionRepository
   extends BaseRepository<ChatSession>
   implements IChatSessionRepository
 {
-  constructor(prisma: PrismaService) {
+  constructor(@Inject(PrismaService) prisma: PrismaService) {
     super(prisma);
   }
 

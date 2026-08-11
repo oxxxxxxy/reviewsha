@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { MessageRole } from '@prisma/client';
 import type { Job } from 'bullmq';
 
@@ -25,20 +25,26 @@ type ChatPayload = {
   summary: string | null;
   activeTopic: string | null;
   message: string;
+  idempotencyKey?: string;
   streamId?: string;
 };
 
 @Injectable()
 export class ChatProcessor implements JobHandler {
   readonly type = 'chat.generate';
+  private readonly streamControl?: ChatStreamControlService;
+  private readonly streamPublisher?: ChatStreamPublisherService;
 
   constructor(
-    private readonly db: WorkerDatabaseService,
-    private readonly ai: AIService,
-    private readonly logger: WorkerLoggerService,
-    @Optional() private readonly streamControl?: ChatStreamControlService,
-    @Optional() private readonly streamPublisher?: ChatStreamPublisherService,
-  ) {}
+    @Inject(WorkerDatabaseService) private readonly db: WorkerDatabaseService,
+    @Inject(AIService) private readonly ai: AIService,
+    @Inject(WorkerLoggerService) private readonly logger: WorkerLoggerService,
+    @Optional() @Inject(ChatStreamControlService) streamControl?: ChatStreamControlService,
+    @Optional() @Inject(ChatStreamPublisherService) streamPublisher?: ChatStreamPublisherService,
+  ) {
+    this.streamControl = streamControl;
+    this.streamPublisher = streamPublisher;
+  }
 
   async execute(job: Job): Promise<QueueJobResult> {
     const payload = this.payloadOf(job);
@@ -101,6 +107,7 @@ export class ChatProcessor implements JobHandler {
         content,
         tokens: response.completionTokens,
         requestId,
+        ...(payload.idempotencyKey ? { idempotencyKey: payload.idempotencyKey } : {}),
       },
       update: {
         content,

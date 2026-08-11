@@ -1,6 +1,7 @@
 import { Button, Input, Loader } from '@reviewsha/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { useUiStore } from '../../stores/ui.store';
 import { reviewshaSdk } from '../../api/client';
 import { useAuthStore } from '../../stores/auth.store';
 
@@ -8,6 +9,7 @@ export function SettingsPage() {
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state._set);
   const client = useQueryClient();
+  const setGlobalTheme = useUiStore((state) => state.setTheme);
   const [displayName, setDisplayName] = useState(user?.displayName ?? user?.name ?? '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -36,6 +38,9 @@ export function SettingsPage() {
     localStorage.setItem('reviewsha.theme', theme);
     localStorage.setItem('reviewsha.language', language);
     localStorage.setItem('reviewsha.notifications', notifications ? 'on' : 'off');
+    setGlobalTheme(theme as 'light' | 'dark' | 'system');
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.lang = language;
   };
   if (!user) return <Loader label="Loading profile" />;
   return (

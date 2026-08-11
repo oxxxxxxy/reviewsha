@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma, RefreshToken, RefreshTokenRevokedReason } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -14,7 +14,7 @@ export class RefreshTokenRepository
   extends BaseRepository<RefreshToken>
   implements IRefreshTokenRepository
 {
-  constructor(prisma: PrismaService) {
+  constructor(@Inject(PrismaService) prisma: PrismaService) {
     super(prisma);
   }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma, UploadedFile, UploadStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -15,7 +15,7 @@ export class UploadedFileRepository
   extends BaseRepository<UploadedFile>
   implements IUploadedFileRepository
 {
-  constructor(prisma: PrismaService) {
+  constructor(@Inject(PrismaService) prisma: PrismaService) {
     super(prisma);
   }
 
@@ -103,6 +103,20 @@ export class UploadedFileRepository
     return this.getClient(options).uploadedFile.update({
       where: { id },
       data: { deletedAt: new Date() },
+    });
+  }
+
+  async hasActiveScan(id: string): Promise<boolean> {
+    const scan = await this.prisma.scan.findFirst({
+      where: { sourceFileId: id, pipelineStatus: 'RUNNING', deletedAt: null },
+      select: { id: true },
+    });
+    return Boolean(scan);
+  }
+
+  findBySourceCommit(projectId: string, commit: string): Promise<UploadedFile | null> {
+    return this.prisma.uploadedFile.findFirst({
+      where: { projectId, sourceCommit: commit, deletedAt: null },
     });
   }
 

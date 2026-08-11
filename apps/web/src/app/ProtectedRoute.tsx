@@ -9,8 +9,11 @@ export function ProtectedRoute() {
   const loading = useAuthStore((state) => state.isLoading);
   const restore = useAuthStore((state) => state.restore);
   useEffect(() => {
-    if (token && !user) void restore();
-  }, [restore, token, user]);
+    // Persisted Zustand state may contain the user, while the in-memory SDK
+    // client has not yet received the access token after a full page reload.
+    // Restore also configures the refresh handler and hydrates the SDK token.
+    if (token) void restore();
+  }, [restore, token]);
   if (loading) return <Spinner label="Restoring session" />;
   return user ? <Outlet /> : <Navigate to="/login" replace />;
 }

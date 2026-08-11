@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AIRequestStatus, ScanStatus, type Prisma } from '@prisma/client';
+import { AIRequestStatus, PipelineStep, ScanStatus, type Prisma } from '@prisma/client';
 import { createHash } from 'node:crypto';
 import type { Job } from 'bullmq';
 import { readFile } from 'node:fs/promises';
@@ -19,7 +19,7 @@ import { QueueService } from '../queue/queue.service';
 import type { QueueJobResult } from '../queue/queue.events';
 import { WorkspaceService } from '../services/workspace.service';
 import type { JobHandler } from './job-handler.interface';
-import { payloadOf, saveJson } from './processing.helpers';
+import { assertPipelineActive, payloadOf, saveJson } from './processing.helpers';
 
 type MergedContext = {
   files?: Array<{ path: string; language?: string; size: number }>;
@@ -29,7 +29,11 @@ type MergedContext = {
   project?: Record<string, unknown>;
 };
 
-const TASKS: AITask[] = ['architecture', 'bugs', 'security', 'performance', 'quality'];
+// One project-wide review plus one focused review per readable source file.
+// Previously every file also triggered five category reviews, so one file
+// appeared as six reviews and large projects generated an excessive number
+// of slow provider calls.
+const TASKS: AITask[] = ['architecture'];
 const MAX_SOURCE_FILE_BYTES = 256 * 1024;
 
 @Injectable()
@@ -37,17 +41,17 @@ export class AnalyzeProcessor implements JobHandler {
   readonly type = 'analyze';
 
   constructor(
-    private readonly db: WorkerDatabaseService,
-    private readonly workspace: WorkspaceService,
-    private readonly projectParser: AIProjectParser,
-    private readonly chunks: ChunkBuilderService,
-    private readonly contexts: ContextBuilderService,
-    private readonly prompts: PromptBuilderService,
-    private readonly ai: AIService,
-    private readonly secrets: SecretRedactorService,
-    private readonly queue: QueueService,
-    private readonly config: ConfigService,
-    private readonly logger: WorkerLoggerService,
+    @Inject(WorkerDatabaseService) private readonly db: WorkerDatabaseService,
+    @Inject(WorkspaceService) private readonly workspace: WorkspaceService,
+    @Inject(AIProjectParser) private readonly projectParser: AIProjectParser,
+    @Inject(ChunkBuilderService) private readonly chunks: ChunkBuilderService,
+    @Inject(ContextBuilderService) private readonly contexts: ContextBuilderService,
+    @Inject(PromptBuilderService) private readonly prompts: PromptBuilderService,
+    @Inject(AIService) private readonly ai: AIService,
+    @Inject(SecretRedactorService) private readonly secrets: SecretRedactorService,
+    @Inject(QueueService) private readonly queue: QueueService,
+    @Inject(ConfigService) private readonly config: ConfigService,
+    @Inject(WorkerLoggerService) private readonly logger: WorkerLoggerService,
   ) {}
 
   async execute(job: Job): Promise<QueueJobResult> {
@@ -61,19 +65,9 @@ export class AnalyzeProcessor implements JobHandler {
 
     await this.db.scan.update({
       where: { id: scan.id },
-      data: { status: ScanStatus.ANALYZING, progress: 60 },
+      data: { status: ScanStatus.ANALYZING, pipelineStep: PipelineStep.ANALYZE, progress: 60 },
     });
-    if (scan.createdById) {
-      const startOfDay = new Date();
-      startOfDay.setUTCHours(0, 0, 0, 0);
-      const requestsToday = await this.db.aIRequest.count({
-        where: { userId: scan.createdById, createdAt: { gte: startOfDay } },
-      });
-      const dailyLimit = this.config.get<number>('worker.aiDailyRequestLimit', 500);
-      if (requestsToday + TASKS.length > dailyLimit) {
-        throw new Error('AI_DAILY_REQUEST_LIMIT_EXCEEDED');
-      }
-    }
+    await assertPipelineActive(this.db, scan.id);
 
     const cacheKey = createHash('sha256')
       .update(JSON.stringify({ files: context.files, statistics: context.statistics }))
@@ -128,15 +122,45 @@ export class AnalyzeProcessor implements JobHandler {
         },
       });
     }
+    const filePaths = [
+      ...new Set(
+        allChunks
+          .filter((chunk) => chunk.type !== 'architecture')
+          .flatMap((chunk) => chunk.filePaths),
+      ),
+    ];
+    const reviewTasks = [
+      ...TASKS.map((task) => ({ task, filePath: undefined as string | undefined })),
+      ...filePaths.map((filePath) => ({ task: 'quality' as AITask, filePath })),
+    ];
+    if (scan.createdById) {
+      const startOfDay = new Date();
+      startOfDay.setUTCHours(0, 0, 0, 0);
+      const requestsToday = await this.db.aIRequest.count({
+        where: { userId: scan.createdById, createdAt: { gte: startOfDay } },
+      });
+      const dailyLimit = this.config.get<number>('worker.aiDailyRequestLimit', 500);
+      if (requestsToday + reviewTasks.length > dailyLimit) {
+        throw new Error('AI_DAILY_REQUEST_LIMIT_EXCEEDED');
+      }
+    }
+    let completedReviews = 0;
     const generatedTasks = await Promise.all(
-      TASKS.map(async (task) => {
+      reviewTasks.map(async ({ task, filePath }) => {
+        await assertPipelineActive(this.db, scan.id);
         const selected = this.contexts.select(allChunks, task, 8000);
-        const request = this.prompts.build(
-          task,
-          selected,
-          metadata as unknown as Record<string, unknown>,
-          this.config.get<number>('worker.aiInputMaxTokens', 12_000),
-        );
+        const request = filePath
+          ? this.prompts.buildFileReview(
+              filePath,
+              allChunks,
+              metadata as unknown as Record<string, unknown>,
+              this.config.get<number>('worker.aiInputMaxTokens', 12_000),
+            )
+          : this.prompts.buildProjectReview(
+              allChunks,
+              metadata as unknown as Record<string, unknown>,
+              this.config.get<number>('worker.aiInputMaxTokens', 12_000),
+            );
         const startedAt = Date.now();
         const requestRecord = await this.db.aIRequest.create({
           data: {
@@ -154,6 +178,7 @@ export class AnalyzeProcessor implements JobHandler {
         });
         try {
           const generated = await this.ai.analyze(request);
+          await assertPipelineActive(this.db, scan.id);
           await this.db.aIRequest.update({
             where: { id: requestRecord.id },
             data: {
@@ -175,7 +200,16 @@ export class AnalyzeProcessor implements JobHandler {
               durationMs: Date.now() - startedAt,
             },
           });
-          return { result: generated.result, tokens: generated.response.totalTokens };
+          completedReviews += 1;
+          await this.db.scan.update({
+            where: { id: scan.id },
+            data: {
+              // 60% is parsing complete; 25% is distributed over the
+              // project review plus one focused review per source file.
+              progress: 60 + Math.floor((completedReviews / reviewTasks.length) * 25),
+            },
+          });
+          return { result: generated.result, tokens: generated.response.totalTokens, filePath };
         } catch (error) {
           await this.db.aIRequest.update({
             where: { id: requestRecord.id },
@@ -190,6 +224,14 @@ export class AnalyzeProcessor implements JobHandler {
       }),
     );
     const results: AIReviewResult[] = generatedTasks.map((item) => item.result);
+    const fileReviews = generatedTasks
+      .filter((item): item is typeof item & { filePath: string } => Boolean(item.filePath))
+      .map((item) => ({
+        path: item.filePath,
+        summary: item.result.summary ?? 'The file was reviewed without a generated summary.',
+        strengths: item.result.strengths ?? [],
+        weaknesses: item.result.weaknesses ?? [],
+      }));
     const totalTokens = generatedTasks.reduce((sum, item) => sum + item.tokens, 0);
 
     const model = this.config.getOrThrow<string>('worker.aiModel');
@@ -206,7 +248,8 @@ export class AnalyzeProcessor implements JobHandler {
       update: { tokensUsed: totalTokens, requestCount: results.length },
     });
 
-    const data = { metadata, results, totalTokens };
+    const data = { metadata, results, totalTokens, fileReviews };
+    await assertPipelineActive(this.db, scan.id);
     await saveJson(`${paths.output}/ai-results.json`, data);
     await this.queue.enqueueJob(QUEUE_NAMES.report, 'report', payload);
     this.logger.log(

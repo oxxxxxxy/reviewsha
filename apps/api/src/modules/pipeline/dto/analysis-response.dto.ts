@@ -30,6 +30,10 @@ export class AnalysisResponseDto {
 
   @ApiPropertyOptional({ type: String, nullable: true })
   finishedAt!: Date | null;
+
+  @ApiProperty({ type: Number }) reviewTotal!: number;
+  @ApiProperty({ type: Number }) reviewCompleted!: number;
+  @ApiProperty({ type: Number }) reviewFailed!: number;
 }
 
 export class AnalysesListResponseDto {

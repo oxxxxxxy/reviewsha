@@ -99,6 +99,16 @@ describe('Queue infrastructure', () => {
     );
   });
 
+  it('preserves a caller-provided deterministic job id', async () => {
+    const { service, queues } = setup();
+    await service.addJob(QUEUE_NAMES.chat, 'chat.generate', {}, { jobId: 'stable-job-id' });
+    expect(queues[3]!.add).toHaveBeenCalledWith(
+      'chat.generate',
+      expect.objectContaining({ type: 'chat.generate' }),
+      expect.objectContaining({ jobId: 'stable-job-id' }),
+    );
+  });
+
   it('publishes a creation event', async () => {
     const { service } = setup();
     const listener = vi.fn();

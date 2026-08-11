@@ -16,6 +16,8 @@ function ProjectsList() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState('');
+  const [githubUrl, setGithubUrl] = useState('');
+  const [githubBranch, setGithubBranch] = useState('');
   const client = useQueryClient();
   const navigate = useNavigate();
   const projects = useQuery({
@@ -39,74 +41,133 @@ function ProjectsList() {
       }),
     onSuccess: ({ data }) => {
       void client.invalidateQueries({ queryKey: ['projects'] });
-      navigate(`/projects/${data.id}`);
+      if (githubUrl.trim()) {
+        void reviewshaSdk.uploads
+          .importGithub(data.id, githubUrl.trim(), githubBranch.trim() || undefined)
+          .finally(() => navigate(`/projects/${data.id}`));
+      } else navigate(`/projects/${data.id}`);
     },
   });
   if (projects.isLoading) return <Loader label="Loading projects" />;
+  if (projects.isError)
+    return (
+      <section className="page">
+        <h1>Projects</h1>
+        <p role="alert">Unable to load projects.</p>
+        <Button onClick={() => void projects.refetch()}>Retry</Button>
+      </section>
+    );
   return (
-    <section className="page">
+    <section className="page projects-page">
       <h1>Projects</h1>
-      <div className="form">
-        <Input
-          value={search}
-          onChange={(event) => updateSearch(event.target.value)}
-          placeholder="Search projects"
-          aria-label="Search projects"
-        />
-        <label>
-          Sort
-          <select
-            value={sort}
-            onChange={(event) => {
-              setSort(event.target.value as typeof sort);
-              setPage(1);
-            }}
-          >
-            <option value="updatedAt">Recently updated</option>
-            <option value="name">Name</option>
-          </select>
-        </label>
-        <Input
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          placeholder="New project name"
-          aria-label="New project name"
-        />
-        <Textarea
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="Description"
-        />
-        <Input
-          value={tags}
-          onChange={(event) => setTags(event.target.value)}
-          placeholder="Tags (comma separated)"
-          aria-label="Project tags"
-        />
-        <Button
-          disabled={!name.trim()}
-          isLoading={create.isPending}
-          onClick={() => create.mutate()}
+      <div className="projects-workspace">
+        <aside className="project-search-panel">
+          <span className="eyebrow">Workspace</span>
+          <h2>Find a project</h2>
+          <Input
+            value={search}
+            onChange={(event) => updateSearch(event.target.value)}
+            placeholder="Search projects"
+            aria-label="Search projects"
+          />
+          <label>
+            Sort
+            <select
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value as typeof sort);
+                setPage(1);
+              }}
+            >
+              <option value="updatedAt">Recently updated</option>
+              <option value="name">Name</option>
+            </select>
+          </label>
+          <p className="muted">{projects.data?.meta.total ?? 0} projects</p>
+        </aside>
+        <form
+          className="project-create-panel form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (name.trim()) create.mutate();
+          }}
         >
-          Create project
-        </Button>
-        {create.isError ? <p role="alert">Unable to create project.</p> : null}
+          <span className="eyebrow">New workspace</span>
+          <h2>Create project</h2>
+          <Input
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="Project name"
+            aria-label="New project name"
+          />
+          <Textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder="Description"
+          />
+          <Input
+            value={tags}
+            onChange={(event) => setTags(event.target.value)}
+            placeholder="Tags (comma separated)"
+            aria-label="Project tags"
+          />
+          <Input
+            value={githubUrl}
+            onChange={(event) => setGithubUrl(event.target.value)}
+            placeholder="GitHub repository (optional)"
+          />
+          <Input
+            value={githubBranch}
+            onChange={(event) => setGithubBranch(event.target.value)}
+            placeholder="GitHub branch (optional)"
+          />
+          <Button type="submit" disabled={!name.trim()} isLoading={create.isPending}>
+            Create project
+          </Button>
+          {create.isError ? <p role="alert">Unable to create project.</p> : null}
+        </form>
       </div>
-      {projects.isError ? (
-        <p role="alert">
-          Unable to load projects. <button onClick={() => void projects.refetch()}>Retry</button>
-        </p>
-      ) : null}
       {projects.data?.data.length ? (
-        <div className="project-list">
+        <div className="project-list project-cards">
           {projects.data.data.map((project) => (
-            <Card key={project.id}>
+            <Card
+              key={project.id}
+              className="project-card"
+              role="link"
+              tabIndex={0}
+              onClick={() => navigate(`/projects/${project.id}`)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') navigate(`/projects/${project.id}`);
+              }}
+            >
               <h2>{project.name}</h2>
               <p>{project.description || 'No description'}</p>
               <p>
                 {project.status} · {project.language || 'Unknown language'}
               </p>
-              <Link to={`/projects/${project.id}`}>Open</Link>
+              <Button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  navigate(`/projects/${project.id}`);
+                }}
+              >
+                Open project
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (window.confirm(`Delete project “${project.name}”?`)) {
+                    void reviewshaSdk.projects
+                      .remove(project.id)
+                      .then(() => client.invalidateQueries({ queryKey: ['projects'] }));
+                  }
+                }}
+              >
+                Delete
+              </Button>
             </Card>
           ))}
         </div>
@@ -152,6 +213,10 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       void client.invalidateQueries({ queryKey: ['project', projectId] });
     },
   });
+  const removeProject = useMutation({
+    mutationFn: () => reviewshaSdk.projects.remove(projectId),
+    onSuccess: () => window.location.assign('/projects'),
+  });
   const [uploadProgress, setUploadProgress] = useState<number>();
   const [editName, setEditName] = useState('');
   const [editDescription, setEditDescription] = useState('');
@@ -159,6 +224,8 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const uploadController = useRef<AbortController | undefined>(undefined);
   const [uploadError, setUploadError] = useState<string>();
+  const [lastUpload, setLastUpload] = useState<File>();
+  const [selectedUploadId, setSelectedUploadId] = useState<string>();
   const uploads = useQuery({
     queryKey: ['uploads', projectId],
     queryFn: ({ signal }) => reviewshaSdk.uploads.list(projectId, signal),
@@ -197,8 +264,12 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     onError: (error) => {
       uploadController.current = undefined;
       if ((error as Error).name !== 'CanceledError')
-        setUploadError('Upload failed. Check ZIP file and try again.');
+        setUploadError('Upload failed. Check the file format and try again.');
     },
+  });
+  const removeUpload = useMutation({
+    mutationFn: (uploadId: string) => reviewshaSdk.uploads.remove(projectId, uploadId),
+    onSuccess: () => uploads.refetch(),
   });
   const analyses = useQuery({
     queryKey: ['analyses', projectId],
@@ -209,7 +280,17 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     },
   });
   const analyze = useMutation({
-    mutationFn: () => reviewshaSdk.analyses.start(projectId),
+    mutationFn: () => reviewshaSdk.analyses.start(projectId, selectedUploadId),
+    onSuccess: () => void client.invalidateQueries({ queryKey: ['analyses', projectId] }),
+  });
+  const cancel = useMutation({
+    mutationFn: () => {
+      const active = analyses.data?.data.find(
+        (entry) => entry.pipelineStatus === 'RUNNING' || entry.pipelineStatus === 'PENDING',
+      );
+      if (!active) throw new Error('No active analysis');
+      return reviewshaSdk.pipelines.cancel(active.id);
+    },
     onSuccess: () => void client.invalidateQueries({ queryKey: ['analyses', projectId] }),
   });
   if (project.isLoading) return <Loader label="Loading project" />;
@@ -228,14 +309,21 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   };
   const uploadFile = (file: File) => {
     setUploadError(undefined);
-    if (!file.name.toLowerCase().endsWith('.zip')) {
-      setUploadError('Only ZIP archives are supported.');
+    const supported =
+      /\.(zip|rar|7z|tar|gz|tgz|js|jsx|ts|tsx|mjs|cjs|json|jsonc|py|rb|php|java|kt|go|rs|c|h|cpp|hpp|cs|swift|dart|sh|sql|vue|svelte|html|css|scss|less|xml|toml|ini|ya?ml|md|mdx|txt|rst|csv|log|pdf|docx?|odt|rtf|xlsx?|ods|pptx?|odp)$/i.test(
+        file.name,
+      );
+    if (!supported) {
+      setUploadError(
+        'Unsupported file type. Upload a supported archive, source file, document, or PDF.',
+      );
       return;
     }
     if (file.size > 100 * 1024 * 1024) {
-      setUploadError('The ZIP file is too large. Maximum size: 100 MB.');
+      setUploadError('The file is too large. Maximum size: 100 MB.');
       return;
     }
+    setLastUpload(file);
     upload.mutate(file);
   };
   return (
@@ -280,6 +368,15 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       >
         Archive project
       </Button>
+      <Button
+        variant="ghost"
+        isLoading={removeProject.isPending}
+        onClick={() => {
+          if (window.confirm(`Delete project “${item.name}”?`)) removeProject.mutate();
+        }}
+      >
+        Delete project
+      </Button>
       <Modal
         isOpen={archiveOpen}
         title="Archive this project?"
@@ -303,12 +400,61 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         <h2>Analysis</h2>
         {analyses.data?.data[0] ? (
           <Card>
-            <Badge tone={analyses.data.data[0].status === 'COMPLETED' ? 'success' : 'warning'}>
-              {analyses.data.data[0].status}
-            </Badge>
-            <p>
-              {analyses.data.data[0].currentStep ?? 'Queued'} · {analyses.data.data[0].progress}%
-            </p>
+            {(() => {
+              const current = analyses.data.data[0] as (typeof analyses.data.data)[0] & {
+                reviewTotal?: number;
+                reviewCompleted?: number;
+                reviewFailed?: number;
+              };
+              const total = current.reviewTotal ?? 0;
+              const completed = current.reviewCompleted ?? 0;
+              const failed = current.reviewFailed ?? 0;
+              return (
+                <>
+                  <div className="analysis-header">
+                    <Badge
+                      tone={
+                        current.status === 'COMPLETED' ? 'success' : failed ? 'danger' : 'warning'
+                      }
+                    >
+                      {current.status}
+                    </Badge>
+                    <strong>{current.progress}%</strong>
+                  </div>
+                  <div className="analysis-progress-track">
+                    <span style={{ width: `${current.progress}%` }} />
+                  </div>
+                  <p className="analysis-progress-label">
+                    {current.currentStep ?? 'Queued'}
+                    {total
+                      ? current.progress === 100 && completed < total
+                        ? ` · pipeline finished, ${completed}/${total} AI reviews returned`
+                        : ` · ${completed}/${total} AI reviews complete`
+                      : ''}
+                    {failed ? ` · ${failed} failed` : ''}
+                  </p>
+                  <div className="analysis-steps" aria-label="Analysis progress">
+                    {['DOWNLOAD', 'EXTRACT', 'PARSE', 'ANALYZE', 'REPORT'].map((step) => (
+                      <span
+                        key={step}
+                        className={
+                          current.currentStep === step
+                            ? 'active'
+                            : ['DOWNLOAD', 'EXTRACT', 'PARSE', 'ANALYZE'].indexOf(step) <
+                                ['DOWNLOAD', 'EXTRACT', 'PARSE', 'ANALYZE'].indexOf(
+                                  current.currentStep ?? '',
+                                )
+                              ? 'done'
+                              : ''
+                        }
+                      >
+                        {step}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
             {analyses.data.data[0].status === 'FAILED' ? (
               <p role="alert">{analyses.data.data[0].errorMessage ?? 'Analysis failed.'}</p>
             ) : null}
@@ -323,10 +469,16 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         >
           Analyze project
         </Button>
+        {analyses.data?.data[0] &&
+        !['COMPLETED', 'FAILED', 'CANCELLED'].includes(analyses.data.data[0].status ?? '') ? (
+          <Button variant="secondary" isLoading={cancel.isPending} onClick={() => cancel.mutate()}>
+            Cancel analysis
+          </Button>
+        ) : null}
         {analyze.isError ? <p role="alert">Unable to start analysis.</p> : null}
       </section>
       <section className="upload-panel">
-        <h2>Upload ZIP</h2>
+        <h2>Upload project or file</h2>
         <div
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
@@ -335,14 +487,14 @@ function ProjectDetails({ projectId }: { projectId: string }) {
             if (file) uploadFile(file);
           }}
           role="region"
-          aria-label="ZIP upload drop zone"
+          aria-label="Project file upload drop zone"
         >
-          Drop ZIP here or choose a file
+          Drop an archive or readable file here
         </div>
         <input
           ref={fileRef}
           type="file"
-          accept=".zip,application/zip"
+          accept=".zip,.rar,.7z,.tar,.gz,.tgz,.js,.jsx,.ts,.tsx,.json,.py,.java,.go,.rs,.c,.cpp,.cs,.sh,.sql,.html,.css,.xml,.yaml,.yml,.md,.txt,.pdf,.doc,.docx,.odt,.rtf,.xls,.xlsx,.ppt,.pptx"
           onChange={(event) => {
             const file = event.target.files?.[0];
             if (!file) return;
@@ -356,9 +508,18 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           </Button>
         ) : null}
         {upload.isSuccess ? <p>Upload complete</p> : null}
-        {uploadError ? <p role="alert">{uploadError}</p> : null}
+        {uploadError ? (
+          <>
+            <p role="alert">{uploadError}</p>
+            {lastUpload ? (
+              <Button variant="secondary" onClick={() => upload.mutate(lastUpload)}>
+                Retry upload
+              </Button>
+            ) : null}
+          </>
+        ) : null}
       </section>
-      <section className="project-list" aria-label="Upload versions">
+      <section className="project-list versions-section" aria-label="Upload versions">
         <h2>Versions</h2>
         {uploads.data?.data.length ? (
           uploads.data.data.map((version) => (
@@ -367,16 +528,32 @@ function ProjectDetails({ projectId }: { projectId: string }) {
               <p>
                 {version.status} · {version.size} bytes
               </p>
+              <Button
+                variant="secondary"
+                disabled={version.status !== 'COMPLETED' || item.status === 'ARCHIVED'}
+                onClick={() => setSelectedUploadId(version.id)}
+              >
+                {selectedUploadId === version.id ? 'Selected for analysis' : 'Use for analysis'}
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={removeUpload.isPending || item.status === 'ARCHIVED'}
+                onClick={() => {
+                  if (window.confirm('Delete this local version?')) removeUpload.mutate(version.id);
+                }}
+              >
+                Delete version
+              </Button>
             </Card>
           ))
         ) : (
           <EmptyState
             title="No uploads yet"
-            description="Upload a ZIP archive to create the first version."
+            description="Upload an archive, source file, document, or PDF to create the first version."
           />
         )}
       </section>
-      <section className="project-list" aria-label="Project history">
+      <section className="project-list history-section" aria-label="Project history">
         <h2>History</h2>
         {history.data?.data.length ? (
           history.data.data.map((entry) => (
@@ -392,8 +569,15 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         )}
       </section>
       <div className="quick-actions">
-        <Link to={`/projects/${projectId}/chat`}>Open chat</Link>
-        <Link to={`/projects/${projectId}/reports`}>Reports</Link>
+        <Link className="action-button" to={`/projects/${projectId}/settings`}>
+          Project settings
+        </Link>
+        <Link className="action-button" to={`/projects/${projectId}/chat`}>
+          Open chat
+        </Link>
+        <Link className="action-button" to={`/projects/${projectId}/reports`}>
+          Reports
+        </Link>
       </div>
     </section>
   );

@@ -23,6 +23,17 @@ export function Switch({
   );
 }
 
+export function Checkbox({
+  label,
+  ...props
+}: InputHTMLAttributes<HTMLInputElement> & { label: string }) {
+  return (
+    <label>
+      <input type="checkbox" aria-label={label} {...props} /> {label}
+    </label>
+  );
+}
+
 export function Toast({ children, onClose }: { children: ReactNode; onClose?: () => void }) {
   return (
     <div role="status" className="ui-toast">

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  Inject,
   HttpStatus,
   Patch,
   Post,
@@ -44,7 +45,11 @@ import type {
 @ApiStandardErrors()
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  private readonly authService: AuthService;
+
+  constructor(@Inject(AuthService) authService: AuthService) {
+    this.authService = authService;
+  }
 
   @Public()
   @Post('register')

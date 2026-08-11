@@ -29,6 +29,7 @@ import {
   ApiTags,
   ApiProduces,
 } from '@nestjs/swagger';
+import { Inject } from '@nestjs/common';
 import { CurrentUser } from '../../../common/auth/decorators/current-user.decorator';
 import { Ownership } from '../../../common/auth/decorators/ownership.decorator';
 import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
@@ -52,9 +53,9 @@ import { ChatStreamingService } from '../services/chat-streaming.service';
 @Controller()
 export class ChatController {
   constructor(
-    private readonly chat: ChatService,
-    private readonly sessions: ChatSessionService,
-    private readonly streaming: ChatStreamingService,
+    @Inject(ChatService) private readonly chat: ChatService,
+    @Inject(ChatSessionService) private readonly sessions: ChatSessionService,
+    @Inject(ChatStreamingService) private readonly streaming: ChatStreamingService,
   ) {}
 
   @Post('projects/:id/chat')
@@ -95,6 +96,18 @@ export class ChatController {
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
   ): Promise<void> {
     await this.sessions.remove(user, sessionId);
+  }
+
+  @Get('chat/:sessionId')
+  @ApiOperation({ summary: 'Get an owned chat session' })
+  @ApiOkResponse({ type: ChatSessionResponseDto })
+  @ApiForbiddenResponse({ description: 'The chat belongs to another user.' })
+  @ApiNotFoundResponse({ description: 'Chat session not found.' })
+  get(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+  ) {
+    return this.sessions.get(user, sessionId);
   }
 
   @Get('chat/:sessionId/messages')

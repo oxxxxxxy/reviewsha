@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -17,11 +18,19 @@ type ExportFormat = 'json' | 'md' | 'pdf';
 
 @Injectable()
 export class ReportsService {
+  private readonly reports: ReportsRepository;
+  private readonly projects: ProjectRepository;
+  private readonly storage: StorageService;
+
   constructor(
-    private readonly reports: ReportsRepository,
-    private readonly projects: ProjectRepository,
-    private readonly storage: StorageService,
-  ) {}
+    @Inject(ReportsRepository) reports: ReportsRepository,
+    @Inject(ProjectRepository) projects: ProjectRepository,
+    @Inject(StorageService) storage: StorageService,
+  ) {
+    this.reports = reports;
+    this.projects = projects;
+    this.storage = storage;
+  }
 
   async findById(user: AuthenticatedUser, id: string): Promise<ReportResponseDto> {
     const report = await this.getOwned(user, id);
@@ -163,7 +172,58 @@ export class ReportsService {
         size: Number(item.size),
         createdAt: item.createdAt,
       })),
+      files: this.fileCoverage(report),
     };
+  }
+
+  private fileCoverage(report: DetailedReport) {
+    const chunks = report.scan.analysisContext?.chunks;
+    const paths = new Set<string>();
+    if (Array.isArray(chunks)) {
+      for (const chunk of chunks as Array<{ filePaths?: unknown; path?: unknown }>) {
+        for (const path of Array.isArray(chunk.filePaths) ? chunk.filePaths : []) {
+          if (typeof path === 'string') paths.add(path);
+        }
+        if (typeof chunk.path === 'string' && !chunk.path.startsWith('project://'))
+          paths.add(chunk.path);
+      }
+    }
+    const issues = new Map<string, number>();
+    for (const finding of report.findings) {
+      issues.set(finding.filePath, (issues.get(finding.filePath) ?? 0) + 1);
+      paths.add(finding.filePath);
+    }
+    const generated = Array.isArray(report.fileReviews)
+      ? (report.fileReviews as Array<{
+          path?: unknown;
+          summary?: unknown;
+          strengths?: unknown;
+          weaknesses?: unknown;
+        }>)
+      : [];
+    const generatedByPath = new Map(
+      generated
+        .filter((item) => typeof item.path === 'string')
+        .map((item) => [item.path as string, item]),
+    );
+    return [...paths].sort().map((path) => {
+      const review = generatedByPath.get(path);
+      return {
+        path,
+        issueCount: issues.get(path) ?? 0,
+        status: issues.has(path) ? ('ISSUES_FOUND' as const) : ('REVIEWED' as const),
+        summary:
+          typeof review?.summary === 'string'
+            ? review.summary
+            : 'File was included in the project review.',
+        strengths: Array.isArray(review?.strengths)
+          ? review.strengths.filter((item): item is string => typeof item === 'string')
+          : [],
+        weaknesses: Array.isArray(review?.weaknesses)
+          ? review.weaknesses.filter((item): item is string => typeof item === 'string')
+          : [],
+      };
+    });
   }
 
   private async buildExport(report: DetailedReport, format: ExportFormat) {

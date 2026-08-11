@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { AIReviewResult } from '../../ai/types/ai.types';
 import type { AnalysisReport } from '../types/report.types';
 import { ResultAggregatorService } from './result-aggregator.service';
 
 @Injectable()
 export class ReportGeneratorService {
-  constructor(private readonly aggregator: ResultAggregatorService) {}
-  generate(results: AIReviewResult[]): AnalysisReport {
+  constructor(
+    @Inject(ResultAggregatorService) private readonly aggregator: ResultAggregatorService,
+  ) {}
+  generate(
+    results: AIReviewResult[],
+    fileReviews: AnalysisReport['fileReviews'] = [],
+  ): AnalysisReport {
     const aggregate = this.aggregator.aggregate(results);
     return {
       version: '1.0',
@@ -16,6 +21,7 @@ export class ReportGeneratorService {
       recommendations: aggregate.issues.map((issue) => issue.recommendation),
       strengths: aggregate.strengths,
       weaknesses: aggregate.weaknesses,
+      fileReviews,
     };
   }
   score(issues: Array<{ severity: string; category?: string }>): number {

@@ -15,4 +15,5 @@ export type AnalysisReport = {
   recommendations: string[];
   strengths: string[];
   weaknesses: string[];
+  fileReviews: Array<{ path: string; summary: string; strengths: string[]; weaknesses: string[] }>;
 };

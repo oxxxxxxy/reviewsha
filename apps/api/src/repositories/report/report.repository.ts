@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma, Report } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -11,7 +11,7 @@ import type { IReportRepository } from './report.repository.interface';
 
 @Injectable()
 export class ReportRepository extends BaseRepository<Report> implements IReportRepository {
-  constructor(prisma: PrismaService) {
+  constructor(@Inject(PrismaService) prisma: PrismaService) {
     super(prisma);
   }
 

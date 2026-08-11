@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Prisma, QueueJob, QueueStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -12,7 +12,7 @@ import type { IQueueJobRepository } from './queue-job.repository.interface';
 
 @Injectable()
 export class QueueJobRepository extends BaseRepository<QueueJob> implements IQueueJobRepository {
-  constructor(prisma: PrismaService) {
+  constructor(@Inject(PrismaService) prisma: PrismaService) {
     super(prisma);
   }
 

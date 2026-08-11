@@ -15,6 +15,8 @@ describe('ChatService', () => {
     findMessages: vi.fn(),
     recentMessages: vi.fn(),
     saveMessage: vi.fn(),
+    findUserMessageByIdempotencyKey: vi.fn(),
+    findAssistantMessageByIdempotencyKey: vi.fn(),
     findResponse: vi.fn(),
     touchSession: vi.fn(),
   };
@@ -48,6 +50,8 @@ describe('ChatService', () => {
     contexts.build.mockResolvedValue({ text: '{"project":"Reviewsha"}', tokens: 10 });
     repository.recentMessages.mockResolvedValue([]);
     repository.saveMessage.mockResolvedValue({ id: 'message-1' });
+    repository.findUserMessageByIdempotencyKey.mockResolvedValue(null);
+    repository.findAssistantMessageByIdempotencyKey.mockResolvedValue(null);
     queues.addJob.mockResolvedValue({ id: 'job-1' });
     queues.getJobStatus.mockResolvedValue('active');
     repository.findResponse.mockResolvedValue({
@@ -107,6 +111,29 @@ describe('ChatService', () => {
       'chat.generate',
       expect.objectContaining({ message: 'Why JWT?', context: expect.any(String) }),
     );
+  });
+
+  it('persists the idempotency key on the user message', async () => {
+    await service.send(user, 'session-1', {
+      message: 'Why JWT?',
+      idempotencyKey: 'retry-key',
+    });
+    expect(repository.saveMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ idempotencyKey: 'retry-key' }),
+    );
+  });
+
+  it('reuses a persisted assistant response after the queue job is gone', async () => {
+    repository.findAssistantMessageByIdempotencyKey.mockResolvedValue({
+      requestId: '00000000-0000-5000-8000-000000000001',
+    });
+    await service.send(user, 'session-1', {
+      message: 'Why JWT?',
+      idempotencyKey: 'retry-key',
+    });
+    expect(repository.findResponse).toHaveBeenCalledWith('00000000-0000-5000-8000-000000000001');
+    expect(queues.addJob).not.toHaveBeenCalled();
+    expect(repository.saveMessage).not.toHaveBeenCalled();
   });
 
   it.each(['', ' ', '\n'])('rejects blank message %j', async (message) => {
@@ -173,7 +200,9 @@ describe('ChatService', () => {
     ).resolves.toMatchObject({ id: 'answer-1' });
     expect(queues.getJob).toHaveBeenCalledWith(
       'chat.queue',
-      expect.stringMatching(/^chat-[a-f0-9]{64}$/),
+      expect.stringMatching(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      ),
     );
     expect(repository.saveMessage).not.toHaveBeenCalled();
     expect(queues.addJob).not.toHaveBeenCalled();

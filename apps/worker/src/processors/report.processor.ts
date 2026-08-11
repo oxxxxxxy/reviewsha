@@ -1,5 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { FindingCategory, ReportFormat, ReportStatus, ScanStatus, Severity } from '@prisma/client';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  FindingCategory,
+  PipelineStep,
+  ReportFormat,
+  ReportStatus,
+  ScanStatus,
+  Severity,
+} from '@prisma/client';
 import type { Job } from 'bullmq';
 import { readFile } from 'node:fs/promises';
 import type { AIReviewResult } from '../ai/types/ai.types';
@@ -12,39 +19,43 @@ import { JsonReportBuilder } from '../reporting/builders/json.builder';
 import { MarkdownReportBuilder } from '../reporting/builders/markdown.builder';
 import { ReportGeneratorService } from '../reporting/services/report-generator.service';
 import type { ReportIssue } from '../reporting/types/report.types';
+import type { AnalysisReport } from '../reporting/types/report.types';
 import { WorkspaceService } from '../services/workspace.service';
 import type { JobHandler } from './job-handler.interface';
-import { payloadOf, saveJson } from './processing.helpers';
+import { assertPipelineActive, payloadOf, saveJson } from './processing.helpers';
 
 @Injectable()
 export class ReportProcessor implements JobHandler {
   readonly type = 'report';
 
   constructor(
-    private readonly db: WorkerDatabaseService,
-    private readonly workspace: WorkspaceService,
-    private readonly generator: ReportGeneratorService,
-    private readonly markdown: MarkdownReportBuilder,
-    private readonly json: JsonReportBuilder,
-    private readonly queue: QueueService,
-    private readonly logger: WorkerLoggerService,
+    @Inject(WorkerDatabaseService) private readonly db: WorkerDatabaseService,
+    @Inject(WorkspaceService) private readonly workspace: WorkspaceService,
+    @Inject(ReportGeneratorService) private readonly generator: ReportGeneratorService,
+    @Inject(MarkdownReportBuilder) private readonly markdown: MarkdownReportBuilder,
+    @Inject(JsonReportBuilder) private readonly json: JsonReportBuilder,
+    @Inject(QueueService) private readonly queue: QueueService,
+    @Inject(WorkerLoggerService) private readonly logger: WorkerLoggerService,
   ) {}
 
   async execute(job: Job): Promise<QueueJobResult> {
     const payload = payloadOf(job);
+    await assertPipelineActive(this.db, payload.pipelineId);
     const paths = await this.workspace.create(payload.pipelineId!);
     const aiData = JSON.parse(await readFile(`${paths.output}/ai-results.json`, 'utf8')) as {
       results: AIReviewResult[];
       totalTokens?: number;
+      fileReviews?: AnalysisReport['fileReviews'];
     };
     const scan = await this.db.scan.findUnique({ where: { id: payload.pipelineId } });
     if (!scan) throw new Error(`Analysis not found: ${payload.pipelineId}`);
+    await assertPipelineActive(this.db, scan.id);
     await this.db.scan.update({
       where: { id: scan.id },
-      data: { status: ScanStatus.REPORTING, progress: 85 },
+      data: { status: ScanStatus.REPORTING, pipelineStep: PipelineStep.REPORT, progress: 85 },
     });
 
-    const generated = this.generator.generate(aiData.results);
+    const generated = this.generator.generate(aiData.results, aiData.fileReviews ?? []);
     const markdown = this.markdown.build(generated);
     const json = this.json.build(generated);
     await saveJson(`${paths.output}/report.json`, generated);
@@ -53,6 +64,11 @@ export class ReportProcessor implements JobHandler {
     );
 
     const report = await this.db.$transaction(async (database) => {
+      const current = await database.scan.findUnique({
+        where: { id: scan.id },
+        select: { status: true },
+      });
+      if (current?.status === ScanStatus.CANCELLED) throw new Error('PIPELINE_CANCELLED');
       const saved = await database.report.upsert({
         where: { scanId: scan.id },
         create: {
@@ -64,12 +80,16 @@ export class ReportProcessor implements JobHandler {
           status: ReportStatus.READY,
           filePath: null,
           tokensUsed: aiData.totalTokens ?? 0,
+          fileReviews:
+            generated.fileReviews as unknown as import('@prisma/client').Prisma.InputJsonValue,
         },
         update: {
           summary: generated.summary,
           score: generated.score,
           filePath: null,
           tokensUsed: aiData.totalTokens ?? 0,
+          fileReviews:
+            generated.fileReviews as unknown as import('@prisma/client').Prisma.InputJsonValue,
           status: ReportStatus.READY,
           deletedAt: null,
         },
@@ -82,6 +102,10 @@ export class ReportProcessor implements JobHandler {
       }
       return saved;
     });
+
+    // A user may cancel while the report transaction is finishing. Never
+    // publish a notification for a cancelled pipeline.
+    await assertPipelineActive(this.db, scan.id);
 
     await this.queue.enqueueJob(QUEUE_NAMES.notification, 'notify', {
       ...payload,

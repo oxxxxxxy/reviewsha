@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { AIReviewResult } from '../../ai/types/ai.types';
 import type { ReportIssue } from '../types/report.types';
 import { IssueDeduplicatorService } from './issue-deduplicator.service';
@@ -7,8 +7,8 @@ import { IssueNormalizerService } from './issue-normalizer.service';
 @Injectable()
 export class ResultAggregatorService {
   constructor(
-    private readonly normalizer: IssueNormalizerService,
-    private readonly deduplicator: IssueDeduplicatorService,
+    @Inject(IssueNormalizerService) private readonly normalizer: IssueNormalizerService,
+    @Inject(IssueDeduplicatorService) private readonly deduplicator: IssueDeduplicatorService,
   ) {}
   aggregate(results: AIReviewResult[]): {
     issues: ReportIssue[];
@@ -27,7 +27,8 @@ export class ResultAggregatorService {
         results
           .map((result) => result.summary)
           .filter(Boolean)
-          .join(' ') || 'No issues were reported.',
+          .join(' ') ||
+        'The supplied project files were reviewed across architecture, bugs, security, quality and performance. No confirmed findings were returned by the model; this does not replace a manual review.',
     };
   }
 }

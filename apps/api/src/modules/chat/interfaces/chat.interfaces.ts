@@ -4,6 +4,7 @@ export interface ChatContextSnapshot {
   cacheKey: string;
   text: string;
   tokens: number;
+  files?: string[];
 }
 
 export interface ChatHistoryItem {

@@ -1,16 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import yauzl from 'yauzl';
-import { mkdir, createWriteStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
+import { mkdir, createWriteStream, createReadStream } from 'node:fs';
+import { mkdir as mkdirAsync, stat, readdir } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
 import { pipeline } from 'node:stream/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
 
 export type ArchiveLimits = { maxFiles?: number; maxUnpackedBytes?: number; maxDepth?: number };
 
 @Injectable()
 export class ArchiveService {
   async extract(
-    zipPath: string,
+    archivePath: string,
     target: string,
     limits: ArchiveLimits = {},
   ): Promise<{ filesCount: number; bytes: number }> {
@@ -18,8 +22,29 @@ export class ArchiveService {
     const maxBytes = limits.maxUnpackedBytes ?? 1_073_741_824;
     const maxDepth = limits.maxDepth ?? 30;
     const root = resolve(target);
+    const extension = archivePath.toLowerCase();
+    if (!extension.endsWith('.zip')) {
+      await mkdirAsync(root, { recursive: true });
+      let executable = 'bsdtar';
+      let args = ['-xf', archivePath, '-C', root];
+      if (extension.endsWith('.rar')) {
+        executable = 'unrar';
+        args = ['x', '-o+', archivePath, `${root}/`];
+      } else if (extension.endsWith('.7z')) {
+        executable = '7z';
+        args = ['x', '-y', `-o${root}`, archivePath];
+      }
+      try {
+        await execFileAsync(executable, args, { timeout: 120_000, maxBuffer: 2_000_000 });
+      } catch (error) {
+        throw new Error(
+          `Unable to extract archive: ${error instanceof Error ? error.message : 'unknown error'}`,
+        );
+      }
+      return this.scanExtracted(root, maxFiles, maxBytes, maxDepth);
+    }
     return new Promise((resolvePromise, reject) => {
-      yauzl.open(zipPath, { lazyEntries: true, validateEntrySizes: true }, (error, archive) => {
+      yauzl.open(archivePath, { lazyEntries: true, validateEntrySizes: true }, (error, archive) => {
         if (error || !archive) return reject(error ?? new Error('Unable to open ZIP archive'));
         let filesCount = 0;
         let bytes = 0;
@@ -59,6 +84,63 @@ export class ArchiveService {
         archive.readEntry();
       });
     });
+  }
+
+  async extractText(input: string, output: string): Promise<void> {
+    await mkdirAsync(dirname(output), { recursive: true });
+    try {
+      await execFileAsync('pdftotext', ['-layout', input, output], {
+        timeout: 60_000,
+        maxBuffer: 2_000_000,
+      });
+    } catch {
+      // Keep a readable fallback instead of failing the whole project scan.
+      await pipeline(createReadStream(input), createWriteStream(output));
+    }
+  }
+
+  async extractOfficeText(input: string, outputDirectory: string): Promise<void> {
+    await mkdirAsync(outputDirectory, { recursive: true });
+    try {
+      await execFileAsync(
+        'libreoffice',
+        ['--headless', '--convert-to', 'txt:Text', '--outdir', outputDirectory, input],
+        {
+          timeout: 120_000,
+          maxBuffer: 2_000_000,
+        },
+      );
+    } catch {
+      // Some minimal worker images do not ship LibreOffice. The original
+      // file is still retained and the parser will skip it if it is binary.
+      return;
+    }
+  }
+
+  private async scanExtracted(root: string, maxFiles: number, maxBytes: number, maxDepth: number) {
+    let filesCount = 0;
+    let bytes = 0;
+    const walk = async (directory: string): Promise<void> => {
+      for (const entry of await readdir(directory, { withFileTypes: true })) {
+        const absolute = resolve(directory, entry.name);
+        const relativePath = relative(root, absolute);
+        if (
+          relativePath.startsWith('..') ||
+          isAbsolute(relativePath) ||
+          relativePath.split('/').length > maxDepth
+        )
+          throw new Error('Unsafe archive path');
+        if (entry.isDirectory()) await walk(absolute);
+        else if (entry.isFile()) {
+          const info = await stat(absolute);
+          filesCount += 1;
+          bytes += info.size;
+          if (filesCount > maxFiles || bytes > maxBytes) throw new Error('Archive limits exceeded');
+        }
+      }
+    };
+    await walk(root);
+    return { filesCount, bytes };
   }
 
   async isReadable(path: string): Promise<boolean> {

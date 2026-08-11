@@ -18,6 +18,7 @@ export class UploadsAPI {
     return this.client.http
       .post<UploadResponse>(`/projects/${projectId}/uploads`, form, {
         signal,
+        // Override the SDK JSON default; the browser adds the multipart boundary.
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (event) =>
           onProgress?.(event.total ? Math.round((event.loaded / event.total) * 100) : 0),
@@ -27,5 +28,18 @@ export class UploadsAPI {
 
   list(projectId: string, signal?: AbortSignal): Promise<UploadListResponse> {
     return this.client.get<UploadListResponse>(`/projects/${projectId}/uploads`, { signal });
+  }
+
+  remove(projectId: string, uploadId: string): Promise<void> {
+    return this.client.http
+      .delete(`/projects/${projectId}/uploads/${uploadId}`)
+      .then(() => undefined);
+  }
+
+  importGithub(projectId: string, url: string, branch?: string): Promise<UploadListResponse> {
+    return this.client.post<UploadListResponse>(`/projects/${projectId}/uploads/github`, {
+      url,
+      ...(branch ? { branch } : {}),
+    });
   }
 }

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   HttpCode,
   HttpStatus,
   Param,
@@ -44,7 +45,11 @@ import { ProjectsService } from '../services/projects.service';
 @Roles(...AUTHORIZATION_POLICIES.projects.readOwnOrAdmin.roles)
 @Controller('projects')
 export class ProjectsController {
-  constructor(private readonly projectsService: ProjectsService) {}
+  private readonly projectsService: ProjectsService;
+
+  constructor(@Inject(ProjectsService) projectsService: ProjectsService) {
+    this.projectsService = projectsService;
+  }
 
   @Get()
   @ApiOperation({

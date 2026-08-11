@@ -8,6 +8,7 @@ import workerConfig from './worker.config';
   imports: [
     NestConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env', '../../.env'],
       cache: true,
       expandVariables: true,
       load: [workerConfig],

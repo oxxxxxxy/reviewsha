@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Prisma, Project, ProjectHistoryAction, ProjectStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import {
@@ -23,7 +23,7 @@ const projectDetailsInclude = {
 
 @Injectable()
 export class ProjectRepository extends BaseRepository<Project> implements IProjectRepository {
-  constructor(prisma: PrismaService) {
+  constructor(@Inject(PrismaService) prisma: PrismaService) {
     super(prisma);
   }
 
@@ -81,7 +81,7 @@ export class ProjectRepository extends BaseRepository<Project> implements IProje
       params.sort === 'analysesCount'
         ? { scans: { _count: params.order ?? 'desc' } }
         : { [params.sort ?? 'createdAt']: params.order ?? 'desc' };
-    const client = this.getClient(params);
+    const client = this.getClient();
     const [items, total] = await Promise.all([
       client.project.findMany({
         where,

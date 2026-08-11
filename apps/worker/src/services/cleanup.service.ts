@@ -1,9 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { TempStorageService } from './temp-storage.service';
 
 @Injectable()
 export class CleanupService {
-  constructor(private readonly tempStorage: TempStorageService) {}
+  private readonly tempStorage: TempStorageService;
+
+  constructor(@Inject(TempStorageService) tempStorage: TempStorageService) {
+    this.tempStorage = tempStorage;
+  }
 
   cleanup(jobId: string): Promise<void> {
     return this.tempStorage.cleanup(jobId);

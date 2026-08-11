@@ -76,11 +76,15 @@ describe('ChatProcessor', () => {
   });
 
   it('stores an idempotent assistant response', async () => {
-    await processor.execute(job() as never);
+    await processor.execute(job({ ...payload, idempotencyKey: 'retry-key' }) as never);
     expect(db.chatMessage.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { requestId: 'job-1' },
-        create: expect.objectContaining({ role: MessageRole.ASSISTANT, tokens: 3 }),
+        create: expect.objectContaining({
+          role: MessageRole.ASSISTANT,
+          tokens: 3,
+          idempotencyKey: 'retry-key',
+        }),
       }),
     );
   });

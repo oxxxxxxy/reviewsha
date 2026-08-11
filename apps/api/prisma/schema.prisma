@@ -350,6 +350,9 @@ model UploadedFile {
   size         BigInt
   mimeType     String       @map("mime_type") @db.VarChar(160)
   checksum     String       @db.VarChar(128)
+  sourceType   String       @default("UPLOAD") @map("source_type") @db.VarChar(20)
+  sourceCommit String?      @map("source_commit") @db.VarChar(255)
+  sourceRepo   String?      @map("source_repo") @db.VarChar(255)
   status       UploadStatus @default(PENDING)
   version      Int          @default(1)
   createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -367,6 +370,7 @@ model UploadedFile {
   @@index([checksum])
   @@index([deletedAt])
   @@index([projectId, version])
+  @@index([projectId, sourceCommit])
   @@map("uploaded_files")
 }
 
@@ -438,6 +442,7 @@ model Report {
   format     ReportFormat @default(MD)
   status     ReportStatus @default(GENERATING)
   tokensUsed Int          @default(0) @map("tokens_used")
+  fileReviews Json?        @map("file_reviews")
   cost       Decimal      @default(0) @db.Decimal(12, 6)
   createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
   deletedAt  DateTime?    @map("deleted_at") @db.Timestamptz(3)
@@ -623,6 +628,7 @@ model ChatMessage {
   content   String      @db.Text
   tokens    Int         @default(0)
   requestId String?     @unique @map("request_id") @db.Uuid
+  idempotencyKey String? @map("idempotency_key") @db.VarChar(128)
   createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
 
   session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -633,6 +639,7 @@ model ChatMessage {
   @@index([userId])
   @@index([role])
   @@index([requestId])
+  @@unique([sessionId, userId, idempotencyKey])
   @@map("chat_messages")
 }
 

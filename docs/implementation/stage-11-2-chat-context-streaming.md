@@ -1,6 +1,6 @@
 # Stage 11.2 — AI Context & Streaming
 
-Статус: **COMPLETE**.
+Статус: **IMPLEMENTED; real-provider acceptance QA продолжается**.
 
 ## Реализовано
 
@@ -9,11 +9,14 @@
 - Redis-кэш контекста использует analysis identity и вопрос в ключе, имеет TTL и
   in-memory fallback.
 - `ChatMemoryService` сохраняет файлы, проблемы, рекомендации и активную тему.
-  Старые сообщения сжимаются через `ConversationSummaryService`.
+  Память объединяется с предыдущей памятью сессии; старые сообщения сжимаются через
+  `ConversationSummaryService`.
 - История поддерживает pagination, search, before/after и сортировку.
 - `POST /api/v1/chat/:sessionId/stream` возвращает SSE-события `token`,
   `complete` и `error`, а закрытие соединения прекращает выдачу.
 - `ChatUsage` сохраняет input/output/total tokens, model и duration.
+- Redis stream subscribers/publishers закрываются после завершения запроса и при shutdown;
+  malformed broker events преобразуются в stream error.
 - Ownership и secret redaction выполняются до построения prompt.
 - Worker получает memory, summary и active topic вместе с историей диалога.
 

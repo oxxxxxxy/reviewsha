@@ -556,6 +556,14 @@ GET /projects/:id/chat?page=1&limit=50
 
 Ответ содержит `data` и `meta { page, limit, total }`.
 
+## Получить чат
+
+```
+GET /chat/:sessionId
+```
+
+Возвращает принадлежащую пользователю сессию в том же формате, что и создание чата.
+
 ---
 
 ## История сообщений
@@ -573,6 +581,10 @@ GET /chat/:sessionId/messages?page=1&limit=50
 ```
 POST /chat/:sessionId/messages
 ```
+
+Для безопасного повтора запроса поддерживается необязательный заголовок
+`Idempotency-Key` (либо одноимённое поле body). При повторе с тем же ключом в той же сессии
+возвращается исходный assistant response без создания дополнительного user message или job.
 
 Request:
 

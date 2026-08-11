@@ -11,10 +11,16 @@ export type ChatStreamEvent =
 
 @Injectable()
 export class ChatStreamingService {
+  private readonly chat: ChatService;
+  private readonly broker: ChatStreamBrokerService;
+
   constructor(
-    @Inject(ChatService) private readonly chat: ChatService,
-    @Inject(ChatStreamBrokerService) private readonly broker: ChatStreamBrokerService,
-  ) {}
+    @Inject(ChatService) chat: ChatService,
+    @Inject(ChatStreamBrokerService) broker: ChatStreamBrokerService,
+  ) {
+    this.chat = chat;
+    this.broker = broker;
+  }
 
   async *stream(
     user: AuthenticatedUser,

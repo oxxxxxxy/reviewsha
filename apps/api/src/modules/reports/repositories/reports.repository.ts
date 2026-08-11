@@ -1,18 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma, ReportExport, ReportFormat } from '@prisma/client';
 import { PrismaService } from '../../../database/prisma.service';
 
 const reportInclude = {
   findings: { orderBy: [{ severity: 'desc' as const }, { createdAt: 'asc' as const }] },
   exports: { orderBy: { createdAt: 'desc' as const } },
-  scan: { select: { status: true, createdAt: true, finishedAt: true } },
+  scan: {
+    select: {
+      status: true,
+      createdAt: true,
+      finishedAt: true,
+      analysisContext: { select: { chunks: true } },
+    },
+  },
 } satisfies Prisma.ReportInclude;
 
 export type DetailedReport = Prisma.ReportGetPayload<{ include: typeof reportInclude }>;
 
 @Injectable()
 export class ReportsRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   findById(id: string): Promise<DetailedReport | null> {
     return this.prisma.report.findFirst({ where: { id, deletedAt: null }, include: reportInclude });

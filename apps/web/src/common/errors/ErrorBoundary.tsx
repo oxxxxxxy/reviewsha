@@ -29,7 +29,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   override render() {
     if (this.state.hasError) {
-      return this.props.fallback ?? <h1>Something went wrong</h1>;
+      return (
+        this.props.fallback ?? (
+          <main role="alert" className="error-boundary">
+            <h1>Something went wrong</h1>
+            <button type="button" onClick={() => window.location.reload()}>
+              Reload
+            </button>
+          </main>
+        )
+      );
     }
 
     return this.props.children;

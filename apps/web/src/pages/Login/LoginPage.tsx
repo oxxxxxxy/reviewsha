@@ -5,6 +5,7 @@ import { Button, Input } from '@reviewsha/ui';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuthStore } from '../../stores/auth.store';
+import { useUiStore } from '../../stores/ui.store';
 
 const loginSchema = z.object({
   email: z.email('Введите корректный email'),
@@ -18,6 +19,7 @@ export function LoginPage() {
   const user = useAuthStore((state) => state.user);
   const login = useAuthStore((state) => state.login);
   const loading = useAuthStore((state) => state.isLoading);
+  const pushToast = useUiStore((state) => state.pushToast);
   const [apiError, setApiError] = useState('');
   const {
     register,
@@ -35,6 +37,7 @@ export function LoginPage() {
     setApiError('');
     try {
       await login(values.email, values.password);
+      pushToast('Signed in successfully');
       navigate('/dashboard');
     } catch {
       setApiError('Invalid credentials');
@@ -66,6 +69,9 @@ export function LoginPage() {
         ) : null}
         <Button type="submit" isLoading={loading}>
           Sign in
+        </Button>
+        <Button type="button" variant="ghost" disabled>
+          Forgot password
         </Button>
         <Link to="/register">Create account</Link>
       </form>

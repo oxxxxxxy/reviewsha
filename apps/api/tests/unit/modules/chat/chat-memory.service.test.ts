@@ -3,13 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChatMemoryService } from '../../../../src/modules/chat/services/chat-memory.service';
 
 describe('ChatMemoryService', () => {
-  const repository = { messagesForMemory: vi.fn(), updateMemory: vi.fn() };
+  const repository = { findSession: vi.fn(), messagesForMemory: vi.fn(), updateMemory: vi.fn() };
   const summaries = { summarize: vi.fn(() => 'compressed conversation') };
   let service: ChatMemoryService;
 
   beforeEach(() => {
     vi.clearAllMocks();
     repository.messagesForMemory.mockResolvedValue([]);
+    repository.findSession.mockResolvedValue({ memory: null, summary: null });
     repository.updateMemory.mockResolvedValue({});
     service = new ChatMemoryService(repository as never, summaries as never);
   });
@@ -50,6 +51,16 @@ describe('ChatMemoryService', () => {
       's1',
       expect.objectContaining({ memory: expect.objectContaining({ files: ['src/auth.ts'] }) }),
     );
+  });
+
+  it('preserves memory from earlier answers', async () => {
+    repository.findSession.mockResolvedValue({
+      memory: { files: ['src/old.ts'], issues: ['bug'], recommendations: [], topic: 'old topic' },
+      summary: 'old summary',
+    });
+    const memory = await service.update('s1', 'Check src/new.ts', 'You should validate JWT.');
+    expect(memory.files).toEqual(['src/old.ts', 'src/new.ts']);
+    expect(memory.issues).toContain('bug');
   });
 
   it('compresses messages older than the recent window', async () => {

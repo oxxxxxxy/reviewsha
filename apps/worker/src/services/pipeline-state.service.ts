@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { NotificationType, PipelineStatus, ReportStatus, ScanStatus } from '@prisma/client';
 import type { Job } from 'bullmq';
 import { WorkerLoggerService } from '../common/logger/worker-logger.service';
@@ -9,11 +9,19 @@ import { payloadOf } from '../processors/processing.helpers';
 
 @Injectable()
 export class PipelineStateService {
+  private readonly db: WorkerDatabaseService;
+  private readonly queue: QueueService;
+  private readonly logger: WorkerLoggerService;
+
   constructor(
-    private readonly db: WorkerDatabaseService,
-    private readonly queue: QueueService,
-    private readonly logger: WorkerLoggerService,
-  ) {}
+    @Inject(WorkerDatabaseService) db: WorkerDatabaseService,
+    @Inject(QueueService) queue: QueueService,
+    @Inject(WorkerLoggerService) logger: WorkerLoggerService,
+  ) {
+    this.db = db;
+    this.queue = queue;
+    this.logger = logger;
+  }
 
   async fail(job: Job, error: Error): Promise<void> {
     if (job.name === 'cleanup') return;

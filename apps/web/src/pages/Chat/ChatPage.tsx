@@ -1,16 +1,22 @@
-import { Button, Card, EmptyState, Input, Loader } from '@reviewsha/ui';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Button, Card, EmptyState, Loader, Textarea } from '@reviewsha/ui';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { reviewshaSdk } from '../../api/client';
+import { Markdown } from '../../components/Markdown';
 
 export function ChatPage() {
   const { id: projectId } = useParams();
-  const [active, setActive] = useState<string>();
+  const [searchParams] = useSearchParams();
+  const [active, setActive] = useState<string | undefined>(
+    searchParams.get('session') ?? undefined,
+  );
   const [message, setMessage] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [streamText, setStreamText] = useState('');
   const [streamError, setStreamError] = useState<string>();
+  const [retryPrompt, setRetryPrompt] = useState<string>();
+  const messagesEnd = useRef<HTMLDivElement>(null);
   const streamAbort = useRef<AbortController | undefined>(undefined);
   const client = useQueryClient();
   const sessions = useQuery({
@@ -25,16 +31,24 @@ export function ChatPage() {
       void client.invalidateQueries({ queryKey: ['chat-sessions', projectId] });
     },
   });
+  const remove = useMutation({
+    mutationFn: (session: string) => reviewshaSdk.chat.remove(session),
+    onSuccess: (_, session) => {
+      if (active === session) setActive(undefined);
+      void client.invalidateQueries({ queryKey: ['chat-sessions', projectId] });
+    },
+  });
   const sessionId = active ?? sessions.data?.data[0]?.id;
   const messages = useQuery({
     enabled: Boolean(sessionId),
     queryKey: ['chat-messages', sessionId],
     queryFn: ({ signal }) => reviewshaSdk.chat.getMessages(sessionId!, signal),
   });
-  const stream = async () => {
-    if (!sessionId || !message.trim() || streaming) return;
-    const prompt = message.trim();
+  const stream = async (requestedMessage = message) => {
+    const prompt = requestedMessage.trim();
+    if (!sessionId || !prompt || streaming) return;
     setMessage('');
+    setRetryPrompt(prompt);
     setStreamText('');
     setStreamError(undefined);
     setStreaming(true);
@@ -42,7 +56,11 @@ export function ChatPage() {
     try {
       await reviewshaSdk.chat.stream(
         sessionId,
-        { message: prompt, idempotencyKey: globalThis.crypto.randomUUID() },
+        {
+          message: prompt,
+          idempotencyKey: globalThis.crypto.randomUUID(),
+          language: localStorage.getItem('reviewsha.language') === 'ru' ? 'ru' : 'en',
+        } as never,
         ({ event, data }) => {
           if (event === 'token') {
             const token =
@@ -63,6 +81,7 @@ export function ChatPage() {
       );
       void client.invalidateQueries({ queryKey: ['chat-messages', sessionId] });
       void client.invalidateQueries({ queryKey: ['chat-sessions', projectId] });
+      setRetryPrompt(undefined);
     } catch (error) {
       if (!(error instanceof DOMException && error.name === 'AbortError')) {
         setStreamError('AI is unavailable. Try again.');
@@ -72,26 +91,39 @@ export function ChatPage() {
       streamAbort.current = undefined;
     }
   };
-  if (!projectId)
-    return (
-      <section className="page">
-        <h1>Chat</h1>
-        <EmptyState title="Choose a project" description="Open chat from a project page." />
-      </section>
-    );
+  useEffect(() => {
+    messagesEnd.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages.data, streamText]);
+  if (!projectId) return <AllChats />;
   if (sessions.isLoading) return <Loader label="Loading chats" />;
   return (
-    <section className="page">
-      <h1>Project Chat</h1>
+    <section className="page chat-page">
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">AI workspace</span>
+          <h1>Project Chat</h1>
+          <p className="muted">Ask questions about architecture, files and findings.</p>
+        </div>
+        <span className="context-pill">Project context · Latest analysis</span>
+      </div>
       <div className="chat-layout">
         <aside>
           <Button onClick={() => create.mutate()} isLoading={create.isPending}>
             New Chat
           </Button>
           {sessions.data?.data.map((session) => (
-            <button key={session.id} className="chat-session" onClick={() => setActive(session.id)}>
-              {session.title}
-            </button>
+            <div key={session.id} className="chat-session-row">
+              <button className="chat-session" onClick={() => setActive(session.id)}>
+                {session.title} <small>{session.messagesCount}</small>
+              </button>
+              <Button
+                variant="secondary"
+                onClick={() => remove.mutate(session.id)}
+                aria-label={`Delete ${session.title}`}
+              >
+                ×
+              </Button>
+            </div>
           ))}
         </aside>
         <div className="chat-main">
@@ -99,31 +131,33 @@ export function ChatPage() {
             <Loader label="Loading messages" />
           ) : (
             messages.data?.data.map((item) => (
-              <Card key={item.id}>
+              <Card key={item.id} className={`chat-message chat-${item.role.toLowerCase()}`}>
                 <strong>{item.role}</strong>
-                <p>{item.content}</p>
+                <Markdown>{item.content}</Markdown>
               </Card>
             ))
           )}
           {streaming || streamText ? (
-            <Card>
+            <Card className="chat-message chat-assistant">
               <strong>ASSISTANT</strong>
-              <p>{streamText || 'AI is typing…'}</p>
+              <Markdown>{streamText || 'AI is typing…'}</Markdown>
             </Card>
           ) : null}
+          <div ref={messagesEnd} />
           {sessionId ? (
             <form
               className="form"
               onSubmit={(event) => {
                 event.preventDefault();
-                if (message.trim()) void stream();
+                if (message.trim()) void stream(message);
               }}
             >
-              <Input
+              <Textarea
                 value={message}
                 onChange={(event) => setMessage(event.target.value)}
-                placeholder="Ask about this project"
+                placeholder="Ask about this project… (Shift+Enter for a new line)"
                 aria-label="Chat message"
+                rows={3}
               />
               <Button type="submit" isLoading={streaming}>
                 {streaming ? 'AI is typing…' : 'Send'}
@@ -137,7 +171,18 @@ export function ChatPage() {
                   Cancel
                 </Button>
               ) : null}
-              {streamError ? <p role="alert">{streamError}</p> : null}
+              {streamError ? (
+                <>
+                  <p role="alert">{streamError}</p>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => void stream(retryPrompt ?? '')}
+                  >
+                    Retry
+                  </Button>
+                </>
+              ) : null}
             </form>
           ) : (
             <EmptyState
@@ -147,6 +192,79 @@ export function ChatPage() {
           )}
         </div>
       </div>
+    </section>
+  );
+}
+
+function AllChats() {
+  const client = useQueryClient();
+  const remove = useMutation({
+    mutationFn: (sessionId: string) => reviewshaSdk.chat.remove(sessionId),
+    onSuccess: () => void client.invalidateQueries({ queryKey: ['all-chat-projects'] }),
+  });
+  const projects = useQuery({
+    queryKey: ['all-chat-projects'],
+    queryFn: ({ signal }) =>
+      reviewshaSdk.projects.list({ limit: 100, sort: 'updatedAt', order: 'desc' }, signal),
+  });
+  const sessions = useQueries({
+    queries: (projects.data?.data ?? []).map((project) => ({
+      queryKey: ['chat-sessions', project.id],
+      queryFn: ({ signal }: { signal: AbortSignal }) => reviewshaSdk.chat.list(project.id, signal),
+      enabled: Boolean(project.id),
+    })),
+  });
+  if (projects.isLoading) return <Loader label="Loading chats" />;
+  if (projects.isError)
+    return (
+      <section className="page">
+        <h1>All chats</h1>
+        <p role="alert">Unable to load chats.</p>
+        <Button onClick={() => void projects.refetch()}>Retry</Button>
+      </section>
+    );
+  const rows =
+    projects.data?.data.flatMap((project, index) =>
+      (sessions[index]?.data?.data ?? []).map((session) => ({ project, session })),
+    ) ?? [];
+  return (
+    <section className="page">
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">Conversations</span>
+          <h1>All chats</h1>
+          <p className="muted">Continue any project conversation from one place.</p>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className="project-list">
+          {rows.map(({ project, session }) => (
+            <Card key={session.id}>
+              <span className="eyebrow">{project.name}</span>
+              <h2>{session.title}</h2>
+              <p className="muted">
+                {session.messagesCount} messages · {new Date(session.updatedAt).toLocaleString()}
+              </p>
+              <div className="card-actions">
+                <Link
+                  className="action-button"
+                  to={`/projects/${project.id}/chat?session=${session.id}`}
+                >
+                  Open conversation
+                </Link>
+                <Button variant="ghost" onClick={() => remove.mutate(session.id)}>
+                  Delete
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title="No conversations yet"
+          description="Open a project and start your first AI conversation."
+        />
+      )}
     </section>
   );
 }

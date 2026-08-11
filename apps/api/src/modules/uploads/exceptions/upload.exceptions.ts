@@ -2,7 +2,7 @@ import { UnprocessableEntityException } from '@nestjs/common';
 
 export class InvalidFileTypeException extends UnprocessableEntityException {
   constructor() {
-    super('Only ZIP archives are accepted');
+    super('Unsupported file type. Upload a supported archive, source file, document, or PDF.');
     this.name = 'InvalidFileTypeException';
   }
 }

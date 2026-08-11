@@ -78,7 +78,7 @@ Frontend НЕ отвечает за:
 Пользовательское приложение использует общий UI Kit из `packages/ui` и единый
 SDK из `packages/sdk`. UI primitives (`Container`, `Stack`, `Grid`, `Page`,
 `Heading`, `Text`, `Label`, `Alert`, `Skeleton`, `IconButton`, `Switch`,
-`Toast`, `Dropdown`) не содержат доменной логики. Данные Dashboard загружаются
+`Checkbox`, `Header`, `Sidebar`, `Toast`, `Dropdown`) не содержат доменной логики. Данные Dashboard загружаются
 через TanStack Query из `projects.list`, а статистика строится только из
 ответа Backend (без production mock values).
 
@@ -95,7 +95,10 @@ details support ZIP drag-and-drop, client-side extension/100 MB validation,
 progress reporting, cancellation through `AbortController`, retry after an
 error, upload version refresh and analysis polling. Dashboard counters map
 `analysesCount` and `reportsCount` to their corresponding cards; they are
-derived from the real project response rather than hardcoded values.
+derived from the real project response rather than hardcoded values. Recent analyses use
+the real `lastAnalysisAt`; unavailable score data is shown as an em dash instead of fabricated.
+Dashboard loading uses Skeletons, failures expose Retry, and empty projects/analyses use
+dedicated EmptyState components.
 
 Admin users and projects use the same server-side search/pagination boundary.
 Operational logs expose server-side search, level and service filters. These
@@ -1074,16 +1077,23 @@ Issues / Export / AI Chat
 
 ## Stage 12.2 progress
 
-Project UI uses the real Projects, Uploads and Reports SDK services. Project
-details support editing name/description/tags, archive state, ZIP client
-validation, upload version history and project change history. Uploads remain
-server-validated and are sent through `UploadsAPI` with progress callbacks.
+The Web project flow is implemented on real SDK endpoints: projects can be
+created, searched, edited and archived; ZIP uploads use drag-and-drop, client
+validation, Axios progress and cancellation; completed upload versions can be
+selected for a real analysis run. Analysis status is polled from the backend
+and its current step, progress and errors are displayed without inventing
+client-side progress.
 
-The chat screen uses the SDK SSE abstraction (`ChatAPI.stream`) rather than
-implementing transport in React. The shared transport parses `text/event-stream`,
-supports `AbortController` cancellation and applies the same bearer/refresh
-policy as regular requests. Backend remains responsible for context, memory,
-authorization and persistence.
+Reports provide paginated project history, detail/findings, two-report
+comparison and Markdown/PDF/JSON browser downloads. Project settings are
+available at `/projects/:projectId/settings`.
+
+The chat screen uses `ChatAPI` for sessions, history, deletion and SSE
+streaming. Responses can be cancelled and retried, the message list
+auto-scrolls, and backend remains responsible for context, memory,
+authorization and persistence. Settings update the profile/password through
+the authenticated API and store theme/language/notification preferences
+locally until server-side preferences are available.
 
 Admin authentication is isolated in `apps/admin`: `AdminProtectedRoute` restores
 the shared JWT session, requires `ADMIN`/`SUPER_ADMIN`, and redirects anonymous or
