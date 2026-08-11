@@ -152,7 +152,13 @@ jobs:
       - name: Build production API image
         run: docker build --file apps/api/Dockerfile --tag reviewsha-api:ci .
       - name: Build production worker image
-        run: docker build --file apps/worker/Dockerfile --tag reviewsha-worker:ci .
+        run: |
+          for attempt in 1 2 3; do
+            docker build --file apps/worker/Dockerfile --tag reviewsha-worker:ci . && exit 0
+            echo "Worker image build attempt ${attempt} failed; retrying..."
+            sleep 10
+          done
+          exit 1
       - name: Build production web image
         run: docker build --file apps/web/Dockerfile --tag reviewsha-web:ci .
       - name: Build production admin image

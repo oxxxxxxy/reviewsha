@@ -4,7 +4,7 @@ RUN corepack enable && corepack prepare yarn@1.22.22 --activate
 COPY package.json yarn.lock tsconfig.base.json ./
 COPY apps apps
 COPY packages packages
-RUN yarn install --frozen-lockfile --non-interactive
+RUN yarn install --frozen-lockfile --non-interactive --network-timeout 120000
 RUN yarn workspace @reviewsha/web build
 
 FROM nginx:1.27-alpine
