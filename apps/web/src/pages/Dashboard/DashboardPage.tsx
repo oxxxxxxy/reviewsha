@@ -79,9 +79,6 @@ export function DashboardPage() {
             >
               <h3>{project.name}</h3>
               <Text>{project.description || 'No description'}</Text>
-              <Badge tone={project.status === 'ACTIVE' ? 'success' : 'warning'}>
-                {project.status}
-              </Badge>
               <Button
                 className="action-button"
                 onClick={(event) => {

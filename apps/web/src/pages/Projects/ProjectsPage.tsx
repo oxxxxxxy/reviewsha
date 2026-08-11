@@ -177,9 +177,6 @@ function ProjectsList() {
           {projects.data.data.map((project) => (
             <Card key={project.id} className="project-card">
               <div className="project-card-topline">
-                <Badge tone={project.status === 'ACTIVE' ? 'success' : 'warning'}>
-                  {project.status}
-                </Badge>
                 <span className="project-updated">
                   Updated {formatProjectDate(project.updatedAt)}
                 </span>
@@ -397,7 +394,6 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       <Link to="/projects">← Projects</Link>
       <h1>{item.name}</h1>
       <p>{item.description || 'No description'}</p>
-      <p>Status: {item.status}</p>
       <p>Language: {item.language || 'Not specified'}</p>
       <p>Tags: {projectTags.length ? projectTags.join(', ') : 'None'}</p>
       <div className="project-action-bar" role="group" aria-label="Project actions">
@@ -414,7 +410,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         </Button>
         <Button
           className="project-action"
-          disabled={item.status === 'ARCHIVED' || analyze.isPending}
+          disabled={analyze.isPending}
           isLoading={analyze.isPending}
           onClick={() => analyze.mutate()}
         >
@@ -573,14 +569,14 @@ function ProjectDetails({ projectId }: { projectId: string }) {
               </p>
               <Button
                 variant="secondary"
-                disabled={version.status !== 'COMPLETED' || item.status === 'ARCHIVED'}
+                disabled={version.status !== 'COMPLETED'}
                 onClick={() => setSelectedUploadId(version.id)}
               >
                 {selectedUploadId === version.id ? 'Selected for analysis' : 'Use for analysis'}
               </Button>
               <Button
                 variant="ghost"
-                disabled={removeUpload.isPending || item.status === 'ARCHIVED'}
+                disabled={removeUpload.isPending}
                 onClick={() => setDeleteVersionId(version.id)}
               >
                 Delete version

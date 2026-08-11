@@ -67,11 +67,7 @@ export function ProjectSettingsPage() {
             placeholder="Language (e.g. TypeScript)"
             aria-label="Project language"
           />
-          <Button
-            disabled={item.status === 'ARCHIVED'}
-            isLoading={update.isPending}
-            onClick={() => update.mutate()}
-          >
+          <Button isLoading={update.isPending} onClick={() => update.mutate()}>
             Save changes
           </Button>
           {update.isSuccess ? <p role="status">Project updated.</p> : null}
