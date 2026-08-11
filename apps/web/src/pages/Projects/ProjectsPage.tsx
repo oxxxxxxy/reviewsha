@@ -18,6 +18,7 @@ function ProjectsList() {
   const [tags, setTags] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [githubBranch, setGithubBranch] = useState('');
+  const [deleteProject, setDeleteProject] = useState<{ id: string; name: string }>();
   const client = useQueryClient();
   const navigate = useNavigate();
   const projects = useQuery({
@@ -46,6 +47,13 @@ function ProjectsList() {
           .importGithub(data.id, githubUrl.trim(), githubBranch.trim() || undefined)
           .finally(() => navigate(`/projects/${data.id}`));
       } else navigate(`/projects/${data.id}`);
+    },
+  });
+  const remove = useMutation({
+    mutationFn: (projectId: string) => reviewshaSdk.projects.remove(projectId),
+    onSuccess: () => {
+      setDeleteProject(undefined);
+      void client.invalidateQueries({ queryKey: ['projects'] });
     },
   });
   if (projects.isLoading) return <Loader label="Loading projects" />;
@@ -159,11 +167,7 @@ function ProjectsList() {
                 variant="ghost"
                 onClick={(event) => {
                   event.stopPropagation();
-                  if (window.confirm(`Delete project “${project.name}”?`)) {
-                    void reviewshaSdk.projects
-                      .remove(project.id)
-                      .then(() => client.invalidateQueries({ queryKey: ['projects'] }));
-                  }
+                  setDeleteProject({ id: project.id, name: project.name });
                 }}
               >
                 Delete
@@ -195,6 +199,29 @@ function ProjectsList() {
           </Button>
         </nav>
       ) : null}
+      <Modal
+        isOpen={Boolean(deleteProject)}
+        title="Delete this project?"
+        onClose={() => setDeleteProject(undefined)}
+      >
+        <p>
+          This will archive the project and remove it from your active workspace. This action cannot
+          be undone from the web app.
+        </p>
+        <Button variant="secondary" onClick={() => setDeleteProject(undefined)}>
+          Cancel
+        </Button>{' '}
+        <Button
+          isLoading={remove.isPending}
+          onClick={() => {
+            if (!deleteProject) return;
+            remove.mutate(deleteProject.id);
+          }}
+        >
+          Delete project
+        </Button>
+        {remove.isError ? <p role="alert">Unable to delete project.</p> : null}
+      </Modal>
     </section>
   );
 }
@@ -226,6 +253,8 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   const [uploadError, setUploadError] = useState<string>();
   const [lastUpload, setLastUpload] = useState<File>();
   const [selectedUploadId, setSelectedUploadId] = useState<string>();
+  const [deleteProjectOpen, setDeleteProjectOpen] = useState(false);
+  const [deleteVersionId, setDeleteVersionId] = useState<string>();
   const uploads = useQuery({
     queryKey: ['uploads', projectId],
     queryFn: ({ signal }) => reviewshaSdk.uploads.list(projectId, signal),
@@ -371,9 +400,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       <Button
         variant="ghost"
         isLoading={removeProject.isPending}
-        onClick={() => {
-          if (window.confirm(`Delete project “${item.name}”?`)) removeProject.mutate();
-        }}
+        onClick={() => setDeleteProjectOpen(true)}
       >
         Delete project
       </Button>
@@ -394,6 +421,25 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           }}
         >
           Archive project
+        </Button>
+      </Modal>
+      <Modal
+        isOpen={deleteProjectOpen}
+        title="Delete this project?"
+        onClose={() => setDeleteProjectOpen(false)}
+      >
+        <p>This removes the project from the active workspace.</p>
+        <Button variant="secondary" onClick={() => setDeleteProjectOpen(false)}>
+          Cancel
+        </Button>{' '}
+        <Button
+          isLoading={removeProject.isPending}
+          onClick={() => {
+            removeProject.mutate();
+            setDeleteProjectOpen(false);
+          }}
+        >
+          Delete project
         </Button>
       </Modal>
       <section aria-label="Analysis">
@@ -538,9 +584,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
               <Button
                 variant="ghost"
                 disabled={removeUpload.isPending || item.status === 'ARCHIVED'}
-                onClick={() => {
-                  if (window.confirm('Delete this local version?')) removeUpload.mutate(version.id);
-                }}
+                onClick={() => setDeleteVersionId(version.id)}
               >
                 Delete version
               </Button>
@@ -553,6 +597,26 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           />
         )}
       </section>
+      <Modal
+        isOpen={Boolean(deleteVersionId)}
+        title="Delete this local version?"
+        onClose={() => setDeleteVersionId(undefined)}
+      >
+        <p>The uploaded version will be removed from this project.</p>
+        <Button variant="secondary" onClick={() => setDeleteVersionId(undefined)}>
+          Cancel
+        </Button>{' '}
+        <Button
+          isLoading={removeUpload.isPending}
+          onClick={() => {
+            if (!deleteVersionId) return;
+            removeUpload.mutate(deleteVersionId);
+            setDeleteVersionId(undefined);
+          }}
+        >
+          Delete version
+        </Button>
+      </Modal>
       <section className="project-list history-section" aria-label="Project history">
         <h2>History</h2>
         {history.data?.data.length ? (
