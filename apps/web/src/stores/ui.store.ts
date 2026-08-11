@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { createUuid } from '../utils/uuid';
 
 type Theme = 'light' | 'dark' | 'system';
 export type ToastItem = { id: string; message: string };
@@ -26,7 +27,7 @@ export const useUiStore = create<UiState>((set) => ({
   setGlobalLoading: (isGlobalLoading) => set({ isGlobalLoading }),
   toasts: [],
   pushToast: (message) =>
-    set((state) => ({ toasts: [...state.toasts, { id: crypto.randomUUID(), message }] })),
+    set((state) => ({ toasts: [...state.toasts, { id: createUuid(), message }] })),
   removeToast: (id) =>
     set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) })),
 }));

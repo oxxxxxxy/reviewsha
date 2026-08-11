@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { reviewshaSdk } from '../../api/client';
 import { Markdown } from '../../components/Markdown';
+import { createUuid } from '../../utils/uuid';
 
 export function ChatPage() {
   const { id: projectId } = useParams();
@@ -68,7 +69,7 @@ export function ChatPage() {
         sessionId,
         {
           message: prompt,
-          idempotencyKey: globalThis.crypto.randomUUID(),
+          idempotencyKey: createUuid(),
           language: localStorage.getItem('reviewsha.language') === 'ru' ? 'ru' : 'en',
         },
         ({ event, data }) => {
