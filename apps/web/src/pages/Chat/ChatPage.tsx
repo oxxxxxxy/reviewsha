@@ -192,6 +192,17 @@ export function ChatPage() {
                 <span className="chat-empty-icon">✦</span>
                 <h3>Ask anything about your project</h3>
                 <p>Get help understanding the latest analysis, files and recommendations.</p>
+                <div className="chat-starter-prompts">
+                  {[
+                    'Summarize the latest review',
+                    'What should I fix first?',
+                    'Explain the most critical finding',
+                  ].map((prompt) => (
+                    <button type="button" key={prompt} onClick={() => setMessage(prompt)}>
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
             {streaming || streamText ? (
