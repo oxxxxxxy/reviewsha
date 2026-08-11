@@ -39,6 +39,7 @@ function service() {
       state.progress = 100;
       return state;
     }),
+    resetReviewRequests: vi.fn(async () => undefined),
   };
   const queues = { addJob: vi.fn(async (...args: unknown[]) => ({ id: 'job-1', args })) };
   return {

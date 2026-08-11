@@ -19,7 +19,7 @@ export class AdminAiSettingsResponseDto {
   @ApiProperty({ example: 'auto/best-coding' }) model!: string;
   @ApiProperty({ example: true }) apiKeyConfigured!: boolean;
   @ApiPropertyOptional({ example: 'sk-••••••••7b2e', nullable: true }) apiKeyMasked!: string | null;
-  @ApiProperty({ example: 4000 }) maxTokens!: number;
+  @ApiProperty({ example: 6000 }) maxTokens!: number;
   @ApiProperty({ example: 0.2 }) temperature!: number;
   @ApiProperty({ example: 60000 }) timeoutMs!: number;
   @ApiProperty({ example: 3 }) retryAttempts!: number;
@@ -59,7 +59,7 @@ export class UpdateAdminAiSettingsDto {
   @IsBoolean()
   clearApiKey?: boolean;
 
-  @ApiPropertyOptional({ example: 4000, minimum: 128, maximum: 128000 })
+  @ApiPropertyOptional({ example: 6000, minimum: 128, maximum: 128000 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

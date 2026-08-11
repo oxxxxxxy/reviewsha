@@ -30,7 +30,7 @@ export class AIRuntimeSettingsService {
       baseUrl: this.config.get<string>('worker.aiBaseUrl', 'https://openrouter.ai/api/v1'),
       model: this.config.get<string>('worker.aiModel', 'auto/best-coding'),
       apiKey: this.config.get<string>('worker.aiApiKey'),
-      maxTokens: this.config.get<number>('worker.aiMaxTokens', 4000),
+      maxTokens: this.config.get<number>('worker.aiMaxTokens', 6000),
       temperature: this.config.get<number>('worker.aiTemperature', 0.2),
       timeoutMs: this.config.get<number>('worker.aiTimeoutMs', 60000),
       retryAttempts: this.config.get<number>('worker.aiRetryAttempts', 3),

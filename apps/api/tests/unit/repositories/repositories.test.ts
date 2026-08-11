@@ -44,6 +44,8 @@ interface PrismaMock {
   chatMessage: DelegateMock;
   projectTag: DelegateMock;
   projectHistory: DelegateMock;
+  aIRequest: DelegateMock;
+  aIUsage: DelegateMock;
   $transaction: Mock;
 }
 
@@ -86,6 +88,8 @@ function createPrismaMock(): PrismaMock {
     chatMessage: createDelegate(),
     projectTag: createDelegate(),
     projectHistory: createDelegate(),
+    aIRequest: createDelegate(),
+    aIUsage: createDelegate(),
     $transaction: vi.fn(),
   } as unknown as PrismaMock;
 }
@@ -362,6 +366,38 @@ describe('ScanRepository', () => {
         data: expect.objectContaining({ progress: 100, status: 'COMPLETED' }),
       }),
     );
+  });
+
+  it('counts the latest logical review attempt instead of every retry row', async () => {
+    const prisma = createPrismaMock();
+    prisma.aIRequest.findMany.mockResolvedValue([
+      { id: 'project-1-attempt-1', chunkId: 'project:architecture', status: 'FAILED' },
+      { id: 'file-1-attempt-1', chunkId: 'file:src/app.ts', status: 'FAILED' },
+      { id: 'project-1-attempt-2', chunkId: 'project:architecture', status: 'FAILED' },
+      { id: 'file-1-attempt-2', chunkId: 'file:src/app.ts', status: 'FAILED' },
+    ]);
+
+    await expect(
+      new ScanRepository(asPrismaService(prisma)).reviewProgress('scan-id'),
+    ).resolves.toEqual({
+      total: 2,
+      completed: 0,
+      failed: 2,
+    });
+    expect(prisma.aIRequest.findMany).toHaveBeenCalledWith({
+      where: { scanId: 'scan-id' },
+      select: { id: true, chunkId: true, status: true },
+      orderBy: { createdAt: 'asc' },
+    });
+  });
+
+  it('resets review requests and usage before a fresh pipeline retry', async () => {
+    const prisma = createPrismaMock();
+
+    await new ScanRepository(asPrismaService(prisma)).resetReviewRequests('scan-id');
+
+    expect(prisma.aIRequest.deleteMany).toHaveBeenCalledWith({ where: { scanId: 'scan-id' } });
+    expect(prisma.aIUsage.deleteMany).toHaveBeenCalledWith({ where: { scanId: 'scan-id' } });
   });
 });
 

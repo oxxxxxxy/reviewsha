@@ -90,9 +90,17 @@ export class PipelineService {
       // subsequent explicit Analyze action must re-enqueue that pending scan.
       const retryable =
         existing.pipelineStatus === PipelineStatus.PENDING ||
+        existing.pipelineStatus === PipelineStatus.FAILED ||
         existing.status === ScanStatus.FAILED ||
         existing.status === ScanStatus.CANCELLED;
       if (retryable) {
+        if (
+          existing.pipelineStatus === PipelineStatus.FAILED ||
+          existing.status === ScanStatus.FAILED ||
+          existing.status === ScanStatus.CANCELLED
+        ) {
+          await this.scans.resetReviewRequests(existing.id);
+        }
         await this.enqueueStep(
           existing.id,
           event.projectId,
@@ -103,6 +111,7 @@ export class PipelineService {
         );
         await this.scans.updateStatus(existing.id, ScanStatus.EXTRACTING);
         await this.scans.update(existing.id, {
+          progress: 0,
           pipelineStatus: PipelineStatus.RUNNING,
           pipelineStartedAt: new Date(),
           pipelineStep: PrismaPipelineStep.EXTRACT,
@@ -168,6 +177,10 @@ export class PipelineService {
       await this.scans.update(scan.id, {
         pipelineStatus: PipelineStatus.COMPLETED,
         pipelineStep: PrismaPipelineStep.NOTIFY,
+        pipelineErrorCode: null,
+        pipelineErrorMessage: null,
+        pipelineErrorStack: null,
+        pipelineErrorAt: null,
         pipelineFinishedAt: new Date(),
         pipelineAttempts: { increment: 1 },
       });
@@ -194,6 +207,10 @@ export class PipelineService {
     await this.scans.update(scan.id, {
       pipelineStatus: PipelineStatus.RUNNING,
       pipelineStep: this.dbStep(next),
+      pipelineErrorCode: null,
+      pipelineErrorMessage: null,
+      pipelineErrorStack: null,
+      pipelineErrorAt: null,
       pipelineAttempts: { increment: 1 },
     });
   }

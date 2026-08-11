@@ -63,6 +63,7 @@ describe('AI and report processors', () => {
   it('runs project and per-file review tasks and persists usage', async () => {
     const requestCreate = vi.fn().mockResolvedValue({ id: 'request-1' });
     const requestUpdate = vi.fn().mockResolvedValue({});
+    const responseUpsert = vi.fn();
     const queue = { enqueueJob: vi.fn().mockResolvedValue({}) };
     const ai = {
       analyze: vi.fn().mockResolvedValue({
@@ -78,10 +79,11 @@ describe('AI and report processors', () => {
         },
         aIRequest: {
           count: vi.fn().mockResolvedValue(0),
+          findFirst: vi.fn().mockResolvedValue(null),
           create: requestCreate,
           update: requestUpdate,
         },
-        aIResponse: { create: vi.fn() },
+        aIResponse: { upsert: responseUpsert, findUnique: vi.fn().mockResolvedValue(null) },
         aIUsage: { upsert: vi.fn() },
         analysisContext: { findFirst: vi.fn().mockResolvedValue(null), upsert: vi.fn() },
       } as never,
@@ -105,6 +107,7 @@ describe('AI and report processors', () => {
         data: expect.objectContaining({ status: AIRequestStatus.COMPLETED }),
       }),
     );
+    expect(responseUpsert).toHaveBeenCalledTimes(2);
     expect(queue.enqueueJob).toHaveBeenCalledWith('report.queue', 'report', payload);
     expect(result.data).toMatchObject({ totalTokens: 30 });
   });
@@ -119,10 +122,11 @@ describe('AI and report processors', () => {
         },
         aIRequest: {
           count: vi.fn().mockResolvedValue(0),
+          findFirst: vi.fn().mockResolvedValue(null),
           create: vi.fn().mockResolvedValue({ id: 'request-1' }),
           update: requestUpdate,
         },
-        aIResponse: { create: vi.fn() },
+        aIResponse: { upsert: vi.fn(), findUnique: vi.fn().mockResolvedValue(null) },
         aIUsage: { upsert: vi.fn() },
         analysisContext: { findFirst: vi.fn().mockResolvedValue(null), upsert: vi.fn() },
       } as never,
@@ -143,6 +147,64 @@ describe('AI and report processors', () => {
         data: expect.objectContaining({ status: AIRequestStatus.FAILED }),
       }),
     );
+  });
+
+  it('reuses a completed logical review after a BullMQ retry', async () => {
+    const requestCreate = vi.fn().mockResolvedValue({ id: 'request-file' });
+    const requestUpdate = vi.fn().mockResolvedValue({ id: 'request-file' });
+    const requestFind = vi.fn(({ where }: { where: { chunkId?: string } }) =>
+      where.chunkId === 'project:architecture'
+        ? Promise.resolve({ id: 'request-project', status: AIRequestStatus.COMPLETED })
+        : Promise.resolve(null),
+    );
+    const ai = {
+      analyze: vi.fn().mockResolvedValue({
+        response: { promptTokens: 10, completionTokens: 5, totalTokens: 15 },
+        result: { issues: [], summary: 'fresh file review' },
+      }),
+    };
+    const processor = new AnalyzeProcessor(
+      {
+        scan: {
+          findUnique: vi.fn().mockResolvedValue({ id: 'scan-1', createdById: null }),
+          update: vi.fn(),
+        },
+        aIRequest: {
+          count: vi.fn().mockResolvedValue(0),
+          findFirst: requestFind,
+          create: requestCreate,
+          update: requestUpdate,
+        },
+        aIResponse: {
+          upsert: vi.fn(),
+          findUnique: vi.fn().mockResolvedValue({
+            result: { issues: [], summary: 'cached project review' },
+            totalTokens: 7,
+          }),
+        },
+        aIUsage: { upsert: vi.fn() },
+        analysisContext: { findFirst: vi.fn().mockResolvedValue(null), upsert: vi.fn() },
+      } as never,
+      { create: vi.fn().mockResolvedValue(paths) } as never,
+      new AIProjectParser(),
+      new ChunkBuilderService(),
+      new ContextBuilderService(),
+      new PromptBuilderService(),
+      ai as never,
+      new SecretRedactorService(),
+      { enqueueJob: vi.fn().mockResolvedValue({}) } as never,
+      new ConfigService({ worker: { aiModel: 'deepseek-chat' } }),
+      logger,
+    );
+
+    await processor.execute(job('analyze'));
+
+    expect(requestFind).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { scanId: 'scan-1', chunkId: 'project:architecture' } }),
+    );
+    expect(requestCreate).toHaveBeenCalledOnce();
+    expect(requestUpdate).toHaveBeenCalledOnce();
+    expect(ai.analyze).toHaveBeenCalledOnce();
   });
 
   it('rejects an unknown analysis', async () => {

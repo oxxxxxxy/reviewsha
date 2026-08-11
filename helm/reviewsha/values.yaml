@@ -51,6 +51,9 @@ env:
   REDIS_PORT: '6379'
   MINIO_ENDPOINT: ''
   OMNIROUTE_DASHBOARD_URL: http://localhost:20128
+  # Reasoning-capable models need room for both hidden reasoning and the
+  # structured JSON review response.
+  AI_MAX_TOKENS: '6000'
 
 secretName: reviewsha-secrets
 secrets:

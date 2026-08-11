@@ -39,7 +39,7 @@ JWT, internal API key и MinIO credentials.
 | `OMNIROUTER_API_KEY` | ключ OmniRouter/provider | empty locally, required for remote production |
 | `OMNIROUTER_BASE_URL` | provider gateway | local OmniRouter URL |
 | `AI_MODEL` | model identifier | `auto/best-coding` |
-| `AI_MAX_TOKENS` | generation limit | `4000` |
+| `AI_MAX_TOKENS` | generation limit, including reasoning and structured output | `6000` |
 | `AI_TEMPERATURE` | generation temperature | `0.2` |
 | `AI_TIMEOUT_MS` | provider timeout | `60000` |
 | `AI_RETRY_ATTEMPTS` / `AI_RETRY_DELAY_MS` | retry policy | `3` / `1000` |

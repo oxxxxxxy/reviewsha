@@ -121,7 +121,7 @@ export class AdminAiSettingsService {
       baseUrl: process.env.OMNIROUTER_BASE_URL ?? 'http://localhost:20128/v1',
       model: process.env.AI_MODEL ?? 'auto/best-coding',
       apiKey: process.env.OMNIROUTER_API_KEY,
-      maxTokens: Number(process.env.AI_MAX_TOKENS ?? 4000),
+      maxTokens: Number(process.env.AI_MAX_TOKENS ?? 6000),
       temperature: Number(process.env.AI_TEMPERATURE ?? 0.2),
       timeoutMs: Number(process.env.AI_TIMEOUT_MS ?? 60000),
       retryAttempts: Number(process.env.AI_RETRY_ATTEMPTS ?? 3),

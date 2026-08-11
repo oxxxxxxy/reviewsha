@@ -175,6 +175,9 @@ describe('OmniRouterProvider HTTP contract', () => {
         body: expect.stringContaining('json_object'),
       }),
     );
+    expect(JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string)).toMatchObject({
+      reasoning_effort: 'low',
+    });
     vi.unstubAllGlobals();
   });
 

@@ -44,7 +44,7 @@ export class OmniRouterProvider implements AIProvider {
         baseUrl: config.get<string>('worker.aiBaseUrl', 'https://openrouter.ai/api/v1'),
         model: config.get<string>('worker.aiModel', 'auto/best-coding'),
         apiKey: config.get<string>('worker.aiApiKey'),
-        maxTokens: config.get<number>('worker.aiMaxTokens', 4000),
+        maxTokens: config.get<number>('worker.aiMaxTokens', 6000),
         temperature: config.get<number>('worker.aiTemperature', 0.2),
         timeoutMs: config.get<number>('worker.aiTimeoutMs', 60000),
         retryAttempts: config.get<number>('worker.aiRetryAttempts', 3),
@@ -72,6 +72,10 @@ export class OmniRouterProvider implements AIProvider {
           max_tokens: settings.maxTokens,
           stream: true,
           stream_options: { include_usage: true },
+          // Reasoning-capable OmniRoute models can spend the whole output
+          // budget in hidden reasoning and return no structured content.
+          // Keep reasoning bounded so the JSON review has room to complete.
+          reasoning_effort: 'low',
           messages: [
             { role: 'system', content: request.system },
             { role: 'user', content: request.prompt },

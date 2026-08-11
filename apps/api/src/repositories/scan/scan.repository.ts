@@ -36,12 +36,30 @@ export class ScanRepository extends BaseRepository<Scan> implements IScanReposit
   async reviewProgress(
     scanId: string,
   ): Promise<{ total: number; completed: number; failed: number }> {
-    const [total, completed, failed] = await Promise.all([
-      this.prisma.aIRequest.count({ where: { scanId } }),
-      this.prisma.aIRequest.count({ where: { scanId, status: 'COMPLETED' } }),
-      this.prisma.aIRequest.count({ where: { scanId, status: 'FAILED' } }),
-    ]);
-    return { total, completed, failed };
+    // A BullMQ retry re-runs the analyze stage. Each stage execution records
+    // an AI request, but those rows represent the same logical review task.
+    // Counting every attempt made the UI show 0/2 -> 0/4 -> 0/6 while one
+    // analysis job was retrying. Keep only the newest request for each task.
+    const requests = await this.prisma.aIRequest.findMany({
+      where: { scanId },
+      select: { id: true, chunkId: true, status: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    const latest = new Map<string, (typeof requests)[number]>();
+    for (const request of requests) {
+      latest.set(request.chunkId ?? request.id, request);
+    }
+    const values = [...latest.values()];
+    return {
+      total: values.length,
+      completed: values.filter((request) => request.status === 'COMPLETED').length,
+      failed: values.filter((request) => request.status === 'FAILED').length,
+    };
+  }
+
+  async resetReviewRequests(scanId: string): Promise<void> {
+    await this.prisma.aIRequest.deleteMany({ where: { scanId } });
+    await this.prisma.aIUsage.deleteMany({ where: { scanId } });
   }
 
   findBySourceFile(sourceFileId: string, options?: RepositoryOptions): Promise<Scan | null> {

@@ -39,10 +39,16 @@ Worker обращается к provider через abstraction/OmniRouter. API c
 ## Limits and reliability
 
 - `AI_INPUT_MAX_TOKENS` ограничивает вход;
-- `AI_MAX_TOKENS` ограничивает output;
+- `AI_MAX_TOKENS` ограничивает output вместе со скрытым reasoning; для
+  структурированного JSON-review по умолчанию используется `6000`, чтобы
+  reasoning-capable модели не исчерпали бюджет до выдачи JSON;
 - `AI_TIMEOUT_MS`, retry attempts и delay задают recovery;
 - `AI_MAX_CONCURRENCY` ограничивает параллельные запросы;
 - `AI_DAILY_REQUEST_LIMIT` задаёт quota;
+- Повторная попытка BullMQ переиспользует AI-request по логическому ключу
+  проекта/файла, поэтому retry не создаёт дублирующие проверки и не увеличивает
+  progress denominator (`0/2 → 0/4 → 0/6`). При повторном запуске завершившегося
+  с ошибкой pipeline старые request/usage rows очищаются перед re-enqueue.
 - chat отдельно ограничивает message/context/timeout/cache.
 
 ## Chat context

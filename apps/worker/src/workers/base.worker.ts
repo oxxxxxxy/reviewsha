@@ -55,6 +55,11 @@ export abstract class BaseQueueWorker {
       concurrency: this.configService.get<number>('worker.concurrency', 3),
     });
     this.bullWorker.on('failed', (job, error) => {
+      this.logger.error(
+        `Queue job failed queue=${this.queueName} job=${job?.id ?? 'unknown'} name=${job?.name ?? 'unknown'} attempts=${job?.attemptsMade ?? 0}: ${error.message}`,
+        error.stack,
+        this.constructor.name,
+      );
       if (job) void this.pipelineState?.fail(job, error);
     });
     this.queueService.registerWorker(this.bullWorker);

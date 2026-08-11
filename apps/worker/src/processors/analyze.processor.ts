@@ -148,7 +148,10 @@ export class AnalyzeProcessor implements JobHandler {
     const generatedTasks = await Promise.all(
       reviewTasks.map(async ({ task, filePath }) => {
         await assertPipelineActive(this.db, scan.id);
-        const selected = this.contexts.select(allChunks, task, 8000);
+        // Keep the database row stable across BullMQ retries. The previous
+        // implementation created a new AIRequest on every stage attempt,
+        // which inflated review progress and charged duplicate requests.
+        const reviewKey = filePath ? `file:${filePath}` : `project:${task}`;
         const request = filePath
           ? this.prompts.buildFileReview(
               filePath,
@@ -164,20 +167,53 @@ export class AnalyzeProcessor implements JobHandler {
               scan.reviewLanguage === 'en' ? 'en' : 'ru',
             );
         const startedAt = Date.now();
-        const requestRecord = await this.db.aIRequest.create({
-          data: {
-            scanId: scan.id,
-            userId: scan.createdById,
-            provider: 'omnirouter',
-            model: this.config.getOrThrow<string>('worker.aiModel'),
-            chunkId: selected
-              .map((chunk) => chunk.id)
-              .join(',')
-              .slice(0, 180),
-            prompt: request.prompt,
-            status: AIRequestStatus.SENT,
-          },
+        const existingRequest = await this.db.aIRequest.findFirst({
+          where: { scanId: scan.id, chunkId: reviewKey },
+          orderBy: { createdAt: 'desc' },
         });
+        if (existingRequest?.status === AIRequestStatus.COMPLETED) {
+          const existingResponse = await this.db.aIResponse.findUnique({
+            where: { requestId: existingRequest.id },
+          });
+          if (existingResponse?.result && typeof existingResponse.result === 'object') {
+            completedReviews += 1;
+            await this.db.scan.update({
+              where: { id: scan.id },
+              data: {
+                progress: 60 + Math.floor((completedReviews / reviewTasks.length) * 25),
+              },
+            });
+            return {
+              result: existingResponse.result as unknown as AIReviewResult,
+              tokens: existingResponse.totalTokens,
+              filePath,
+            };
+          }
+        }
+        const requestRecord = existingRequest
+          ? await this.db.aIRequest.update({
+              where: { id: existingRequest.id },
+              data: {
+                provider: 'omnirouter',
+                model: this.config.getOrThrow<string>('worker.aiModel'),
+                chunkId: reviewKey,
+                prompt: request.prompt,
+                status: AIRequestStatus.SENT,
+                error: null,
+                completedAt: null,
+              },
+            })
+          : await this.db.aIRequest.create({
+              data: {
+                scanId: scan.id,
+                userId: scan.createdById,
+                provider: 'omnirouter',
+                model: this.config.getOrThrow<string>('worker.aiModel'),
+                chunkId: reviewKey,
+                prompt: request.prompt,
+                status: AIRequestStatus.SENT,
+              },
+            });
         try {
           const generated = await this.ai.analyze(request);
           await assertPipelineActive(this.db, scan.id);
@@ -191,16 +227,21 @@ export class AnalyzeProcessor implements JobHandler {
               completedAt: new Date(),
             },
           });
-          await this.db.aIResponse.create({
-            data: {
-              requestId: requestRecord.id,
-              content: generated.response.content,
-              result: generated.result as unknown as Prisma.InputJsonValue,
-              promptTokens: generated.response.promptTokens,
-              completionTokens: generated.response.completionTokens,
-              totalTokens: generated.response.totalTokens,
-              durationMs: Date.now() - startedAt,
-            },
+          const responseData = {
+            content: generated.response.content,
+            result: generated.result as unknown as Prisma.InputJsonValue,
+            promptTokens: generated.response.promptTokens,
+            completionTokens: generated.response.completionTokens,
+            totalTokens: generated.response.totalTokens,
+            durationMs: Date.now() - startedAt,
+          };
+          // A BullMQ retry can finish a provider call after the previous
+          // attempt already persisted its response. Upsert the one-to-one
+          // response instead of turning that harmless race into a failure.
+          await this.db.aIResponse.upsert({
+            where: { requestId: requestRecord.id },
+            create: { requestId: requestRecord.id, ...responseData },
+            update: responseData,
           });
           completedReviews += 1;
           await this.db.scan.update({

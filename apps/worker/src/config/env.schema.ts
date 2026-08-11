@@ -20,7 +20,10 @@ const baseWorkerEnvSchema = z.object({
   OMNIROUTER_API_KEY: z.string().optional(),
   OMNIROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),
   AI_MODEL: z.string().default('auto/best-coding'),
-  AI_MAX_TOKENS: z.coerce.number().int().positive().default(4000),
+  // Reasoning-capable OmniRoute models can spend the first part of the
+  // completion budget on hidden reasoning. 4000 frequently leaves no JSON
+  // answer for the review parser, so keep a usable structured-output default.
+  AI_MAX_TOKENS: z.coerce.number().int().positive().default(6000),
   AI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.2),
   AI_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
   AI_RETRY_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(3),

@@ -47,14 +47,14 @@ export default (): { worker: WorkerConfig } => ({
     // remote provider model ids. The old fallback caused every AI job to sit
     // at ANALYZE until the timeout with a 404 from OmniRoute.
     aiModel: process.env.AI_MODEL ?? 'auto/best-coding',
-    aiMaxTokens: Number(process.env.AI_MAX_TOKENS ?? 4000),
+    aiMaxTokens: Number(process.env.AI_MAX_TOKENS ?? 6000),
     aiTemperature: Number(process.env.AI_TEMPERATURE ?? 0.2),
     aiTimeoutMs: Number(process.env.AI_TIMEOUT_MS ?? 60000),
     aiRetryAttempts: Number(process.env.AI_RETRY_ATTEMPTS ?? 3),
     aiRetryDelayMs: Number(process.env.AI_RETRY_DELAY_MS ?? 1000),
     aiMaxConcurrency: Number(process.env.AI_MAX_CONCURRENCY ?? 3),
     aiDailyRequestLimit: Number(process.env.AI_DAILY_REQUEST_LIMIT ?? 500),
-    aiInputMaxTokens: Number(process.env.AI_INPUT_MAX_TOKENS ?? 12000),
+    aiInputMaxTokens: Number(process.env.AI_INPUT_MAX_TOKENS ?? 6000),
     settingsEncryptionKey: process.env.INTERNAL_API_KEY ?? 'reviewsha-internal-api-key-change-me',
   },
 });

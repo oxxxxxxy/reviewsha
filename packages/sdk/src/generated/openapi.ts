@@ -1548,7 +1548,7 @@ export interface components {
             apiKeyConfigured: boolean;
             /** @example sk-••••••••7b2e */
             apiKeyMasked?: Record<string, never> | null;
-            /** @example 4000 */
+            /** @example 6000 */
             maxTokens: number;
             /** @example 0.2 */
             temperature: number;
@@ -1573,7 +1573,7 @@ export interface components {
             apiKey?: string;
             /** @example false */
             clearApiKey?: boolean;
-            /** @example 4000 */
+            /** @example 6000 */
             maxTokens?: number;
             /** @example 0.2 */
             temperature?: number;

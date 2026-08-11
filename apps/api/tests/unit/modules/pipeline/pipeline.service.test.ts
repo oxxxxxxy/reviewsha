@@ -30,6 +30,7 @@ function setup() {
     update: vi.fn(async () => scan),
     updateProgress: vi.fn(async () => scan),
     finish: vi.fn(async () => ({ ...scan, status: ScanStatus.COMPLETED, progress: 100 })),
+    resetReviewRequests: vi.fn(async () => undefined),
   };
   const queues = {
     addJob: vi.fn(async (queue: string, type: string, payload: unknown) => ({
@@ -85,6 +86,57 @@ describe('PipelineService', () => {
     ).resolves.toBe(scan);
     expect(scans.create).not.toHaveBeenCalled();
     expect(queues.addJob).not.toHaveBeenCalled();
+  });
+
+  it('resets a failed pipeline before re-enqueueing it', async () => {
+    const { service, scans, queues, scan } = setup();
+    const failedScan = {
+      ...scan,
+      status: ScanStatus.FAILED,
+      pipelineStatus: 'FAILED',
+      progress: 85,
+    };
+    scans.findBySourceFile.mockResolvedValue(failedScan as never);
+
+    await service.startPipeline({
+      uploadId: 'upload-1',
+      projectId: 'project-1',
+      userId: 'user-1',
+      version: 1,
+      occurredAt: '',
+    });
+
+    expect(scans.resetReviewRequests).toHaveBeenCalledWith('scan-1');
+    expect(scans.update).toHaveBeenCalledWith(
+      'scan-1',
+      expect.objectContaining({ progress: 0, pipelineStatus: 'RUNNING' }),
+    );
+    expect(queues.addJob).toHaveBeenCalledOnce();
+  });
+
+  it('can resume a pipeline marked failed after a partial retry update', async () => {
+    const { service, scans, queues, scan } = setup();
+    scans.findBySourceFile.mockResolvedValue({
+      ...scan,
+      status: ScanStatus.ANALYZING,
+      pipelineStatus: 'FAILED',
+      progress: 76,
+    } as never);
+
+    await service.startPipeline({
+      uploadId: 'upload-1',
+      projectId: 'project-1',
+      userId: 'user-1',
+      version: 1,
+      occurredAt: '',
+    });
+
+    expect(scans.resetReviewRequests).toHaveBeenCalledWith('scan-1');
+    expect(scans.update).toHaveBeenCalledWith(
+      'scan-1',
+      expect.objectContaining({ progress: 0, pipelineStatus: 'RUNNING' }),
+    );
+    expect(queues.addJob).toHaveBeenCalledOnce();
   });
 
   it('uses identifier-only payloads', async () => {
