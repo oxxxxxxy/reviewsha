@@ -26,6 +26,18 @@ Chat uses REST for history/session and dedicated typed SSE client for streaming.
 `delta/token` events append to a pending assistant message; `complete` commits
 final state; `error` closes pending state and exposes retry.
 
+## Project detail actions
+
+The project detail page keeps the primary workflow in one action row:
+
+```text
+Project settings · Delete project · Start analysis · Open reports · Open chat
+```
+
+Project history and archive controls are intentionally not exposed in this
+view. Upload versions and the current analysis status remain available below
+the action row.
+
 ## Commands
 
 ```bash

@@ -205,8 +205,8 @@ function ProjectsList() {
         onClose={() => setDeleteProject(undefined)}
       >
         <p>
-          This will archive the project and remove it from your active workspace. This action cannot
-          be undone from the web app.
+          This removes the project from your active workspace. This action cannot be undone from the
+          web app.
         </p>
         <Button variant="secondary" onClick={() => setDeleteProject(undefined)}>
           Cancel
@@ -228,26 +228,15 @@ function ProjectsList() {
 
 function ProjectDetails({ projectId }: { projectId: string }) {
   const client = useQueryClient();
-  const [archiveOpen, setArchiveOpen] = useState(false);
   const project = useQuery({
     queryKey: ['project', projectId],
     queryFn: ({ signal }) => reviewshaSdk.projects.get(projectId, signal),
-  });
-  const archive = useMutation({
-    mutationFn: () => reviewshaSdk.projects.archive(projectId),
-    onSuccess: () => {
-      setArchiveOpen(false);
-      void client.invalidateQueries({ queryKey: ['project', projectId] });
-    },
   });
   const removeProject = useMutation({
     mutationFn: () => reviewshaSdk.projects.remove(projectId),
     onSuccess: () => window.location.assign('/projects'),
   });
   const [uploadProgress, setUploadProgress] = useState<number>();
-  const [editName, setEditName] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editTags, setEditTags] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const uploadController = useRef<AbortController | undefined>(undefined);
   const [uploadError, setUploadError] = useState<string>();
@@ -258,22 +247,6 @@ function ProjectDetails({ projectId }: { projectId: string }) {
   const uploads = useQuery({
     queryKey: ['uploads', projectId],
     queryFn: ({ signal }) => reviewshaSdk.uploads.list(projectId, signal),
-  });
-  const history = useQuery({
-    queryKey: ['project-history', projectId],
-    queryFn: ({ signal }) => reviewshaSdk.projects.history(projectId, signal),
-  });
-  const update = useMutation({
-    mutationFn: () =>
-      reviewshaSdk.projects.update(projectId, {
-        name: editName.trim() || undefined,
-        description: editDescription,
-        tags: editTags
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter(Boolean),
-      }),
-    onSuccess: () => void client.invalidateQueries({ queryKey: ['project', projectId] }),
   });
   const upload = useMutation({
     mutationFn: (file: File) => {
@@ -331,11 +304,6 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     );
   const item = project.data.data;
   const projectTags = item.tags ?? [];
-  const startEditing = () => {
-    setEditName(item.name);
-    setEditDescription(item.description ?? '');
-    setEditTags(projectTags.join(', '));
-  };
   const uploadFile = (file: File) => {
     setUploadError(undefined);
     const supported =
@@ -363,66 +331,33 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       <p>Status: {item.status}</p>
       <p>Language: {item.language || 'Unknown'}</p>
       <p>Tags: {projectTags.length ? projectTags.join(', ') : 'None'}</p>
-      <Button variant="secondary" onClick={startEditing}>
-        Edit project
-      </Button>
-      {editName ? (
-        <section className="form" aria-label="Edit project">
-          <Input
-            value={editName}
-            onChange={(event) => setEditName(event.target.value)}
-            aria-label="Project name"
-          />
-          <Textarea
-            value={editDescription}
-            onChange={(event) => setEditDescription(event.target.value)}
-            aria-label="Project description"
-          />
-          <Input
-            value={editTags}
-            onChange={(event) => setEditTags(event.target.value)}
-            aria-label="Project tags"
-          />
-          <Button isLoading={update.isPending} onClick={() => update.mutate()}>
-            Save changes
-          </Button>
-          {update.isError ? <p role="alert">Unable to update project.</p> : null}
-        </section>
-      ) : null}
-      <Button
-        variant="secondary"
-        disabled={item.status === 'ARCHIVED'}
-        isLoading={archive.isPending}
-        onClick={() => setArchiveOpen(true)}
-      >
-        Archive project
-      </Button>
-      <Button
-        variant="ghost"
-        isLoading={removeProject.isPending}
-        onClick={() => setDeleteProjectOpen(true)}
-      >
-        Delete project
-      </Button>
-      <Modal
-        isOpen={archiveOpen}
-        title="Archive this project?"
-        onClose={() => setArchiveOpen(false)}
-      >
-        <p>This project will become read-only according to the backend policy.</p>
-        <Button variant="secondary" onClick={() => setArchiveOpen(false)}>
-          Cancel
-        </Button>{' '}
+      <div className="project-action-bar" role="group" aria-label="Project actions">
+        <Link className="action-button project-action" to={`/projects/${projectId}/settings`}>
+          Project settings
+        </Link>
         <Button
-          isLoading={archive.isPending}
-          onClick={() => {
-            archive.mutate();
-            setArchiveOpen(false);
-          }}
+          className="project-action project-action-danger"
+          variant="ghost"
+          isLoading={removeProject.isPending}
+          onClick={() => setDeleteProjectOpen(true)}
         >
-          Archive project
+          Delete project
         </Button>
-      </Modal>
+        <Button
+          className="project-action"
+          disabled={item.status === 'ARCHIVED' || analyze.isPending}
+          isLoading={analyze.isPending}
+          onClick={() => analyze.mutate()}
+        >
+          Start analysis
+        </Button>
+        <Link className="action-button project-action" to={`/projects/${projectId}/reports`}>
+          Open reports
+        </Link>
+        <Link className="action-button project-action" to={`/projects/${projectId}/chat`}>
+          Open chat
+        </Link>
+      </div>
       <Modal
         isOpen={deleteProjectOpen}
         title="Delete this project?"
@@ -508,13 +443,6 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         ) : (
           <EmptyState title="Analysis hasn't started" />
         )}
-        <Button
-          disabled={item.status === 'ARCHIVED' || analyze.isPending}
-          isLoading={analyze.isPending}
-          onClick={() => analyze.mutate()}
-        >
-          Analyze project
-        </Button>
         {analyses.data?.data[0] &&
         !['COMPLETED', 'FAILED', 'CANCELLED'].includes(analyses.data.data[0].status ?? '') ? (
           <Button variant="secondary" isLoading={cancel.isPending} onClick={() => cancel.mutate()}>
@@ -617,32 +545,6 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           Delete version
         </Button>
       </Modal>
-      <section className="project-list history-section" aria-label="Project history">
-        <h2>History</h2>
-        {history.data?.data.length ? (
-          history.data.data.map((entry) => (
-            <Card key={entry.id}>
-              <strong>{entry.action}</strong>
-              <p>
-                {entry.actorEmail} · {entry.createdAt}
-              </p>
-            </Card>
-          ))
-        ) : (
-          <EmptyState title="No history yet" />
-        )}
-      </section>
-      <div className="quick-actions">
-        <Link className="action-button" to={`/projects/${projectId}/settings`}>
-          Project settings
-        </Link>
-        <Link className="action-button" to={`/projects/${projectId}/chat`}>
-          Open chat
-        </Link>
-        <Link className="action-button" to={`/projects/${projectId}/reports`}>
-          Reports
-        </Link>
-      </div>
     </section>
   );
 }

@@ -1,5 +1,4 @@
 import { screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppRouter } from '../../../src/app/router';
@@ -76,17 +75,25 @@ describe('AppRouter', () => {
     expect(screen.getByRole('heading', { name: '404' })).toBeInTheDocument();
   });
 
-  it('uses an accessible confirmation modal before archiving a project', async () => {
-    const archive = vi.spyOn(reviewshaSdk.projects, 'archive').mockResolvedValue({} as never);
-    const user = userEvent.setup();
+  it('keeps project actions together and removes archive/history controls', async () => {
     renderWithWebProviders(<AppRouter />, { route: '/projects/123' });
 
-    await user.click(await screen.findByRole('button', { name: 'Archive project' }));
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    await user.click(
-      within(screen.getByRole('dialog')).getByRole('button', { name: 'Archive project' }),
+    const actions = await screen.findByRole('group', { name: 'Project actions' });
+    expect(within(actions).getByRole('link', { name: 'Project settings' })).toHaveAttribute(
+      'href',
+      '/projects/123/settings',
     );
-
-    expect(archive).toHaveBeenCalledWith('123');
+    expect(within(actions).getByRole('button', { name: 'Delete project' })).toBeInTheDocument();
+    expect(within(actions).getByRole('button', { name: 'Start analysis' })).toBeInTheDocument();
+    expect(within(actions).getByRole('link', { name: 'Open reports' })).toHaveAttribute(
+      'href',
+      '/projects/123/reports',
+    );
+    expect(within(actions).getByRole('link', { name: 'Open chat' })).toHaveAttribute(
+      'href',
+      '/projects/123/chat',
+    );
+    expect(screen.queryByRole('button', { name: 'Archive project' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'History' })).not.toBeInTheDocument();
   });
 });
