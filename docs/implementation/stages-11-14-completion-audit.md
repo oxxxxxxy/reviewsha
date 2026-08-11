@@ -1,7 +1,25 @@
 # Этапы 11–14 — Implementation Completion Audit
 
 Дата сверки: 2026-08-11
-Последний проверенный кодовый коммит: рабочий блок после `98fbe8d` (перед commit)
+Последний проверенный кодовый коммит: `4d0c80c` и текущее рабочее дерево
+
+## Актуальная локальная сверка
+
+На текущем рабочем дереве повторно запущены ровно stage-команды из root
+`package.json`:
+
+| Команда | Результат |
+| --- | --- |
+| `yarn test:stage11` | ✅ 12 API test files / 182 tests, 2 security files / 9 tests, 2 Worker files / 31 tests |
+| `yarn test:stage12` | ✅ API 6 files / 113 tests, Web 10 files / 29 tests, Admin 11 files / 44 tests |
+| `yarn test:stage13` | ✅ API 10 files / 66 tests, Admin 11 files / 44 tests |
+| `yarn test:stage14` | ✅ OpenAPI/SDK drift check, SDK 6 tests, Web/Admin/API/Worker typecheck |
+
+Это подтверждает функциональный кодовый baseline 11–12 и текущую локальную
+собираемость 13–14. Это **не** заменяет перечисленные ниже real-provider,
+browser, security-IDOR, responsive/accessibility и manual acceptance gates.
+Инфраструктурный GitHub CI для коммита `530282c` прошёл полностью, включая
+Compose, Helm lint/template и сборку четырёх production images.
 
 В этом блоке локально успешно пройдены `yarn test:stage14`,
 `yarn typecheck:apps` и `yarn format:check --ignore-unknown`; SDK unit: 6/6.
