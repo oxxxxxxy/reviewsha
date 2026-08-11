@@ -75,7 +75,8 @@
     "test:stage13": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && yarn workspace @reviewsha/api vitest run tests/unit/modules/admin tests/unit/modules/users tests/unit/modules/projects tests/integration/modules/admin/admin.security.integration.test.ts --coverage=false && yarn workspace @reviewsha/admin test",
     "ci:stage13": "yarn test:stage13",
     "test:stage14": "yarn sdk:check && yarn workspace @reviewsha/sdk typecheck && yarn workspace @reviewsha/sdk test && yarn typecheck:apps",
-    "ci:stage14": "yarn test:stage14"
+    "ci:stage14": "yarn test:stage14",
+    "docs:check": "node scripts/validate-docs.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

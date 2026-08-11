@@ -133,6 +133,8 @@ jobs:
         run: yarn build
       - name: API documentation generation
         run: yarn docs:api
+      - name: Documentation links and consistency
+        run: yarn docs:check
 
   infrastructure:
     name: Infrastructure manifests

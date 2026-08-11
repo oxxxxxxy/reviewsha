@@ -1,16 +1,16 @@
-# @reviewsha/web
+# `@reviewsha/web`
 
-Пользовательское React 19 + Vite приложение «Ревьюша».
+Пользовательское React 19 + Vite приложение: auth, dashboard, projects, upload,
+analysis, reports, chat и settings.
 
-## Назначение
-
-Web отвечает за пользовательский интерфейс: dashboard, проекты, отчёты, чат и настройки. На Этапе 2 реализован только production-ready skeleton без бизнес-логики.
-
-## Запуск
+## Запуск и env
 
 ```bash
+cp apps/web/.env.example apps/web/.env
 yarn workspace @reviewsha/web dev
 ```
+
+`VITE_API_URL` по умолчанию: `http://localhost:3000/api/v1`.
 
 ## Проверки
 
@@ -21,41 +21,5 @@ yarn workspace @reviewsha/web test
 yarn workspace @reviewsha/web build
 ```
 
-## ENV
-
-Пример:
-
-```txt
-apps/web/.env.example
-```
-
-```env
-VITE_API_URL=http://localhost:3000/api/v1
-```
-
-## Роуты MVP skeleton
-
-```txt
-/login
-/dashboard
-/projects
-/projects/:id
-/reports/:id
-/chat
-/settings
-*
-```
-
-## Зависимости
-
-- React 19
-- Vite
-- React Router
-- TanStack Query
-- Zustand
-- React Hook Form
-- Zod
-- `@reviewsha/sdk`
-- `@reviewsha/ui`
-- `@reviewsha/types`
-- `@reviewsha/config`
+Web использует `@reviewsha/sdk` для REST и typed streaming client для Chat, а
+общие primitives берёт из `@reviewsha/ui`. См. [frontend guide](../../docs/frontend/web.md).

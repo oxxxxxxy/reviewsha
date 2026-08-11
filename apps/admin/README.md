@@ -1,16 +1,16 @@
-# @reviewsha/admin
+# `@reviewsha/admin`
 
-Административное React 19 + Vite приложение «Ревьюша».
+Административное React 19 + Vite приложение для users, projects, queues, logs,
+AI usage и statistics.
 
-## Назначение
-
-Admin отвечает за будущие функции управления пользователями, проектами, очередями, AI, логами и настройками системы. На Этапе 2 реализован независимый skeleton без бизнес-логики.
-
-## Запуск
+## Запуск и env
 
 ```bash
+cp apps/admin/.env.example apps/admin/.env
 yarn workspace @reviewsha/admin dev
 ```
+
+`VITE_API_URL` по умолчанию: `http://localhost:3000/api/v1`.
 
 ## Проверки
 
@@ -21,42 +21,5 @@ yarn workspace @reviewsha/admin test
 yarn workspace @reviewsha/admin build
 ```
 
-## ENV
-
-Пример:
-
-```txt
-apps/admin/.env.example
-```
-
-```env
-VITE_API_URL=http://localhost:3000/api/v1
-```
-
-## Роуты MVP skeleton
-
-```txt
-/login
-/dashboard
-/users
-/projects
-/queues
-/ai
-/logs
-/settings
-*
-```
-
-## Зависимости
-
-- React 19
-- Vite
-- React Router
-- TanStack Query
-- Zustand
-- React Hook Form
-- Zod
-- `@reviewsha/sdk`
-- `@reviewsha/ui`
-- `@reviewsha/types`
-- `@reviewsha/config`
+Frontend guard не является security boundary: каждый `/admin` endpoint проверяет
+JWT и role на backend. См. [admin guide](../../docs/frontend/admin.md).
