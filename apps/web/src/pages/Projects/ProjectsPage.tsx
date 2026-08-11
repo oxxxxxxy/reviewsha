@@ -425,11 +425,22 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           </Button>
         </div>
       </header>
-      <nav className="project-section-nav" aria-label="Project sections">
-        <span className="project-section-nav-current">Overview</span>
-        <Link to={`/projects/${projectId}/reports`}>Reports</Link>
-        <Link to={`/projects/${projectId}/chat`}>Chat</Link>
-        <Link to={`/projects/${projectId}/settings`}>Settings</Link>
+      <nav className="project-menu" aria-label="Project sections">
+        <Link
+          className="project-menu-button project-menu-button-current"
+          to={`/projects/${projectId}`}
+        >
+          Overview
+        </Link>
+        <Link className="project-menu-button" to={`/projects/${projectId}/reports`}>
+          Reports
+        </Link>
+        <Link className="project-menu-button" to={`/projects/${projectId}/chat`}>
+          Chat
+        </Link>
+        <Link className="project-menu-button" to={`/projects/${projectId}/settings`}>
+          Settings
+        </Link>
       </nav>
       <div className="project-details-summary">
         <span>
@@ -538,6 +549,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       <section className="upload-panel">
         <h2>Upload project or file</h2>
         <div
+          className="upload-dropzone"
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
             event.preventDefault();
@@ -547,10 +559,18 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           role="region"
           aria-label="Project file upload drop zone"
         >
-          Drop an archive or readable file here
+          <div className="upload-dropzone-copy">
+            <strong>Drag and drop a file here</strong>
+            <span>ZIP, source files, documents, or PDF up to 100 MB</span>
+          </div>
+          <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}>
+            Attach file
+          </Button>
+          {lastUpload ? <span className="upload-selected-file">{lastUpload.name}</span> : null}
         </div>
         <input
           ref={fileRef}
+          className="upload-input-hidden"
           type="file"
           accept=".zip,.rar,.7z,.tar,.gz,.tgz,.js,.jsx,.ts,.tsx,.json,.py,.java,.go,.rs,.c,.cpp,.cs,.sh,.sql,.html,.css,.xml,.yaml,.yml,.md,.txt,.pdf,.doc,.docx,.odt,.rtf,.xls,.xlsx,.ppt,.pptx"
           onChange={(event) => {

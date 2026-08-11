@@ -1230,7 +1230,42 @@ input[type='file'] {
 }
 .project-delete-action {
   border: 1px solid rgb(255 85 125 / 0.45);
-  color: var(--color-danger);
+  background: transparent !important;
+  color: #ff85a4 !important;
+}
+.project-delete-action:hover:not(:disabled) {
+  background: rgb(255 85 125 / 0.12) !important;
+  color: #ffb0c4 !important;
+}
+.project-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0.2rem 0;
+}
+.project-menu-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-muted);
+  padding: 0.65rem 1.1rem;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease;
+}
+.project-menu-button:hover,
+.project-menu-button-current {
+  border-color: var(--color-primary);
+  background: rgb(232 69 120 / 0.12);
+  color: var(--color-foreground);
 }
 .project-section-nav {
   display: flex;
@@ -1531,12 +1566,56 @@ input[type='file'] {
   display: grid;
   gap: var(--space-3);
   margin-top: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  padding: var(--space-6);
 }
 .upload-panel [role='region'] {
+  display: grid;
+  min-height: 170px;
+  place-content: center;
+  justify-items: center;
+  gap: 0.75rem;
   border: 2px dashed var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--space-8);
+  background: rgb(15 18 24 / 0.45);
+  padding: var(--space-6);
   text-align: center;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+.upload-panel [role='region']:hover {
+  border-color: var(--color-primary);
+  background: rgb(232 69 120 / 0.05);
+}
+.upload-dropzone-copy {
+  display: grid;
+  gap: 0.3rem;
+}
+.upload-dropzone-copy strong {
+  font-size: 1rem;
+}
+.upload-dropzone-copy span,
+.upload-selected-file {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+.upload-selected-file {
+  max-width: min(100%, 32rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.upload-input-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 @media (max-width: 800px) {
   .app-sidebar {
@@ -1808,6 +1887,13 @@ input[type='file'] {
   }
   .project-details-summary {
     grid-template-columns: 1fr;
+  }
+  .project-menu {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .project-menu-button {
+    width: 100%;
   }
   .projects-total {
     grid-template-columns: auto auto;
