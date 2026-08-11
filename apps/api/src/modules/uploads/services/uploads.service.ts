@@ -1,7 +1,14 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { rm } from 'node:fs/promises';
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { Role, UploadStatus } from '@prisma/client';
 import { ApiLoggerService } from '../../../common/logger/api-logger.service';
 import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
@@ -15,6 +22,7 @@ import { ZipValidator } from '../validators/zip.validator';
 import { UploadFailedException } from '../exceptions/upload.exceptions';
 import { UploadListResponseDto, UploadResponseDto } from '../dto/upload-response.dto';
 import type { GithubImportDto } from '../dto/github-import.dto';
+import { parseGithubRepositoryUrl } from '../../../common/github/github-source';
 
 export interface UploadFileInput {
   readonly originalname: string;
@@ -25,6 +33,8 @@ export interface UploadFileInput {
   readonly sourceType?: string;
   readonly sourceCommit?: string;
   readonly sourceRepo?: string;
+  readonly sourceMessage?: string;
+  readonly sourceCommittedAt?: Date;
   readonly suppressPipeline?: boolean;
 }
 
@@ -62,6 +72,11 @@ export class UploadsService {
     if (user.role !== Role.ADMIN && user.role !== Role.SUPER_ADMIN && project.ownerId !== user.id) {
       throw new ForbiddenException('You cannot upload to this project');
     }
+    if (project.githubUrl && file.sourceType !== 'GITHUB') {
+      throw new ConflictException(
+        'Manual uploads are disabled for GitHub-connected projects; sync a commit instead',
+      );
+    }
 
     const id = randomUUID();
     const extension = file.originalname.match(/\.[a-z0-9.]+$/i)?.[0]?.toLowerCase() ?? '.bin';
@@ -80,6 +95,8 @@ export class UploadsService {
       sourceType: file.sourceType ?? 'UPLOAD',
       sourceCommit: file.sourceCommit,
       sourceRepo: file.sourceRepo,
+      sourceMessage: file.sourceMessage,
+      sourceCommittedAt: file.sourceCommittedAt,
     });
     const version = upload.version;
     this.events.publish(UPLOAD_EVENTS.created, this.event(upload));
@@ -176,25 +193,36 @@ export class UploadsService {
     if (!project) throw new NotFoundException('Project not found');
     if (project.ownerId !== user.id && user.role !== Role.ADMIN && user.role !== Role.SUPER_ADMIN)
       throw new ForbiddenException('You cannot connect GitHub to this project');
-    const parsed = new URL(dto.url);
-    const parts = parsed.pathname.split('/').filter(Boolean);
-    if (parsed.hostname !== 'github.com' || parts.length < 2)
-      throw new NotFoundException('Invalid GitHub repository URL');
-    const owner = parts[0]!;
-    const repo = parts[1]!.replace(/\.git$/, '');
-    const branch = dto.branch ?? 'HEAD';
-    const response = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&per_page=20`,
-      {
-        headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'Reviewsha' },
-      },
-    );
-    if (!response.ok) throw new NotFoundException('Unable to load GitHub commits');
-    const commits = (await response.json()) as Array<{
-      sha: string;
-      commit?: { message?: string };
-      zipball_url?: string;
-    }>;
+    const repository = parseGithubRepositoryUrl(dto.url);
+    if (!repository) throw new UnprocessableEntityException('Invalid public GitHub repository URL');
+    const owner = repository.owner;
+    const repo = repository.repo;
+    const branch = dto.branch?.trim() || project.githubBranch || 'HEAD';
+    if (project.githubUrl && project.githubUrl !== repository.url) {
+      throw new ConflictException(
+        'This project is already connected to another GitHub repository; create a new project to switch sources',
+      );
+    }
+    if (project.githubUrl && project.githubBranch && project.githubBranch !== branch) {
+      throw new ConflictException(
+        'This project is already connected to another GitHub branch; create a new project to switch sources',
+      );
+    }
+    const hasExistingVersions = project._count.uploadedFiles > 0;
+    const hasGithubVersions = this.uploads.hasSourceType
+      ? await this.uploads.hasSourceType(projectId, 'GITHUB')
+      : false;
+    if (hasExistingVersions && !hasGithubVersions && !project.githubUrl) {
+      throw new ConflictException(
+        'GitHub repositories can only be connected to a project without manual versions',
+      );
+    }
+    await this.projects.update(projectId, {
+      githubUrl: repository.url,
+      githubBranch: branch,
+    });
+
+    const commits = await this.fetchGithubCommits(owner, repo, branch, !hasGithubVersions);
     for (const commit of commits.reverse()) {
       if (!commit.sha || (await this.uploads.findBySourceCommit(projectId, commit.sha))) continue;
       const archive = await fetch(
@@ -212,11 +240,43 @@ export class UploadsService {
         size: buffer.length,
         sourceType: 'GITHUB',
         sourceCommit: commit.sha,
-        sourceRepo: `${owner}/${repo}`,
+        sourceRepo: repository.url,
+        sourceMessage: commit.commit?.message,
+        sourceCommittedAt: this.commitDate(commit),
         suppressPipeline: true,
       });
     }
     return this.list(user, projectId);
+  }
+
+  private async fetchGithubCommits(
+    owner: string,
+    repo: string,
+    branch: string,
+    includeHistory: boolean,
+  ): Promise<GithubCommit[]> {
+    const commits: GithubCommit[] = [];
+    const pages = includeHistory ? Number.POSITIVE_INFINITY : 1;
+    for (let page = 1; page <= pages; page += 1) {
+      const response = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&per_page=100&page=${page}`,
+        {
+          headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'Reviewsha' },
+        },
+      );
+      if (!response.ok) throw new NotFoundException('Unable to load GitHub commits');
+      const batch = (await response.json()) as GithubCommit[];
+      commits.push(...batch);
+      if (!includeHistory || batch.length < 100) break;
+    }
+    return commits;
+  }
+
+  private commitDate(commit: GithubCommit): Date | undefined {
+    const value = commit.commit?.committer?.date ?? commit.commit?.author?.date;
+    if (!value) return undefined;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? undefined : date;
   }
 
   private event(upload: {
@@ -233,4 +293,14 @@ export class UploadsService {
       occurredAt: new Date().toISOString(),
     };
   }
+}
+
+interface GithubCommit {
+  readonly sha: string;
+  readonly commit?: {
+    readonly message?: string;
+    readonly author?: { readonly date?: string };
+    readonly committer?: { readonly date?: string };
+  };
+  readonly zipball_url?: string;
 }

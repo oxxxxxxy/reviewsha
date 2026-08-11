@@ -26,3 +26,8 @@
 Новые ошибки должны маппиться в общий `ApiErrorResponseDto` и иметь стабильный
 code/status. Swagger responses должны отражать возможные `400/401/403/404/409/422`
 и provider/internal failures там, где это применимо.
+
+# GitHub sources
+
+See [GitHub project sources](./github-sources.md) for repository connections,
+commit-backed versions, synchronization, and the manual-upload policy.

@@ -1,5 +1,5 @@
 import { Role, UploadStatus, Visibility, ProjectStatus } from '@prisma/client';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { AuthenticatedUser } from '../../../../src/common/auth/types/auth.types';
 import { UploadEvents } from '../../../../src/modules/uploads/events/upload.events';
 import { UploadsService } from '../../../../src/modules/uploads/services/uploads.service';
@@ -17,6 +17,8 @@ const project = {
   name: 'Project',
   description: null,
   language: 'TypeScript',
+  githubUrl: null as string | null,
+  githubBranch: null as string | null,
   visibility: Visibility.PRIVATE,
   status: ProjectStatus.ACTIVE,
   createdAt: new Date(),
@@ -37,6 +39,11 @@ const upload = {
   size: 30n,
   mimeType: 'application/zip',
   checksum: 'sha256:test',
+  sourceType: 'UPLOAD',
+  sourceCommit: null,
+  sourceRepo: null,
+  sourceMessage: null,
+  sourceCommittedAt: null,
   status: UploadStatus.COMPLETED,
   version: 1,
   createdAt: new Date(),
@@ -53,10 +60,13 @@ function setup() {
     updateStatus: vi.fn(async (_id: string, status: UploadStatus) => ({ ...upload, status })),
     update: vi.fn(async () => upload),
     findByProject: vi.fn(async () => [upload]),
+    findBySourceCommit: vi.fn(async (): Promise<typeof upload | null> => null),
+    hasSourceType: vi.fn(async () => false),
   };
   const projects = {
     findActiveByIdForOwner: vi.fn(async () => project),
     findActiveById: vi.fn(async () => project),
+    update: vi.fn(async () => project),
   };
   const storage = {
     upload: vi.fn(async () => ({ bucket: 'projects', key: upload.objectKey })),
@@ -81,6 +91,10 @@ function setup() {
     ),
   };
 }
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('UploadsService', () => {
   it('creates version one and uploads through StorageService', async () => {
@@ -152,6 +166,103 @@ describe('UploadsService', () => {
         buffer: Buffer.alloc(30),
       }),
     ).rejects.toMatchObject({ status: 403 });
+  });
+
+  it('blocks manual uploads after a GitHub repository is connected', async () => {
+    const { service, projects, storage } = setup();
+    projects.findActiveById.mockResolvedValue({
+      ...project,
+      githubUrl: 'https://github.com/reviewsha/reviewsha',
+      githubBranch: 'main',
+    });
+
+    await expect(
+      service.create(user, project.id, {
+        originalname: 'project.zip',
+        mimetype: 'application/zip',
+        buffer: Buffer.alloc(30),
+      }),
+    ).rejects.toMatchObject({ status: 409 });
+    expect(storage.upload).not.toHaveBeenCalled();
+  });
+
+  it('imports a GitHub commit as an immutable version with commit metadata', async () => {
+    const { service, projects, repository } = setup();
+    const connectedProject = {
+      ...project,
+      githubUrl: 'https://github.com/reviewsha/reviewsha',
+      githubBranch: 'main',
+    };
+    projects.findActiveById.mockResolvedValue(connectedProject);
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(
+            JSON.stringify([
+              {
+                sha: 'commit-123',
+                commit: {
+                  message: 'Fix auth flow',
+                  committer: { date: '2026-08-11T12:00:00.000Z' },
+                },
+                zipball_url: 'https://api.github.com/archive/commit-123',
+              },
+            ]),
+            { status: 200 },
+          ),
+        )
+        .mockResolvedValueOnce(new Response(Buffer.from('zip archive'), { status: 200 })),
+    );
+
+    await service.importGithub(user, project.id, {
+      url: 'https://github.com/reviewsha/reviewsha/',
+      branch: 'main',
+    });
+
+    expect(projects.update).toHaveBeenCalledWith(project.id, {
+      githubUrl: 'https://github.com/reviewsha/reviewsha',
+      githubBranch: 'main',
+    });
+    expect(repository.createNextVersion).toHaveBeenCalledWith(
+      project.id,
+      expect.objectContaining({
+        sourceType: 'GITHUB',
+        sourceCommit: 'commit-123',
+        sourceRepo: 'https://github.com/reviewsha/reviewsha',
+        sourceMessage: 'Fix auth flow',
+        sourceCommittedAt: new Date('2026-08-11T12:00:00.000Z'),
+      }),
+    );
+  });
+
+  it('does not download a GitHub commit that is already present', async () => {
+    const { service, projects, repository } = setup();
+    projects.findActiveById.mockResolvedValue({
+      ...project,
+      githubUrl: 'https://github.com/reviewsha/reviewsha',
+      githubBranch: 'main',
+    });
+    repository.hasSourceType.mockResolvedValue(true);
+    repository.findBySourceCommit.mockResolvedValue(upload);
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify([{ sha: 'commit-123', commit: {}, zipball_url: 'archive-url' }]),
+          { status: 200 },
+        ),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await service.importGithub(user, project.id, {
+      url: 'https://github.com/reviewsha/reviewsha',
+      branch: 'main',
+    });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(repository.createNextVersion).not.toHaveBeenCalled();
   });
 
   it('allows administrators to upload to any project', async () => {

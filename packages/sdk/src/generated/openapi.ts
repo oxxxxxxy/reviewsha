@@ -1148,6 +1148,16 @@ export interface components {
             description?: string | null;
             /** @example TypeScript */
             language?: string | null;
+            /**
+             * @description Connected public GitHub repository URL, if the project is source-controlled.
+             * @example https://github.com/reviewsha/reviewsha
+             */
+            githubUrl?: string | null;
+            /**
+             * @description GitHub branch or ref used for synchronization.
+             * @example main
+             */
+            githubBranch?: string | null;
             /** @example [
              *       "backend",
              *       "mvp"
@@ -1206,6 +1216,16 @@ export interface components {
              *       "mvp"
              *     ] */
             tags?: string[];
+            /**
+             * @description Public GitHub repository URL. Connects the project to commit-based versions.
+             * @example https://github.com/reviewsha/reviewsha
+             */
+            githubUrl?: string;
+            /**
+             * @description Branch or ref used for GitHub synchronization.
+             * @example main
+             */
+            githubBranch?: string;
         };
         UpdateProjectDto: {
             /** @example Reviewsha API */
@@ -1224,6 +1244,16 @@ export interface components {
              *       "mvp"
              *     ] */
             tags?: string[];
+            /**
+             * @description Public GitHub repository URL. Set to null to disconnect an empty project.
+             * @example https://github.com/reviewsha/reviewsha
+             */
+            githubUrl?: string | null;
+            /**
+             * @description Branch or ref used for GitHub synchronization.
+             * @example main
+             */
+            githubBranch?: string | null;
         };
         ProjectHistoryResponseDto: {
             /** @example 00000000-0000-4000-8000-000000000020 */
@@ -1270,6 +1300,19 @@ export interface components {
             mimeType: string;
             /** @example sha256:... */
             checksum: string;
+            /**
+             * @example GITHUB
+             * @enum {string}
+             */
+            sourceType: "UPLOAD" | "GITHUB";
+            /** @example 8f3a1c2 */
+            sourceCommit?: string | null;
+            /** @example https://github.com/reviewsha/reviewsha */
+            sourceRepo?: string | null;
+            /** @example Fix authentication edge case */
+            sourceMessage?: string | null;
+            /** Format: date-time */
+            sourceCommittedAt?: string | null;
             /** @example 2026-08-05T12:00:00.000Z */
             createdAt: string;
         };

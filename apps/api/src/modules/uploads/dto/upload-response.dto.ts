@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UploadStatus } from '@prisma/client';
 
 export class UploadResponseDto {
@@ -25,6 +25,25 @@ export class UploadResponseDto {
 
   @ApiProperty({ type: String, example: 'sha256:...' })
   checksum!: string;
+
+  @ApiProperty({ type: String, example: 'GITHUB', enum: ['UPLOAD', 'GITHUB'] })
+  sourceType!: string;
+
+  @ApiPropertyOptional({ type: String, example: '8f3a1c2', nullable: true })
+  sourceCommit!: string | null;
+
+  @ApiPropertyOptional({
+    type: String,
+    example: 'https://github.com/reviewsha/reviewsha',
+    nullable: true,
+  })
+  sourceRepo!: string | null;
+
+  @ApiPropertyOptional({ type: String, example: 'Fix authentication edge case', nullable: true })
+  sourceMessage!: string | null;
+
+  @ApiPropertyOptional({ type: String, format: 'date-time', nullable: true })
+  sourceCommittedAt!: string | null;
 
   @ApiProperty({ type: String, example: '2026-08-05T12:00:00.000Z' })
   createdAt!: string;

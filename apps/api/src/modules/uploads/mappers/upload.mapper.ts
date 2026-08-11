@@ -12,6 +12,11 @@ export class UploadMapper {
       size: Number(upload.size),
       mimeType: upload.mimeType,
       checksum: upload.checksum,
+      sourceType: upload.sourceType ?? 'UPLOAD',
+      sourceCommit: upload.sourceCommit ?? null,
+      sourceRepo: upload.sourceRepo ?? null,
+      sourceMessage: upload.sourceMessage ?? null,
+      sourceCommittedAt: upload.sourceCommittedAt?.toISOString() ?? null,
       createdAt: upload.createdAt.toISOString(),
     };
   }

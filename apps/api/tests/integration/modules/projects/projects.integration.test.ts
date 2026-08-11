@@ -20,6 +20,8 @@ function fixture(): Project {
     name: 'Reviewsha API',
     description: 'Backend',
     language: 'TypeScript',
+    githubUrl: null,
+    githubBranch: null,
     visibility: Visibility.PRIVATE,
     status: ProjectStatus.ACTIVE,
     createdAt: now,

@@ -8,6 +8,8 @@ export class ProjectEntity {
     readonly name: string,
     readonly description: string | null,
     readonly language: string | null,
+    readonly githubUrl: string | null,
+    readonly githubBranch: string | null,
     readonly status: ProjectStatus,
     readonly visibility: Visibility,
     readonly archivedAt: Date | null,

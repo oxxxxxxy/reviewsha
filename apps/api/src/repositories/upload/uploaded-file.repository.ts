@@ -120,6 +120,14 @@ export class UploadedFileRepository
     });
   }
 
+  async hasSourceType(projectId: string, sourceType: string): Promise<boolean> {
+    const upload = await this.prisma.uploadedFile.findFirst({
+      where: { projectId, sourceType, deletedAt: null },
+      select: { id: true },
+    });
+    return Boolean(upload);
+  }
+
   deleteProjectFiles(projectId: string, options?: RepositoryOptions): Promise<Prisma.BatchPayload> {
     return this.getClient(options).uploadedFile.updateMany({
       where: { projectId, deletedAt: null },

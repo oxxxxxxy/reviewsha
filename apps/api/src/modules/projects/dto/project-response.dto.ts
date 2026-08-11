@@ -32,6 +32,22 @@ export class ProjectResponseDto {
   @ApiPropertyOptional({ type: String, example: 'TypeScript', nullable: true })
   language!: string | null;
 
+  @ApiPropertyOptional({
+    type: String,
+    example: 'https://github.com/reviewsha/reviewsha',
+    nullable: true,
+    description: 'Connected public GitHub repository URL, if the project is source-controlled.',
+  })
+  githubUrl!: string | null;
+
+  @ApiPropertyOptional({
+    type: String,
+    example: 'main',
+    nullable: true,
+    description: 'GitHub branch or ref used for synchronization.',
+  })
+  githubBranch!: string | null;
+
   @ApiProperty({ type: [String], example: ['backend', 'mvp'] })
   tags!: string[];
 

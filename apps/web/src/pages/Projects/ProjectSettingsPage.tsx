@@ -17,6 +17,8 @@ export function ProjectSettingsPage() {
   const [description, setDescription] = useState<string>();
   const [tags, setTags] = useState<string>();
   const [language, setLanguage] = useState<string>();
+  const [githubUrl, setGithubUrl] = useState<string>();
+  const [githubBranch, setGithubBranch] = useState<string>();
   const update = useMutation({
     mutationFn: () =>
       reviewshaSdk.projects.update(id!, {
@@ -27,6 +29,10 @@ export function ProjectSettingsPage() {
           .map((tag) => tag.trim())
           .filter(Boolean),
         language: language?.trim() || item?.language || null,
+        githubUrl: githubUrl === undefined ? (item?.githubUrl ?? null) : githubUrl.trim() || null,
+        githubBranch: (githubUrl === undefined ? item?.githubUrl : githubUrl)?.trim()
+          ? (githubBranch === undefined ? item?.githubBranch : githubBranch?.trim()) || 'HEAD'
+          : null,
       }),
     onSuccess: () => {
       void client.invalidateQueries({ queryKey: ['project', id] });
@@ -67,6 +73,23 @@ export function ProjectSettingsPage() {
             placeholder="Language (e.g. TypeScript)"
             aria-label="Project language"
           />
+          <Input
+            value={githubUrl ?? item.githubUrl ?? ''}
+            onChange={(event) => setGithubUrl(event.target.value)}
+            placeholder="GitHub repository URL (optional)"
+            aria-label="GitHub repository URL"
+          />
+          <Input
+            value={githubBranch ?? item.githubBranch ?? ''}
+            onChange={(event) => setGithubBranch(event.target.value)}
+            placeholder="GitHub branch (defaults to HEAD)"
+            aria-label="GitHub branch"
+          />
+          {item.githubUrl ? (
+            <small>
+              This project uses immutable GitHub commit versions. Manual uploads are disabled.
+            </small>
+          ) : null}
           <Button isLoading={update.isPending} onClick={() => update.mutate()}>
             Save changes
           </Button>

@@ -8,6 +8,7 @@ analysis pipeline, reports и AI Chat.
 - JWT authentication, refresh sessions и RBAC;
 - projects, tags, history и ownership-aware API;
 - ZIP upload/versioning через MinIO;
+- public GitHub sources with commit-backed versions, per-commit analysis and automatic sync;
 - асинхронный analysis pipeline на BullMQ/Redis и отдельном Worker;
 - AI context/chunks, structured reports, Markdown/PDF/JSON exports;
 - chat history, bounded context и typed SSE streaming;
@@ -119,6 +120,9 @@ yarn sdk:check
 Admin operational UI, user management and OmniRoute settings описаны в
 [Admin guide](docs/frontend/admin.md). В Kubernetes OmniRoute работает как
 внутренний Service, а Worker подключается к нему по `http://omniroute:20128/v1`.
+
+Подключение GitHub, commit history, анализ выбранного коммита и запрет ручных
+загрузок описаны в [GitHub sources guide](docs/backend/github-sources.md).
 
 ## Текущий implementation baseline
 

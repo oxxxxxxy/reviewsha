@@ -18,6 +18,8 @@ export interface Project {
   name: string;
   description?: string;
   language?: string;
+  githubUrl?: string | null;
+  githubBranch?: string | null;
   tags?: string[];
   status: ProjectStatus;
   visibility: Visibility;

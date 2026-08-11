@@ -28,6 +28,7 @@ implementation notes используются как история работ, 
 - [Worker](architecture/worker.md)
 - [AI pipeline](architecture/ai-pipeline.md)
 - [Chat](backend/chat.md)
+- [GitHub project sources](backend/github-sources.md)
 - [API/OpenAPI](api/openapi.md)
 
 ## Frontend

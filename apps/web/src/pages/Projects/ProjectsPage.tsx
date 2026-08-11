@@ -1,6 +1,6 @@
 import { Badge, Button, Card, EmptyState, Input, Loader, Modal, Textarea } from '@reviewsha/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { reviewshaSdk } from '../../api/client';
 
@@ -36,6 +36,8 @@ function ProjectsList() {
         name,
         description: description || undefined,
         tags,
+        githubUrl: githubUrl.trim() || undefined,
+        githubBranch: githubUrl.trim() ? githubBranch.trim() || undefined : undefined,
       }),
     onSuccess: ({ data }) => {
       void client.invalidateQueries({ queryKey: ['projects'] });
@@ -489,6 +491,26 @@ function ProjectDetails({ projectId }: { projectId: string }) {
     queryKey: ['uploads', projectId],
     queryFn: ({ signal }) => reviewshaSdk.uploads.list(projectId, signal),
   });
+  const githubSync = useQuery({
+    enabled: Boolean(project.data?.data.githubUrl),
+    queryKey: [
+      'github-sync',
+      projectId,
+      project.data?.data.githubUrl,
+      project.data?.data.githubBranch,
+    ],
+    queryFn: () =>
+      reviewshaSdk.uploads.importGithub(
+        projectId,
+        project.data!.data.githubUrl!,
+        project.data!.data.githubBranch || undefined,
+      ),
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+  });
+  useEffect(() => {
+    if (githubSync.data) void client.invalidateQueries({ queryKey: ['uploads', projectId] });
+  }, [client, githubSync.data, projectId]);
   const upload = useMutation({
     mutationFn: (file: File) => {
       uploadController.current = new AbortController();
@@ -555,9 +577,16 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       </section>
     );
   const item = project.data.data;
+  const isGithubProject = Boolean(item.githubUrl);
   const projectTags = projectTechnologyTags(item.language, item.tags);
   const uploadFile = (file: File) => {
     setUploadError(undefined);
+    if (isGithubProject) {
+      setUploadError(
+        'Manual uploads are disabled for GitHub-connected projects. Sync a commit instead.',
+      );
+      return;
+    }
     const supported =
       /\.(zip|rar|7z|tar|gz|tgz|js|jsx|ts|tsx|mjs|cjs|json|jsonc|py|rb|php|java|kt|go|rs|c|h|cpp|hpp|cs|swift|dart|sh|sql|vue|svelte|html|css|scss|less|xml|toml|ini|ya?ml|md|mdx|txt|rst|csv|log|pdf|docx?|odt|rtf|xlsx?|ods|pptx?|odp)$/i.test(
         file.name,
@@ -626,6 +655,9 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         <span>
           <strong>{item.stats?.uploadsCount ?? 0}</strong> uploads
         </span>
+        {item.githubUrl ? (
+          <span className="project-source-summary">GitHub · {item.githubBranch || 'HEAD'}</span>
+        ) : null}
       </div>
       <Modal
         isOpen={deleteProjectOpen}
@@ -722,66 +754,119 @@ function ProjectDetails({ projectId }: { projectId: string }) {
         ) : null}
         {analyze.isError ? <p role="alert">Unable to start analysis.</p> : null}
       </section>
-      <section className="upload-panel">
-        <h2>Upload project or file</h2>
-        <div
-          className="upload-dropzone"
-          onDragOver={(event) => event.preventDefault()}
-          onDrop={(event) => {
-            event.preventDefault();
-            const file = event.dataTransfer.files[0];
-            if (file) uploadFile(file);
-          }}
-          role="region"
-          aria-label="Project file upload drop zone"
-        >
-          <div className="upload-dropzone-copy">
-            <strong>Drag and drop a file here</strong>
-            <span>ZIP, source files, documents, or PDF up to 100 MB</span>
+      {isGithubProject ? (
+        <section className="upload-panel github-source-panel" aria-label="GitHub source">
+          <div>
+            <span className="eyebrow">Connected source</span>
+            <h2>GitHub commit history</h2>
+            <p>
+              Manual uploads are disabled. Each version below is an immutable commit from{' '}
+              <a href={item.githubUrl!} target="_blank" rel="noreferrer">
+                {item.githubUrl}
+              </a>{' '}
+              on <strong>{item.githubBranch || 'HEAD'}</strong>.
+            </p>
           </div>
-          <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}>
-            Attach file
+          <Button
+            type="button"
+            variant="secondary"
+            isLoading={githubSync.isFetching}
+            onClick={() => void githubSync.refetch()}
+          >
+            Sync latest commits
           </Button>
-          {lastUpload ? <span className="upload-selected-file">{lastUpload.name}</span> : null}
-        </div>
-        <input
-          ref={fileRef}
-          className="upload-input-hidden"
-          type="file"
-          accept=".zip,.rar,.7z,.tar,.gz,.tgz,.js,.jsx,.ts,.tsx,.json,.py,.java,.go,.rs,.c,.cpp,.cs,.sh,.sql,.html,.css,.xml,.yaml,.yml,.md,.txt,.pdf,.doc,.docx,.odt,.rtf,.xls,.xlsx,.ppt,.pptx"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            if (file) uploadFile(file);
-          }}
-        />
-        {upload.isPending ? <p>Uploading: {uploadProgress ?? 0}%</p> : null}
-        {upload.isPending ? (
-          <Button variant="secondary" onClick={() => uploadController.current?.abort()}>
-            Cancel upload
-          </Button>
-        ) : null}
-        {upload.isSuccess ? <p>Upload complete</p> : null}
-        {uploadError ? (
-          <>
-            <p role="alert">{uploadError}</p>
-            {lastUpload ? (
-              <Button variant="secondary" onClick={() => upload.mutate(lastUpload)}>
-                Retry upload
-              </Button>
-            ) : null}
-          </>
-        ) : null}
-      </section>
+          {githubSync.isError ? (
+            <p role="alert">Unable to sync GitHub commits. Check the repository and branch.</p>
+          ) : null}
+          <small>New commits are checked automatically while this project is open.</small>
+        </section>
+      ) : (
+        <section className="upload-panel">
+          <h2>Upload project or file</h2>
+          <div
+            className="upload-dropzone"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const file = event.dataTransfer.files[0];
+              if (file) uploadFile(file);
+            }}
+            role="region"
+            aria-label="Project file upload drop zone"
+          >
+            <div className="upload-dropzone-copy">
+              <strong>Drag and drop a file here</strong>
+              <span>ZIP, source files, documents, or PDF up to 100 MB</span>
+            </div>
+            <Button type="button" variant="secondary" onClick={() => fileRef.current?.click()}>
+              Attach file
+            </Button>
+            {lastUpload ? <span className="upload-selected-file">{lastUpload.name}</span> : null}
+          </div>
+          <input
+            ref={fileRef}
+            className="upload-input-hidden"
+            type="file"
+            accept=".zip,.rar,.7z,.tar,.gz,.tgz,.js,.jsx,.ts,.tsx,.json,.py,.java,.go,.rs,.c,.cpp,.cs,.sh,.sql,.html,.css,.xml,.yaml,.yml,.md,.txt,.pdf,.doc,.docx,.odt,.rtf,.xls,.xlsx,.ppt,.pptx"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) uploadFile(file);
+            }}
+          />
+          {upload.isPending ? <p>Uploading: {uploadProgress ?? 0}%</p> : null}
+          {upload.isPending ? (
+            <Button variant="secondary" onClick={() => uploadController.current?.abort()}>
+              Cancel upload
+            </Button>
+          ) : null}
+          {upload.isSuccess ? <p>Upload complete</p> : null}
+          {uploadError ? (
+            <>
+              <p role="alert">{uploadError}</p>
+              {lastUpload ? (
+                <Button variant="secondary" onClick={() => upload.mutate(lastUpload)}>
+                  Retry upload
+                </Button>
+              ) : null}
+            </>
+          ) : null}
+        </section>
+      )}
       <section className="project-list versions-section" aria-label="Upload versions">
         <h2>Versions</h2>
         {uploads.data?.data.length ? (
           uploads.data.data.map((version) => (
             <Card key={version.id}>
-              <strong>Version {version.version}</strong>
-              <p>
-                {version.status} · {version.size} bytes
-              </p>
+              <strong>
+                Version {version.version} {version.sourceType === 'GITHUB' ? '· GitHub commit' : ''}
+              </strong>
+              {version.sourceType === 'GITHUB' ? (
+                <>
+                  <p>
+                    <a
+                      href={
+                        version.sourceRepo && version.sourceCommit
+                          ? `${version.sourceRepo}/commit/${version.sourceCommit}`
+                          : (version.sourceRepo ?? undefined)
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {version.sourceCommit?.slice(0, 8) ?? 'Unknown commit'}
+                    </a>{' '}
+                    · {version.sourceMessage?.split('\n')[0] || 'No commit message'}
+                  </p>
+                  <small>
+                    {version.sourceCommittedAt
+                      ? new Date(version.sourceCommittedAt).toLocaleString()
+                      : 'Commit date unavailable'}
+                  </small>
+                </>
+              ) : (
+                <p>
+                  {version.status} · {version.size} bytes
+                </p>
+              )}
               <Button
                 variant="secondary"
                 disabled={version.status !== 'COMPLETED'}
@@ -789,13 +874,15 @@ function ProjectDetails({ projectId }: { projectId: string }) {
               >
                 {selectedUploadId === version.id ? 'Selected for analysis' : 'Use for analysis'}
               </Button>
-              <Button
-                variant="ghost"
-                disabled={removeUpload.isPending}
-                onClick={() => setDeleteVersionId(version.id)}
-              >
-                Delete version
-              </Button>
+              {version.sourceType !== 'GITHUB' ? (
+                <Button
+                  variant="ghost"
+                  disabled={removeUpload.isPending}
+                  onClick={() => setDeleteVersionId(version.id)}
+                >
+                  Delete version
+                </Button>
+              ) : null}
             </Card>
           ))
         ) : (

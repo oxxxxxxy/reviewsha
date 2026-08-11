@@ -7,6 +7,7 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsUrl,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -65,4 +66,28 @@ export class UpdateProjectDto {
   @IsString({ each: true })
   @MaxLength(PROJECT_MAX_TAG_LENGTH, { each: true })
   tags?: string[];
+
+  @ApiPropertyOptional({
+    type: String,
+    example: 'https://github.com/reviewsha/reviewsha',
+    description: 'Public GitHub repository URL. Set to null to disconnect an empty project.',
+    maxLength: 500,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsUrl({ protocols: ['https'], require_protocol: true })
+  @MaxLength(500)
+  githubUrl?: string | null;
+
+  @ApiPropertyOptional({
+    type: String,
+    example: 'main',
+    description: 'Branch or ref used for GitHub synchronization.',
+    maxLength: 255,
+    nullable: true,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  githubBranch?: string | null;
 }

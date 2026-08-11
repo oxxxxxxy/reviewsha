@@ -20,6 +20,7 @@ import { UpdateProjectDto } from '../dto/update-project.dto';
 import { ProjectEvents, PROJECT_EVENTS } from '../events/project.events';
 import { ProjectMapper } from '../mappers/project.mapper';
 import { PROJECT_DEFAULT_LIMIT, PROJECT_DEFAULT_PAGE } from '../constants/projects.constants';
+import { parseGithubRepositoryUrl } from '../../../common/github/github-source';
 
 @Injectable()
 export class ProjectsService {
@@ -75,6 +76,7 @@ export class ProjectsService {
   ): Promise<ProjectResponseEnvelopeDto> {
     const name = this.requiredText(dto.name, 'Project name');
     const tags = this.normalizeTags(dto.tags);
+    const github = this.normalizeGithubSource(dto.githubUrl, dto.githubBranch);
     const existing = await this.projectRepository.findByOwnerAndName(user.id, name);
     if (existing) {
       throw new ConflictException('A project with this name already exists');
@@ -85,6 +87,8 @@ export class ProjectsService {
       name,
       description: dto.description?.trim() || null,
       language: dto.language?.trim() || null,
+      githubUrl: github?.url ?? null,
+      githubBranch: github?.branch ?? null,
       visibility: dto.visibility,
     });
     await this.projectRepository.syncTags(project.id, tags);
@@ -130,6 +134,27 @@ export class ProjectsService {
         changedFields.visibility = { from: previous.visibility, to: dto.visibility };
       }
       data.visibility = dto.visibility;
+    }
+
+    if (dto.githubUrl !== undefined || dto.githubBranch !== undefined) {
+      const github = this.normalizeGithubSource(
+        dto.githubUrl === undefined ? previous.githubUrl : dto.githubUrl,
+        dto.githubBranch === undefined ? previous.githubBranch : dto.githubBranch,
+      );
+      const previousUrl = previous.githubUrl;
+      const previousBranch = previous.githubBranch;
+      const changedUrl = (github?.url ?? null) !== previousUrl;
+      const changedBranch = (github?.branch ?? null) !== previousBranch;
+      if ((changedUrl || changedBranch) && previous._count.uploadedFiles > 0) {
+        throw new ConflictException(
+          'GitHub source cannot be changed after versions exist; create a new project instead',
+        );
+      }
+      if (changedUrl) changedFields.githubUrl = { from: previousUrl, to: github?.url ?? null };
+      if (changedBranch)
+        changedFields.githubBranch = { from: previousBranch, to: github?.branch ?? null };
+      data.githubUrl = github?.url ?? null;
+      data.githubBranch = github?.branch ?? null;
     }
 
     const tags = dto.tags === undefined ? undefined : this.normalizeTags(dto.tags);
@@ -251,6 +276,22 @@ export class ProjectsService {
       throw new UnprocessableEntityException('Tags cannot be empty');
     }
     return normalized;
+  }
+
+  private normalizeGithubSource(
+    githubUrl?: string | null,
+    githubBranch?: string | null,
+  ): { url: string; branch: string } | null {
+    const url = githubUrl?.trim() || null;
+    const branch = githubBranch?.trim() || null;
+    if (!url) {
+      if (branch) throw new UnprocessableEntityException('GitHub branch requires a repository URL');
+      return null;
+    }
+    const repository = parseGithubRepositoryUrl(url);
+    if (!repository)
+      throw new UnprocessableEntityException('A valid public GitHub URL is required');
+    return { url: repository.url, branch: branch || 'HEAD' };
   }
 
   private publish(

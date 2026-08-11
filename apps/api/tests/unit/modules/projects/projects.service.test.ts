@@ -25,6 +25,8 @@ function project(ownerId = user.id): Project {
     name: 'Reviewsha API',
     description: 'Backend',
     language: 'TypeScript',
+    githubUrl: null,
+    githubBranch: null,
     visibility: Visibility.PRIVATE,
     status: ProjectStatus.ACTIVE,
     createdAt: now,
@@ -109,6 +111,34 @@ describe('ProjectsService', () => {
     );
     expect(result.data.id).toBe(project().id);
     expect(listener).toHaveBeenCalledWith(expect.objectContaining({ projectId: project().id }));
+  });
+
+  it('normalizes and persists a GitHub source on project creation', async () => {
+    const { service, repository } = setup();
+
+    await service.create(user, {
+      name: 'GitHub project',
+      githubUrl: 'https://github.com/reviewsha/reviewsha/',
+      githubBranch: 'main',
+    });
+
+    expect(repository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        githubUrl: 'https://github.com/reviewsha/reviewsha',
+        githubBranch: 'main',
+      }),
+    );
+  });
+
+  it('does not mix a new GitHub source into an existing local history', async () => {
+    const { service } = setup();
+
+    await expect(
+      service.update(user, project().id, {
+        githubUrl: 'https://github.com/reviewsha/reviewsha',
+        githubBranch: 'main',
+      }),
+    ).rejects.toMatchObject({ status: 409 });
   });
 
   it('does not expose another user project to a regular user', async () => {
