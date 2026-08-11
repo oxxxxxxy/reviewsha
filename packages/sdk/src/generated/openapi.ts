@@ -4397,6 +4397,8 @@ export interface operations {
                 search?: string;
                 sort?: "createdAt" | "displayName" | "email";
                 order?: "asc" | "desc";
+                role?: "USER" | "ADMIN" | "SUPER_ADMIN";
+                isActive?: boolean;
             };
             header?: never;
             path?: never;
