@@ -73,6 +73,7 @@ describe('ProjectsPage', () => {
     fireEvent.focus(input);
 
     expect(screen.getByRole('listbox', { name: 'Technology suggestions' })).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: 'React' } });
     fireEvent.mouseDown(screen.getByRole('button', { name: 'React' }));
 
     expect(screen.getByText('React')).toBeInTheDocument();
