@@ -14,6 +14,8 @@ export function ReportsPage() {
 }
 
 function ReportsProjectChooser() {
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
   const projects = useQuery({
     queryKey: ['reports-projects'],
     queryFn: ({ signal }) =>
@@ -28,35 +30,108 @@ function ReportsProjectChooser() {
         <Button onClick={() => void projects.refetch()}>Retry</Button>
       </section>
     );
+  const projectItems = projects.data?.data ?? [];
+  const filteredProjects = projectItems.filter((project) => {
+    const term = search.trim().toLowerCase();
+    return !term || `${project.name} ${project.description ?? ''}`.toLowerCase().includes(term);
+  });
+
   return (
-    <section className="page">
-      <h1>Reports</h1>
-      {projects.data?.data.length ? (
-        <div className="project-list">
-          {projects.data.data.map((project) => (
-            <Card
-              key={project.id}
-              role="link"
-              tabIndex={0}
-              onClick={() => (window.location.href = `/projects/${project.id}/reports`)}
-            >
-              <h2>{project.name}</h2>
-              <Button
-                onClick={(event) => {
-                  event.stopPropagation();
-                  window.location.href = `/projects/${project.id}/reports`;
-                }}
-              >
-                Open reports
-              </Button>
-            </Card>
-          ))}
+    <section className="page reports-page">
+      <div className="page-heading">
+        <div>
+          <span className="eyebrow">Workspace insights</span>
+          <h1>Reports</h1>
+          <p className="muted">Choose a project to view its analysis history and reports.</p>
         </div>
+        <span className="reports-count">{projectItems.length} projects</span>
+      </div>
+      {projectItems.length ? (
+        <>
+          <div className="reports-toolbar">
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search projects"
+              aria-label="Search projects for reports"
+            />
+            <span className="muted">
+              {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
+            </span>
+          </div>
+          {filteredProjects.length ? (
+            <div className="reports-project-list">
+              {filteredProjects.map((project) => {
+                const reportCount = project.stats?.reportsCount ?? 0;
+                const analysisCount = project.stats?.analysesCount ?? 0;
+                return (
+                  <Card
+                    key={project.id}
+                    className="reports-project-row"
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => navigate(`/projects/${project.id}/reports`)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        navigate(`/projects/${project.id}/reports`);
+                      }
+                    }}
+                  >
+                    <div className="reports-project-main">
+                      <div className="reports-project-icon" aria-hidden="true">
+                        {project.name.slice(0, 1).toUpperCase()}
+                      </div>
+                      <div>
+                        <h2>{project.name}</h2>
+                        <p className="muted">{project.description || 'No description'}</p>
+                      </div>
+                    </div>
+                    <div
+                      className="reports-project-stats"
+                      aria-label={`${project.name} report summary`}
+                    >
+                      <span>
+                        <strong>{reportCount}</strong> reports
+                      </span>
+                      <span>
+                        <strong>{analysisCount}</strong> analyses
+                      </span>
+                      <span>
+                        {project.stats?.lastAnalysisAt
+                          ? `Updated ${formatDate(project.stats.lastAnalysisAt)}`
+                          : 'No analyses yet'}
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        navigate(`/projects/${project.id}/reports`);
+                      }}
+                    >
+                      View reports <span aria-hidden="true">→</span>
+                    </Button>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <EmptyState title="No matching projects" description="Try another project name." />
+          )}
+        </>
       ) : (
-        <EmptyState title="No projects yet" />
+        <EmptyState
+          title="No projects yet"
+          description="Create a project to start collecting reports."
+        />
       )}
     </section>
   );
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(value));
 }
 
 function ReportsList({ projectId }: { projectId?: string }) {
