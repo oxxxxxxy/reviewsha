@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -13,23 +14,32 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserQueryDto } from '../dto/user-query.dto';
 import { UserMapper } from '../mappers/user.mapper';
 import type { UserResponseDto, UsersListResponseDto } from '../dto/user-response.dto';
+import {
+  USER_DEFAULT_LIMIT,
+  USER_DEFAULT_PAGE,
+  USER_MAX_LIMIT,
+} from '../constants/users.constants';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly userRepository: UserRepository,
-    private readonly logger: ApiLoggerService,
+    @Inject(UserRepository) private readonly userRepository: UserRepository,
+    @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
   ) {}
 
   async findAll(query: UserQueryDto): Promise<UsersListResponseDto> {
-    const page = query.page;
-    const limit = query.limit;
+    // Keep the service boundary safe when it is called by a lightweight
+    // bootstrap that does not materialize class-transformer query DTOs.
+    const page = Math.max(1, Number(query.page) || USER_DEFAULT_PAGE);
+    const limit = Math.min(USER_MAX_LIMIT, Math.max(1, Number(query.limit) || USER_DEFAULT_LIMIT));
+    const sort = query.sort ?? 'createdAt';
+    const order = query.order ?? 'desc';
     const result = await this.userRepository.findMany({
       page,
       limit,
       search: query.search?.trim() || undefined,
-      sort: query.sort,
-      order: query.order,
+      sort,
+      order,
     });
 
     return {

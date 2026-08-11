@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { QueueService, type QueueJobSummary, type QueueMetrics } from '../queue/queue.service';
@@ -14,8 +19,8 @@ import { AdminUpdateUserDto } from './dto/admin-response.dto';
 @Injectable()
 export class AdminService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly queues: QueueService,
+    @Inject(PrismaService) private readonly prisma: PrismaService,
+    @Inject(QueueService) private readonly queues: QueueService,
   ) {}
 
   async userDetails(id: string) {

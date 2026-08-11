@@ -10,7 +10,7 @@ describe('api env schema', () => {
     expect(config.API_HOST).toBe('0.0.0.0');
     expect(config.API_PORT).toBe(3000);
     expect(config.API_PREFIX).toBe('api/v1');
-    expect(config.CORS_ORIGIN).toBe('http://localhost:5173');
+    expect(config.CORS_ORIGIN).toBe('http://localhost:5173,http://localhost:5174');
     expect(config.PRISMA_LOG_QUERIES).toBe(false);
     expect(config.JWT_SECRET).toBe('reviewsha-access-secret-change-me');
     expect(config.JWT_EXPIRES_IN).toBe('15m');

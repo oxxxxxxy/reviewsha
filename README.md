@@ -118,9 +118,9 @@ yarn sdk:check
 ## Текущий implementation baseline
 
 Этапы 1–19 считаются реализованными на уровне текущего code/automated-CI
-baseline. Ручные browser, accessibility, security-IDOR и real-provider E2E
-проверки выполняются отдельным QA-проходом; их статус и ограничения не скрыты,
-а зафиксированы в [implementation audit](docs/implementation/stages-11-14-completion-audit.md).
+baseline. Основной локальный browser/API QA-проход выполнен и зафиксирован в
+[manual UX audit](docs/qa/manual-ux-audit-2026-08-11.md); production visual,
+accessibility и deployment checks остаются отдельными проверками.
 
 ## Документация
 

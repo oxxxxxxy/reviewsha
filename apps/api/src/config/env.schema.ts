@@ -6,7 +6,7 @@ const apiEnvSchema = z.object({
   API_HOST: z.string().default('0.0.0.0'),
   API_PORT: z.coerce.number().int().positive().default(3000),
   API_PREFIX: z.string().default(API_BASE_PATH),
-  CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:5174'),
   DATABASE_URL: z
     .string()
     .default('postgresql://reviewsha:reviewsha@localhost:5432/reviewsha?schema=public'),

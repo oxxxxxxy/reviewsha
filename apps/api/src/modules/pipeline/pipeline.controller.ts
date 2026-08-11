@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, Inject, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '../../common/auth/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/auth/types/auth.types';
@@ -10,7 +10,7 @@ import { PipelineService } from './pipeline.service';
 @ApiBearerAuth('bearer')
 @Controller('pipelines')
 export class PipelineController {
-  constructor(private readonly pipelines: PipelineService) {}
+  constructor(@Inject(PipelineService) private readonly pipelines: PipelineService) {}
 
   @Get(':id')
   @ApiOperation({ summary: 'Get analysis pipeline status and progress' })

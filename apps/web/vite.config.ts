@@ -15,6 +15,14 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    // Keep the browser on the same origin in local development while
+    // forwarding API calls to the separately running Nest application.
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     host: '0.0.0.0',

@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Param } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, HttpStatus, Inject, Param } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiNoContentResponse,
@@ -22,7 +22,7 @@ import { SessionService } from '../services/session.service';
 @ApiStandardErrors()
 @Controller('sessions')
 export class SessionsController {
-  constructor(private readonly sessionService: SessionService) {}
+  constructor(@Inject(SessionService) private readonly sessionService: SessionService) {}
 
   @Get()
   @Roles(...AUTHORIZATION_POLICIES.sessions.readOwn.roles)

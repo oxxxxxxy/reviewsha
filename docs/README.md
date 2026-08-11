@@ -54,6 +54,7 @@ implementation notes используются как история работ, 
 - [Архитектурный индекс](architecture/README.md)
 - [Архитектурные решения](architecture/adr/README.md)
 - [Documentation inventory](documentation-inventory.md)
+- [Manual UX audit 2026-08-11](qa/manual-ux-audit-2026-08-11.md)
 - [Implementation notes index](implementation/README.md)
 - [Implementation audit 11–14](implementation/stages-11-14-completion-audit.md)
 

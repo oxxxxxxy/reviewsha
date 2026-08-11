@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import type { Job, JobsOptions, Queue } from 'bullmq';
@@ -54,10 +54,10 @@ export class QueueService implements OnModuleInit, OnModuleDestroy {
     @InjectQueue(QUEUE_NAMES.report) report: Queue<QueueJobData>,
     @InjectQueue(QUEUE_NAMES.notification) notification: Queue<QueueJobData>,
     @InjectQueue(QUEUE_NAMES.deadLetter) deadLetter: Queue<QueueJobData>,
-    registry: QueueRegistry,
-    events: QueueEvents,
-    logger: ApiLoggerService,
-    config: ConfigService,
+    @Inject(QueueRegistry) registry: QueueRegistry,
+    @Inject(QueueEvents) events: QueueEvents,
+    @Inject(ApiLoggerService) logger: ApiLoggerService,
+    @Inject(ConfigService) config: ConfigService,
   ) {
     this.queues = {
       [QUEUE_NAMES.scan]: scan,

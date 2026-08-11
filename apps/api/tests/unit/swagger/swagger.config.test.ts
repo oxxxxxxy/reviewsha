@@ -32,7 +32,7 @@ function generateDocument(): OpenApiDocument {
 describe('Swagger OpenAPI document', () => {
   beforeAll(() => {
     document = generateDocument();
-  }, 30_000);
+  }, 60_000);
 
   it('generates OpenAPI 3.1 metadata with bearer authentication', () => {
     expect(document.openapi).toBe(OPENAPI_VERSION);

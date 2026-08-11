@@ -62,5 +62,15 @@ describe('appConfig', () => {
     expect(config.security.internalApiKey).toBe('reviewsha-internal-api-key-change-me');
     expect(config.jwt.access.expiresIn).toBe('15m');
     expect(config.jwt.refresh.expiresIn).toBe('30d');
+    expect(config.app.corsOrigin).toEqual(['http://localhost:5173', 'http://localhost:5174']);
+  });
+
+  it('accepts a comma-separated CORS origin list', () => {
+    process.env.CORS_ORIGIN = 'https://web.example.com, https://admin.example.com';
+
+    expect(appConfig().app.corsOrigin).toEqual([
+      'https://web.example.com',
+      'https://admin.example.com',
+    ]);
   });
 });

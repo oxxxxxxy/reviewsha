@@ -6,7 +6,7 @@ export type AppConfig = {
   host: string;
   port: number;
   apiPrefix: string;
-  corsOrigin: string;
+  corsOrigin: string[];
 };
 
 export type RedisConfig = {
@@ -54,7 +54,10 @@ export default (): {
     host: process.env.API_HOST ?? '0.0.0.0',
     port: Number(process.env.API_PORT ?? 3000),
     apiPrefix: process.env.API_PREFIX ?? API_BASE_PATH,
-    corsOrigin: process.env.CORS_ORIGIN ?? DEFAULT_URLS.web,
+    corsOrigin: (process.env.CORS_ORIGIN ?? `${DEFAULT_URLS.web},${DEFAULT_URLS.admin}`)
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean),
   },
   database: {
     url:

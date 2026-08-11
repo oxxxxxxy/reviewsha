@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -44,7 +45,7 @@ import {
 @Roles(...ADMIN_ROLES)
 @Controller('admin')
 export class AdminController {
-  constructor(private readonly admin: AdminService) {}
+  constructor(@Inject(AdminService) private readonly admin: AdminService) {}
 
   @Get('overview')
   @ApiOperation({ summary: 'Get administrative system overview' })

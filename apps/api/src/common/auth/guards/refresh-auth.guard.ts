@@ -1,4 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { UserRepository } from '../../../repositories/user/user.repository';
 import { TokenService } from '../../../modules/auth/services/token.service';
@@ -7,8 +13,8 @@ import type { AuthenticatedRefreshUser } from '../types/auth.types';
 @Injectable()
 export class RefreshAuthGuard implements CanActivate {
   constructor(
-    private readonly tokenService: TokenService,
-    private readonly userRepository: UserRepository,
+    @Inject(TokenService) private readonly tokenService: TokenService,
+    @Inject(UserRepository) private readonly userRepository: UserRepository,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

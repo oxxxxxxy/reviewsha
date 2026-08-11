@@ -146,6 +146,17 @@ describe('UsersService', () => {
     expect(result.meta).toEqual({ page: 1, limit: 20, total: 1, pages: 1 });
   });
 
+  it('normalizes query pagination when the HTTP adapter leaves values as strings', async () => {
+    const { service, repository } = createService();
+    repository.findMany.mockResolvedValue({ items: [], total: 0 });
+
+    await service.findAll({ page: '2', limit: '10' } as unknown as UserQueryDto);
+
+    expect(repository.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ page: 2, limit: 10, sort: 'createdAt', order: 'desc' }),
+    );
+  });
+
   it('searches by email', async () => {
     const { service, repository } = createService();
     repository.findMany.mockResolvedValue({ items: [], total: 0 });
