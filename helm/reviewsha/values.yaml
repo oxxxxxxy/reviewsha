@@ -8,15 +8,15 @@ images:
   admin: { repository: reviewsha-admin, tag: dev, pullPolicy: IfNotPresent }
 
 replicas:
-  api: 1
-  worker: 1
-  web: 1
-  admin: 1
+  api: 2
+  worker: 2
+  web: 2
+  admin: 2
 
 omniroute:
   enabled: true
   image: { repository: ghcr.io/diegosouzapw/omniroute, tag: latest, pullPolicy: IfNotPresent }
-  replicas: 1
+  replicas: 2
   port: 20128
   existingSecret: reviewsha-omniroute-secrets
   persistence:
@@ -72,6 +72,6 @@ ingress:
 
 autoscaling:
   enabled: false
-  minReplicas: 1
-  maxReplicas: 3
+  minReplicas: 2
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 70

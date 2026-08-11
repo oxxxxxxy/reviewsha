@@ -4,8 +4,16 @@ images:
   worker: { repository: reviewsha-worker, tag: dev, pullPolicy: IfNotPresent }
   web: { repository: reviewsha-web, tag: dev, pullPolicy: IfNotPresent }
   admin: { repository: reviewsha-admin, tag: dev, pullPolicy: IfNotPresent }
-replicas: { api: 1, worker: 1, web: 1, admin: 1 }
+replicas: { api: 2, worker: 2, web: 2, admin: 2 }
 ingress:
   enabled: false
 autoscaling:
   enabled: false
+  minReplicas: 2
+  maxReplicas: 2
+omniroute:
+  replicas: 2
+  persistence:
+    # Two local pods cannot share the default single-node RWO volume.
+    # Credentials/configuration are injected from the Secret.
+    enabled: false

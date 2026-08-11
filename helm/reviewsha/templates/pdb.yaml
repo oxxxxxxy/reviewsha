@@ -1,0 +1,29 @@
+{{- range $name := list "api" "worker" "web" "admin" }}
+{{- if ge (int (index $.Values.replicas $name)) 2 }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "reviewsha.fullname" $ }}-{{ $name }}
+  namespace: {{ $.Values.namespace }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: reviewsha
+      app.kubernetes.io/component: {{ $name }}
+---
+{{- end }}
+{{- end }}
+{{- if and .Values.omniroute.enabled (ge (int .Values.omniroute.replicas) 2) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "reviewsha.fullname" . }}-omniroute
+  namespace: {{ .Values.namespace }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: reviewsha
+      app.kubernetes.io/component: omniroute
+{{- end }}

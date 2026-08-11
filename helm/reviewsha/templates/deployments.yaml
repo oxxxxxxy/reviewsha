@@ -6,12 +6,28 @@ metadata:
   namespace: {{ $.Values.namespace }}
 spec:
   replicas: {{ index $.Values.replicas $name }}
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels: { app.kubernetes.io/name: reviewsha, app.kubernetes.io/component: {{ $name }} }
   template:
     metadata:
       labels: { app.kubernetes.io/name: reviewsha, app.kubernetes.io/component: {{ $name }} }
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: reviewsha
+                    app.kubernetes.io/component: {{ $name }}
       imagePullSecrets:
 {{- toYaml $.Values.imagePullSecrets | nindent 8 }}
       containers:
@@ -27,6 +43,11 @@ spec:
               containerPort: {{ if eq $name "api" }}3000{{ else }}80{{ end }}
           {{- end }}
           {{- if eq $name "api" }}
+          startupProbe:
+            httpGet: { path: /api/v1/health, port: http }
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 36
           livenessProbe: { httpGet: { path: /api/v1/health, port: http }, initialDelaySeconds: 15 }
           readinessProbe: { httpGet: { path: /api/v1/health, port: http }, initialDelaySeconds: 5 }
           {{- else if or (eq $name "web") (eq $name "admin") }}
