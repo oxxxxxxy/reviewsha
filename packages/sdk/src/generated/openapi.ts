@@ -1335,6 +1335,7 @@ export interface components {
             filePath: string;
             line?: number | null;
             recommendation?: string | null;
+            codeContext?: Record<string, never> | null;
         };
         ReportExportDto: {
             /** @enum {string} */
