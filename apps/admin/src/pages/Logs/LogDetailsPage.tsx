@@ -21,8 +21,18 @@ export function LogDetailsPage() {
         <p>{log.data.createdAt} · {log.data.level} · {log.data.service}</p>
         <p>{log.data.message}</p>
         {log.data.context ? <p>Context: {log.data.context}</p> : null}
+        {log.data.event ? <p>Event: {log.data.event}</p> : null}
         {log.data.requestId ? <p>Request ID: {log.data.requestId}</p> : null}
         {log.data.traceId ? <p>Trace ID: {log.data.traceId}</p> : null}
+        {log.data.userId ? <p>User ID: {log.data.userId}</p> : null}
+        {log.data.projectId ? <p>Project ID: {log.data.projectId}</p> : null}
+        {log.data.jobId ? <p>Job ID: {log.data.jobId}</p> : null}
+        {log.data.metadata ? (
+          <>
+            <h2>Metadata</h2>
+            <pre aria-label="Log metadata">{JSON.stringify(log.data.metadata, null, 2)}</pre>
+          </>
+        ) : null}
         {log.data.stack ? (
           <>
             <pre>{log.data.stack}</pre>
