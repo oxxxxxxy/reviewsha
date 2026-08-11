@@ -15,8 +15,7 @@ function ProjectsList() {
   const [sort, setSort] = useState<'updatedAt' | 'name'>('updatedAt');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [language, setLanguage] = useState('');
-  const [tags, setTags] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [githubUrl, setGithubUrl] = useState('');
   const [githubBranch, setGithubBranch] = useState('');
   const [deleteProject, setDeleteProject] = useState<{ id: string; name: string }>();
@@ -36,11 +35,7 @@ function ProjectsList() {
       reviewshaSdk.projects.create({
         name,
         description: description || undefined,
-        language: language.trim() || undefined,
-        tags: tags
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter(Boolean),
+        tags,
       }),
     onSuccess: ({ data }) => {
       void client.invalidateQueries({ queryKey: ['projects'] });
@@ -144,18 +139,7 @@ function ProjectsList() {
             onChange={(event) => setDescription(event.target.value)}
             placeholder="Description"
           />
-          <Input
-            value={tags}
-            onChange={(event) => setTags(event.target.value)}
-            placeholder="Tags (comma separated)"
-            aria-label="Project tags"
-          />
-          <Input
-            value={language}
-            onChange={(event) => setLanguage(event.target.value)}
-            placeholder="Language (e.g. TypeScript)"
-            aria-label="Project language"
-          />
+          <TechnologyTagsField tags={tags} onChange={setTags} />
           <Input
             value={githubUrl}
             onChange={(event) => setGithubUrl(event.target.value)}
@@ -186,16 +170,17 @@ function ProjectsList() {
                   <h2 title={project.name}>{project.name}</h2>
                   <p>{project.description || 'No description yet'}</p>
                 </div>
-                <span className="project-language">
-                  {project.language || 'Language not specified'}
-                </span>
               </div>
-              {project.tags?.length ? (
+              {projectTechnologyTags(project.language, project.tags).length ? (
                 <div className="project-card-tags" aria-label="Project tags">
-                  {project.tags.slice(0, 3).map((tag) => (
-                    <span key={tag}>#{tag}</span>
-                  ))}
-                  {project.tags.length > 3 ? <span>+{project.tags.length - 3}</span> : null}
+                  {projectTechnologyTags(project.language, project.tags)
+                    .slice(0, 4)
+                    .map((tag) => (
+                      <span key={tag}>#{tag}</span>
+                    ))}
+                  {projectTechnologyTags(project.language, project.tags).length > 4 ? (
+                    <span>+{projectTechnologyTags(project.language, project.tags).length - 4}</span>
+                  ) : null}
                 </div>
               ) : null}
               <div className="project-card-stats" aria-label="Project activity">
@@ -276,6 +261,104 @@ function formatProjectDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return 'recently';
   return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date);
+}
+
+const technologySuggestions = [
+  'JavaScript',
+  'TypeScript',
+  'React',
+  'React Native',
+  'Node.js',
+  'Python',
+  'HTML',
+  'CSS',
+  'JSON',
+  'WebSocket',
+  'REST API',
+  'GraphQL',
+];
+
+function projectTechnologyTags(language: string | null | undefined, tags: string[] | undefined) {
+  return [
+    ...new Set([language, ...(tags ?? [])].filter((value): value is string => Boolean(value))),
+  ];
+}
+
+function TechnologyTagsField({
+  tags,
+  onChange,
+}: {
+  tags: string[];
+  onChange: (tags: string[]) => void;
+}) {
+  const [draft, setDraft] = useState('');
+  const [focused, setFocused] = useState(false);
+  const addTag = (value: string) => {
+    const tag = value.trim().replace(/,$/, '');
+    if (!tag || tags.some((item) => item.toLowerCase() === tag.toLowerCase())) return;
+    onChange([...tags, tag]);
+    setDraft('');
+  };
+  const suggestions = technologySuggestions.filter(
+    (suggestion) =>
+      !tags.some((tag) => tag.toLowerCase() === suggestion.toLowerCase()) &&
+      (!draft || suggestion.toLowerCase().includes(draft.toLowerCase())),
+  );
+  return (
+    <div className="technology-tags-field">
+      <label htmlFor="project-technologies">Stack and technologies</label>
+      <div className="technology-tags-input" onClick={() => setFocused(true)}>
+        <div className="technology-tags-chips">
+          {tags.map((tag) => (
+            <span className="technology-tag-chip" key={tag}>
+              {tag}
+              <button
+                type="button"
+                aria-label={`Remove ${tag}`}
+                onClick={() => onChange(tags.filter((item) => item !== tag))}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          <input
+            id="project-technologies"
+            value={draft}
+            onFocus={() => setFocused(true)}
+            onBlur={() => window.setTimeout(() => setFocused(false), 120)}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ',') {
+                event.preventDefault();
+                addTag(draft);
+              } else if (event.key === 'Backspace' && !draft && tags.length) {
+                onChange(tags.slice(0, -1));
+              }
+            }}
+            placeholder={tags.length ? 'Add technology…' : 'Type a technology, e.g. React'}
+            aria-label="Project technologies and tags"
+          />
+        </div>
+        {focused && suggestions.length ? (
+          <div
+            className="technology-suggestions"
+            role="listbox"
+            aria-label="Technology suggestions"
+          >
+            <span className="technology-suggestions-label">Popular</span>
+            <div>
+              {suggestions.slice(0, 8).map((suggestion) => (
+                <button type="button" key={suggestion} onMouseDown={() => addTag(suggestion)}>
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+      <small>Press Enter to add a technology. These tags describe the project stack.</small>
+    </div>
+  );
 }
 
 function ProjectDetails({ projectId }: { projectId: string }) {
@@ -366,7 +449,7 @@ function ProjectDetails({ projectId }: { projectId: string }) {
       </section>
     );
   const item = project.data.data;
-  const projectTags = item.tags ?? [];
+  const projectTags = projectTechnologyTags(item.language, item.tags);
   const uploadFile = (file: File) => {
     setUploadError(undefined);
     const supported =
@@ -397,7 +480,6 @@ function ProjectDetails({ projectId }: { projectId: string }) {
           <h1>{item.name}</h1>
           <p className="project-hero-description">{item.description || 'No description yet'}</p>
           <div className="project-hero-meta">
-            <span>{item.language || 'Language not specified'}</span>
             {projectTags.length ? (
               <span>{projectTags.map((tag) => `#${tag}`).join(' ')}</span>
             ) : null}

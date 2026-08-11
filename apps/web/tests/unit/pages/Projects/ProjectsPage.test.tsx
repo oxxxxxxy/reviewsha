@@ -65,4 +65,17 @@ describe('ProjectsPage', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Archive contains a forbidden path');
   });
+
+  it('offers stack suggestions and renders selected technologies as removable chips', async () => {
+    renderWithWebProviders(<ProjectsPage />, { route: '/projects' });
+
+    const input = await screen.findByRole('textbox', { name: 'Project technologies and tags' });
+    fireEvent.focus(input);
+
+    expect(screen.getByRole('listbox', { name: 'Technology suggestions' })).toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'React' }));
+
+    expect(screen.getByText('React')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Remove React' })).toBeInTheDocument();
+  });
 });
