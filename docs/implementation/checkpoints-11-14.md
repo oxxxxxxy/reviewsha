@@ -51,6 +51,19 @@ projects/upload/analysis/reports/chat/settings screens и единый loading/e
 подход. Полный browser E2E и responsive/accessibility QA остаются частью
 acceptance.
 
+Для отдельного checkpoint 12.1 локальный CI-набор должен включать:
+
+```text
+yarn test:stage12
+yarn workspace @reviewsha/web test
+yarn workspace @reviewsha/admin test
+yarn lint
+yarn format:check --ignore-unknown
+```
+
+В этом commit фиксируется checkpoint 12.1 Core Application; функциональные
+ограничения, требующие browser/manual QA, остаются явно отмечены выше.
+
 ## 13.1 / 13.2 — Admin Core и Administration
 
 Admin app использует RBAC-protected API, overview, users/projects, queues,
@@ -63,4 +76,3 @@ Canonical OpenAPI генерируется в `docs/generated/openapi.json`, SDK
 проверяется `yarn sdk:check`, а Web/Admin используют общий typed SDK client.
 Оставшаяся миграция ручных DTO и полный contract/E2E coverage отмечены в
 основном аудите.
-
