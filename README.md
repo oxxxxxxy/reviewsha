@@ -114,6 +114,9 @@ Rew/
 
 Для передачи контекста следующему Codex или разработчику используйте [`docs/development/codex-handoff.md`](docs/development/codex-handoff.md).
 
+Журнал выполнения крупных подпунктов 11–14 и локальных CI-checkpoints находится
+в [`docs/implementation/checkpoints-11-14.md`](docs/implementation/checkpoints-11-14.md).
+
 ### Projects API
 
 Проекты доступны только владельцу или администратору. Список поддерживает пагинацию,
