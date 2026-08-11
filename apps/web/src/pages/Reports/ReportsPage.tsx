@@ -267,8 +267,8 @@ function ReportsList({ projectId }: { projectId?: string }) {
                     type="button"
                     onClick={() => navigate(`/reports/${report.id}`)}
                   >
-                    {report.summary ? report.summary.slice(0, 105) : 'Analysis report'}
-                    {(report.summary?.length ?? 0) > 105 ? '…' : ''}
+                    {report.summary ? report.summary.slice(0, 84) : 'Analysis report'}
+                    {(report.summary?.length ?? 0) > 84 ? '…' : ''}
                   </button>
                   <small className="muted">
                     Report {reports.data!.meta.total - index - (page - 1) * 20}
