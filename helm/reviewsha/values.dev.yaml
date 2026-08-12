@@ -5,6 +5,15 @@ images:
   web: { repository: reviewsha-web, tag: dev, pullPolicy: IfNotPresent }
   admin: { repository: reviewsha-admin, tag: dev, pullPolicy: IfNotPresent }
 replicas: { api: 2, worker: 2, web: 2, admin: 2 }
+worker:
+  persistence:
+    # The validation kind cluster has one node, so both worker replicas can
+    # mount the local RWO volume. Production clusters should use RWX storage.
+    enabled: true
+    size: 10Gi
+    accessModes: [ReadWriteOnce]
+    storageClass: ''
+    existingClaim: ''
 ingress:
   enabled: false
 autoscaling:

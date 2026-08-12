@@ -1,0 +1,16 @@
+{{- if and .Values.worker.persistence.enabled (not .Values.worker.persistence.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "reviewsha.fullname" . }}-worker-workspace
+  namespace: {{ .Values.namespace }}
+spec:
+  accessModes:
+{{- toYaml .Values.worker.persistence.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.worker.persistence.size }}
+  {{- if .Values.worker.persistence.storageClass }}
+  storageClassName: {{ .Values.worker.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}

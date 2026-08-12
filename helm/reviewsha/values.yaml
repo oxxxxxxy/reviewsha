@@ -13,6 +13,17 @@ replicas:
   web: 2
   admin: 2
 
+# Pipeline stages can be processed by different worker replicas. Keep their
+# job workspace on a shared volume so download/extract/parse/merge stages see
+# the same files when BullMQ schedules them on different pods.
+worker:
+  persistence:
+    enabled: true
+    size: 10Gi
+    accessModes: [ReadWriteOnce]
+    storageClass: ''
+    existingClaim: ''
+
 omniroute:
   enabled: true
   image: { repository: ghcr.io/diegosouzapw/omniroute, tag: latest, pullPolicy: IfNotPresent }

@@ -10,6 +10,7 @@ Helm and a secret manager.
 - ConfigMap for non-secret runtime configuration;
 - externally managed Secret (`reviewsha-secrets` by default);
 - Deployments and Services for API, Worker, Web and Admin;
+- a shared Worker workspace PVC for multi-stage pipeline jobs;
 - optional internal OmniRoute Deployment/Service and PVC;
 - optional Ingress/TLS;
 - optional HPA.
@@ -17,6 +18,13 @@ Helm and a secret manager.
 PostgreSQL, Redis and MinIO are external production dependencies in the chart.
 When `omniroute.enabled=true`, Worker uses the internal `omniroute` Service and
 the gateway data directory is mounted from the configured PVC.
+
+Worker pipeline stages are independent BullMQ jobs and may be scheduled on
+different Worker replicas. The chart therefore mounts
+`worker.persistence` at `/tmp/reviewsha` on every Worker pod. Validation values
+use a single-node `ReadWriteOnce` volume; production values should use a
+`ReadWriteMany` storage class (or set `worker.persistence.existingClaim`) so
+workers can run on multiple nodes.
 
 ## Preflight
 

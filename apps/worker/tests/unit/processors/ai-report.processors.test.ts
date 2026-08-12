@@ -290,6 +290,57 @@ describe('AI and report processors', () => {
     expect(result.data).toMatchObject({ reportId: 'report-1' });
   });
 
+  it('keeps AI-generated finding titles within the database limit', async () => {
+    await writeFile(
+      join(paths.output, 'ai-results.json'),
+      JSON.stringify({
+        results: [
+          {
+            summary: 'summary',
+            issues: [
+              {
+                severity: Severity.HIGH,
+                file: 'src/app.ts',
+                line: 1,
+                problem: 'x'.repeat(300),
+                recommendation: 'validate token',
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    const findingCreate = vi.fn();
+    const database = {
+      scan: { findUnique: vi.fn().mockResolvedValue({ status: 'ANALYZING' }) },
+      report: { upsert: vi.fn().mockResolvedValue({ id: 'report-long-title' }) },
+      finding: { deleteMany: vi.fn(), createMany: findingCreate },
+    };
+    const db = {
+      scan: { findUnique: vi.fn().mockResolvedValue({ id: 'scan-1' }), update: vi.fn() },
+      $transaction: vi.fn((callback) => callback(database)),
+    };
+    const queue = { enqueueJob: vi.fn().mockResolvedValue({}) };
+    const generator = new ReportGeneratorService(
+      new ResultAggregatorService(new IssueNormalizerService(), new IssueDeduplicatorService()),
+    );
+    const processor = new ReportProcessor(
+      db as never,
+      { create: vi.fn().mockResolvedValue(paths) } as never,
+      generator,
+      new MarkdownReportBuilder(),
+      new JsonReportBuilder(),
+      queue as never,
+      logger,
+    );
+
+    await processor.execute(job('report'));
+
+    expect(findingCreate).toHaveBeenCalledTimes(1);
+    const title = findingCreate.mock.calls[0]![0].data[0].title as string;
+    expect(Array.from(title)).toHaveLength(240);
+  });
+
   it('completes the scan and schedules cleanup after notification', async () => {
     const update = vi.fn().mockResolvedValue({ createdById: null });
     const queue = { enqueueJob: vi.fn().mockResolvedValue({}) };

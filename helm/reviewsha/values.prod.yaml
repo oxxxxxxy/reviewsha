@@ -35,6 +35,14 @@ images:
       pullPolicy: IfNotPresent,
     }
 replicas: { api: 2, worker: 2, web: 2, admin: 2 }
+worker:
+  persistence:
+    # Use RWX storage when worker replicas may run on different nodes.
+    enabled: true
+    size: 10Gi
+    accessModes: [ReadWriteMany]
+    storageClass: ''
+    existingClaim: ''
 omniroute:
   enabled: true
   image: { repository: ghcr.io/diegosouzapw/omniroute, tag: replace-with-git-sha, pullPolicy: IfNotPresent }

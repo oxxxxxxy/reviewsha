@@ -37,6 +37,11 @@ spec:
           envFrom:
             - configMapRef: { name: {{ include "reviewsha.fullname" $ }}-config }
             - secretRef: { name: {{ default $.Values.secretName $.Values.secrets.existingSecret }}, optional: true }
+          {{- if and (eq $name "worker") $.Values.worker.persistence.enabled }}
+          volumeMounts:
+            - name: worker-workspace
+              mountPath: /tmp/reviewsha
+          {{- end }}
           {{- if or (eq $name "api") (eq $name "web") (eq $name "admin") }}
           ports:
             - name: http
@@ -56,5 +61,11 @@ spec:
           {{- end }}
           resources:
 {{- toYaml (default dict (index $.Values.resources $name)) | nindent 12 }}
+      {{- if and (eq $name "worker") $.Values.worker.persistence.enabled }}
+      volumes:
+        - name: worker-workspace
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-worker-workspace" (include "reviewsha.fullname" $)) $.Values.worker.persistence.existingClaim }}
+      {{- end }}
 ---
 {{- end }}

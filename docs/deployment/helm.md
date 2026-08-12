@@ -35,5 +35,7 @@ workloads when included in the current chart revision.
 ## Configuration rules
 
 Use immutable image tags, explicit production `secretName`, real domain/TLS and
-external PostgreSQL/Redis/MinIO endpoints. `secrets.create=false` is the safe
-production default.
+external PostgreSQL/Redis/MinIO endpoints. Keep `worker.persistence.enabled`
+on for multi-replica workers and provide RWX storage in production; the
+validation profile uses a single-node RWO PVC. `secrets.create=false` is the
+safe production default.
