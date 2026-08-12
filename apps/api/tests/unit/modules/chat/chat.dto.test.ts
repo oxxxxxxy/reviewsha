@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ChatPaginationDto } from '../../../../src/modules/chat/dto/chat-query.dto';
 import { CreateChatDto } from '../../../../src/modules/chat/dto/create-chat.dto';
 import { SendMessageDto } from '../../../../src/modules/chat/dto/send-message.dto';
+import { ChatPatchZipDto } from '../../../../src/modules/chat/dto/chat-patch-zip.dto';
 
 describe('Chat DTO validation', () => {
   it.each(['Question', ' Why JWT? ', 'x'.repeat(4000)])('accepts message %j', async (message) => {
@@ -47,4 +48,15 @@ describe('Chat DTO validation', () => {
       expect(await validate(plainToInstance(ChatPaginationDto, payload))).not.toHaveLength(0);
     },
   );
+
+  it('validates project-relative chat patch archives', async () => {
+    const valid = plainToInstance(ChatPatchZipDto, {
+      patches: [{ filePath: 'src/app.ts', before: 'return false;', after: 'return true;' }],
+    });
+    expect(await validate(valid)).toHaveLength(0);
+    const invalid = plainToInstance(ChatPatchZipDto, {
+      patches: [{ filePath: '../secrets.env', before: 'x', after: 'y' }],
+    });
+    expect(await validate(invalid)).not.toHaveLength(0);
+  });
 });

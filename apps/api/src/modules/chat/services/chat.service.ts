@@ -3,6 +3,7 @@ import {
   GatewayTimeoutException,
   Inject,
   Injectable,
+  Optional,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { createHash } from 'node:crypto';
@@ -20,6 +21,7 @@ import { ChatContextService } from './chat-context.service';
 import { ChatSessionService } from './chat-session.service';
 import { ChatSecretFilterService } from './chat-secret-filter.service';
 import { ChatMemoryService } from './chat-memory.service';
+import { ReportsService, type ArchivePatch } from '../../reports/services/reports.service';
 
 @Injectable()
 export class ChatService {
@@ -59,6 +61,7 @@ export class ChatService {
     @Inject(ApiLoggerService) logger: ApiLoggerService,
     @Inject(ChatSecretFilterService) secrets: ChatSecretFilterService,
     @Inject(ChatMemoryService) memory: ChatMemoryService,
+    @Optional() @Inject(ReportsService) private readonly reports?: ReportsService,
   ) {
     this.repository = repository;
     this.sessions = sessions;
@@ -182,6 +185,13 @@ export class ChatService {
     await this.sessions.requireOwned(user, sessionId);
     await this.repository.touchSession(sessionId);
     await this.memory.update(sessionId, question, response);
+  }
+
+  async exportPatchedZip(user: AuthenticatedUser, sessionId: string, patches: ArchivePatch[]) {
+    const session = await this.sessions.requireOwned(user, sessionId);
+    if (!this.reports)
+      throw new ServiceUnavailableException('Patch archive service is unavailable');
+    return this.reports.exportPatchedZipForProject(user, session.projectId, patches);
   }
 
   private async enqueue(

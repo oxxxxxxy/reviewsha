@@ -1237,6 +1237,54 @@ input[type='file'] {
 .chat-message.chat-assistant {
   align-self: flex-start;
 }
+
+.chat-patch-proposal {
+  margin-top: 1rem;
+  border: 1px solid var(--border, #2b3342);
+  border-radius: 12px;
+  padding: 0.85rem;
+  background: rgba(8, 12, 20, 0.55);
+}
+
+.chat-patch-proposal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.chat-patch-proposal details {
+  border-top: 1px solid var(--border, #2b3342);
+  padding: 0.65rem 0;
+}
+
+.chat-patch-proposal summary {
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--text-muted, #9aa7bc);
+}
+
+.chat-patch-proposal pre {
+  overflow-x: auto;
+  margin: 0.65rem 0 0;
+  white-space: pre-wrap;
+  font-size: 0.82rem;
+}
+
+.chat-patch-proposal pre code {
+  display: block;
+  padding: 0.25rem 0.5rem;
+}
+
+.chat-patch-proposal .is-removed {
+  color: #ff91a5;
+  background: rgba(198, 54, 83, 0.16);
+}
+.chat-patch-proposal .is-added {
+  color: #8fe0b2;
+  background: rgba(42, 148, 91, 0.16);
+}
 .chat-main > .form {
   position: sticky;
   bottom: 0;
@@ -2280,6 +2328,30 @@ input[type='file'] {
   border-radius: 15px;
   background: #0b0f14;
   padding: 0.65rem 0.75rem 0.55rem;
+}
+
+.chat-file-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.55rem;
+  border-bottom: 1px solid var(--border, #2b3342);
+  background: rgba(15, 21, 32, 0.9);
+}
+
+.chat-file-suggestions button {
+  border: 1px solid var(--border, #2b3342);
+  border-radius: 7px;
+  padding: 0.35rem 0.55rem;
+  color: var(--text-muted, #9aa7bc);
+  background: transparent;
+  cursor: pointer;
+}
+
+.chat-file-suggestions button:hover,
+.chat-file-suggestions button:focus-visible {
+  color: var(--text, #fff);
+  border-color: var(--accent, #ec3d78);
 }
 .chat-composer-box:focus-within {
   border-color: rgb(232 69 120 / 0.7);

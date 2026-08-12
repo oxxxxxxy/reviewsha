@@ -12,6 +12,29 @@ type PendingUserMessage = {
   status: 'sending' | 'error';
 };
 
+type ChatPatch = { filePath: string; before: string; after: string };
+
+function parseChatAnswer(content: string): { text: string; patches: ChatPatch[] } {
+  const match = content.match(/```reviewsha-patches\s*([\s\S]*?)```/i);
+  if (!match) return { text: content, patches: [] };
+  try {
+    const parsed = JSON.parse(match[1]!) as unknown;
+    const patches = Array.isArray(parsed)
+      ? parsed.filter(
+          (item): item is ChatPatch =>
+            Boolean(item) &&
+            typeof item === 'object' &&
+            typeof (item as ChatPatch).filePath === 'string' &&
+            typeof (item as ChatPatch).before === 'string' &&
+            typeof (item as ChatPatch).after === 'string',
+        )
+      : [];
+    return { text: content.replace(match[0], '').trim(), patches };
+  } catch {
+    return { text: content, patches: [] };
+  }
+}
+
 export function ChatPage() {
   const { id: projectId } = useParams();
   const [searchParams] = useSearchParams();
@@ -24,6 +47,7 @@ export function ChatPage() {
   const [streamError, setStreamError] = useState<string>();
   const [retryPrompt, setRetryPrompt] = useState<string>();
   const [pendingUserMessage, setPendingUserMessage] = useState<PendingUserMessage>();
+  const [patchDownloadError, setPatchDownloadError] = useState<string>();
   const messagesEnd = useRef<HTMLDivElement>(null);
   const streamAbort = useRef<AbortController | undefined>(undefined);
   const client = useQueryClient();
@@ -36,6 +60,15 @@ export function ChatPage() {
     enabled: Boolean(projectId),
     queryKey: ['analyses', projectId],
     queryFn: ({ signal }) => reviewshaSdk.analyses.list(projectId!, 1, 20, signal),
+  });
+  const latestReport = useQuery({
+    enabled: Boolean(projectId),
+    queryKey: ['chat-latest-report', projectId],
+    queryFn: async ({ signal }) => {
+      const list = await reviewshaSdk.reports.list(projectId!, 1, 1, signal);
+      const reportId = list.data[0]?.id;
+      return reportId ? reviewshaSdk.reports.get(reportId, signal) : undefined;
+    },
   });
   const hasCompletedAnalysis = Boolean(
     analyses.data?.data.some(
@@ -57,6 +90,11 @@ export function ChatPage() {
     },
   });
   const sessionId = active ?? sessions.data?.data[0]?.id;
+  const fileQuery = message.match(/@([^\s]*)$/)?.[1];
+  const fileSuggestions = (latestReport.data?.files ?? [])
+    .map((file) => file.path)
+    .filter((path) => !fileQuery || path.toLowerCase().includes(fileQuery.toLowerCase()))
+    .slice(0, 8);
   const messages = useQuery({
     enabled: Boolean(sessionId),
     queryKey: ['chat-messages', sessionId],
@@ -119,6 +157,21 @@ export function ChatPage() {
     } finally {
       setStreaming(false);
       streamAbort.current = undefined;
+    }
+  };
+  const downloadPatches = async (patches: ChatPatch[]) => {
+    if (!sessionId || !patches.length) return;
+    try {
+      setPatchDownloadError(undefined);
+      const blob = await reviewshaSdk.chat.downloadPatchedZip(sessionId, { patches });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `reviewsha-chat-${sessionId}-patched.zip`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setPatchDownloadError('Unable to build the patched project archive.');
     }
   };
   useEffect(() => {
@@ -209,12 +262,26 @@ export function ChatPage() {
               <Loader label="Loading messages" />
             ) : messages.data?.data.length || pendingUserMessage ? (
               <>
-                {messages.data?.data.map((item) => (
-                  <Card key={item.id} className={`chat-message chat-${item.role.toLowerCase()}`}>
-                    <strong>{item.role}</strong>
-                    <Markdown>{item.content}</Markdown>
-                  </Card>
-                ))}
+                {messages.data?.data.map((item) =>
+                  (() => {
+                    const answer = parseChatAnswer(item.content);
+                    return (
+                      <Card
+                        key={item.id}
+                        className={`chat-message chat-${item.role.toLowerCase()}`}
+                      >
+                        <strong>{item.role}</strong>
+                        <Markdown>{answer.text}</Markdown>
+                        {answer.patches.length ? (
+                          <ChatPatchProposal
+                            patches={answer.patches}
+                            onDownload={downloadPatches}
+                          />
+                        ) : null}
+                      </Card>
+                    );
+                  })(),
+                )}
                 {pendingUserMessage ? (
                   <Card className="chat-message chat-user chat-pending-message">
                     <strong>You</strong>
@@ -246,7 +313,7 @@ export function ChatPage() {
             {streaming || streamText ? (
               <Card className="chat-message chat-assistant">
                 <strong>ASSISTANT</strong>
-                <Markdown>{streamText || 'AI is typing…'}</Markdown>
+                <Markdown>{parseChatAnswer(streamText).text || 'AI is typing…'}</Markdown>
               </Card>
             ) : null}
             <div ref={messagesEnd} />
@@ -260,6 +327,21 @@ export function ChatPage() {
               }}
             >
               <div className="chat-composer-box">
+                {fileQuery !== undefined && fileSuggestions.length ? (
+                  <div className="chat-file-suggestions" role="listbox" aria-label="Project files">
+                    {fileSuggestions.map((path) => (
+                      <button
+                        type="button"
+                        key={path}
+                        onClick={() =>
+                          setMessage((current) => current.replace(/@[^\s]*$/, `@${path} `))
+                        }
+                      >
+                        <code>{path}</code>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 <Textarea
                   value={message}
                   onChange={(event) => setMessage(event.target.value)}
@@ -299,6 +381,7 @@ export function ChatPage() {
                   </Button>
                 </>
               ) : null}
+              {patchDownloadError ? <p role="alert">{patchDownloadError}</p> : null}
             </form>
           ) : (
             <EmptyState
@@ -309,6 +392,34 @@ export function ChatPage() {
         </div>
       </div>
     </section>
+  );
+}
+
+function ChatPatchProposal({
+  patches,
+  onDownload,
+}: {
+  patches: ChatPatch[];
+  onDownload: (patches: ChatPatch[]) => void;
+}) {
+  return (
+    <div className="chat-patch-proposal" aria-label="Proposed code changes">
+      <div className="chat-patch-proposal-header">
+        <strong>Proposed code changes</strong>
+        <Button type="button" variant="secondary" onClick={() => void onDownload(patches)}>
+          Download patched ZIP
+        </Button>
+      </div>
+      {patches.map((patch) => (
+        <details key={`${patch.filePath}:${patch.before}`} open>
+          <summary>{patch.filePath}</summary>
+          <pre>
+            <code className="is-removed">- {patch.before}</code>
+            <code className="is-added">+ {patch.after}</code>
+          </pre>
+        </details>
+      ))}
+    </div>
   );
 }
 

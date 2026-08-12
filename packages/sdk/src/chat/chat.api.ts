@@ -14,6 +14,7 @@ export type ChatStreamEvent =
   | { event: 'error'; data: { message: string } };
 
 export type ChatMessageResponse = components['schemas']['ChatMessageResponseDto'];
+export type ChatPatchZipRequest = components['schemas']['ChatPatchZipDto'];
 
 export class ChatAPI {
   constructor(private readonly client: ApiClient) {}
@@ -54,5 +55,16 @@ export class ChatAPI {
       onEvent,
       signal,
     );
+  }
+
+  downloadPatchedZip(
+    sessionId: string,
+    payload: ChatPatchZipRequest,
+    signal?: AbortSignal,
+  ): Promise<Blob> {
+    return this.client.post<Blob, ChatPatchZipRequest>(`/chat/${sessionId}/patched-zip`, payload, {
+      responseType: 'blob',
+      signal,
+    });
   }
 }

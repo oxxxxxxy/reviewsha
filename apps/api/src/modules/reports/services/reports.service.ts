@@ -19,6 +19,7 @@ import { ReportsRepository, type DetailedReport } from '../repositories/reports.
 import { UploadedFileRepository } from '../../../repositories/upload/uploaded-file.repository';
 
 type ExportFormat = 'json' | 'md' | 'pdf';
+export type ArchivePatch = { filePath: string; before: string; after: string };
 
 @Injectable()
 export class ReportsService {
@@ -108,14 +109,39 @@ export class ReportsService {
     if (!this.uploads) throw new NotFoundException('Source project archive repository unavailable');
     const upload = await this.uploads.findById(report.scan.sourceFileId);
     if (!upload) throw new NotFoundException('Source project archive not found');
-    const source = await this.storage.download('projects', upload.objectKey);
-    const sourceBuffer = await this.readStream(source.body);
     const patches = new Map(
       report.findings
         .map((finding) => [finding.filePath, this.suggestedPatch(finding.suggestedPatch)] as const)
         .filter((item): item is [string, NonNullable<(typeof item)[1]>] => Boolean(item[1])),
     );
-    return this.rewriteZip(sourceBuffer, patches);
+    return this.rewriteProjectZip(report.projectId, patches);
+  }
+
+  async exportPatchedZipForProject(
+    user: AuthenticatedUser,
+    projectId: string,
+    patches: ArchivePatch[],
+  ): Promise<Buffer> {
+    await this.assertProject(user, projectId);
+    const [latest] = await this.reports.findByProject(projectId, 0, 1);
+    if (!latest) throw new NotFoundException('Project report not found');
+    return this.rewriteProjectZip(
+      projectId,
+      new Map(patches.map((patch) => [patch.filePath, patch] as const)),
+    );
+  }
+
+  private async rewriteProjectZip(
+    projectId: string,
+    patches: Map<string, ArchivePatch | { before: string; after: string }>,
+  ): Promise<Buffer> {
+    const [latest] = await this.reports.findByProject(projectId, 0, 1);
+    if (!latest?.scan.sourceFileId) throw new NotFoundException('Source project archive not found');
+    if (!this.uploads) throw new NotFoundException('Source project archive repository unavailable');
+    const upload = await this.uploads.findById(latest.scan.sourceFileId);
+    if (!upload) throw new NotFoundException('Source project archive not found');
+    const source = await this.storage.download('projects', upload.objectKey);
+    return this.rewriteZip(await this.readStream(source.body), patches);
   }
 
   async compare(user: AuthenticatedUser, oldId: string, newId: string) {

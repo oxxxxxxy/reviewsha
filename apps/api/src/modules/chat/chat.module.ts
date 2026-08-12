@@ -11,8 +11,10 @@ import { ChatMemoryService } from './services/chat-memory.service';
 import { ConversationSummaryService } from './services/conversation-summary.service';
 import { ChatStreamingService } from './services/chat-streaming.service';
 import { ChatStreamBrokerService } from './services/chat-stream-broker.service';
+import { ReportsModule } from '../reports/reports.module';
 
 @Module({
+  imports: [ReportsModule],
   controllers: [ChatController],
   providers: [
     ApiLoggerService,

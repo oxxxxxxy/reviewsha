@@ -47,6 +47,7 @@ import { SendMessageDto } from '../dto/send-message.dto';
 import { ChatService } from '../services/chat.service';
 import { ChatSessionService } from '../services/chat-session.service';
 import { ChatStreamingService } from '../services/chat-streaming.service';
+import { ChatPatchZipDto } from '../dto/chat-patch-zip.dto';
 
 @ApiTags('Chat')
 @ApiBearerAuth('bearer')
@@ -203,5 +204,21 @@ export class ChatController {
     } finally {
       response.end();
     }
+  }
+
+  @Post('chat/:sessionId/patched-zip')
+  @ApiOperation({ summary: 'Download a project archive with chat-proposed patches applied' })
+  @ApiProduces('application/zip')
+  async patchedZip(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('sessionId', ParseUUIDPipe) sessionId: string,
+    @Body() dto: ChatPatchZipDto,
+    @Res() response: Response,
+  ): Promise<void> {
+    const archive = await this.chat.exportPatchedZip(user, sessionId, dto.patches);
+    response
+      .type('application/zip')
+      .attachment(`reviewsha-chat-${sessionId}-patched.zip`)
+      .send(archive);
   }
 }

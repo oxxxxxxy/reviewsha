@@ -556,6 +556,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reports/{id}/patched-zip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download the project archive with safe suggested patches applied */
+        get: operations["Reports_patchedZip"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects/{id}/chat": {
         parameters: {
             query?: never;
@@ -621,6 +638,23 @@ export interface paths {
         put?: never;
         /** Stream a Reviewsha AI answer over Server-Sent Events */
         post: operations["Chat_stream"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/chat/{sessionId}/patched-zip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Download a project archive with chat-proposed patches applied */
+        post: operations["Chat_patchedZip"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1467,6 +1501,15 @@ export interface components {
             language?: "en" | "ru";
             /** @description Project-relative files explicitly referenced with @path. */
             fileRefs?: string[];
+        };
+        ChatPatchDto: {
+            /** @example src/auth/service.ts */
+            filePath: string;
+            before: string;
+            after: string;
+        };
+        ChatPatchZipDto: {
+            patches: components["schemas"]["ChatPatchDto"][];
         };
         AdminOverviewResponseDto: {
             /** @example 1248 */
@@ -3862,6 +3905,25 @@ export interface operations {
             };
         };
     };
+    Reports_patchedZip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     Chat_list: {
         parameters: {
             query?: {
@@ -4366,6 +4428,83 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Access is forbidden. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Resource was not found. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Payload is semantically invalid. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+            /** @description Unexpected server error. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
+            };
+        };
+    };
+    Chat_patchedZip: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChatPatchZipDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad request. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorResponseDto"];
+                };
             };
             /** @description Authentication required. */
             401: {
