@@ -36,6 +36,12 @@ function configureRefresh(get: () => AuthState): void {
 function clearLocalSession(get: () => AuthState): void {
   reviewshaSdk.client.clearAccessToken();
   reviewshaSdk.client.setRefreshTokenHandler(undefined);
+  // Remove the persisted snapshot as well. Otherwise a revoked refresh token
+  // can be restored on every page reload and keep the shell in a retry loop.
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem('reviewsha-auth');
+    window.location.replace('/login');
+  }
   get()._set({ user: null, accessToken: null, refreshToken: null });
 }
 
