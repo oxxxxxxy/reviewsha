@@ -65,6 +65,7 @@ env:
   # Reasoning-capable models need room for both hidden reasoning and the
   # structured JSON review response.
   AI_MAX_TOKENS: '6000'
+  AI_MODEL: ds-web/deepseek-v4-pro
   # Respect upstream 429 lockouts instead of hammering the provider from both
   # worker replicas. The provider can override the delay with Retry-After.
   AI_RETRY_ATTEMPTS: '5'

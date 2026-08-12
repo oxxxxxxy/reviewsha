@@ -38,7 +38,7 @@ JWT, internal API key и MinIO credentials.
 | `AI_PROVIDER` | `deepseek`, `openai`, `local` или `mock` | `deepseek` |
 | `OMNIROUTER_API_KEY` | ключ OmniRouter/provider | empty locally, required for remote production |
 | `OMNIROUTER_BASE_URL` | provider gateway | local OmniRouter URL |
-| `AI_MODEL` | model identifier | `auto/best-coding` |
+| `AI_MODEL` | model identifier | `ds-web/deepseek-v4-pro` |
 | `AI_MAX_TOKENS` | generation limit, including reasoning and structured output | `6000` |
 | `AI_TEMPERATURE` | generation temperature | `0.2` |
 | `AI_TIMEOUT_MS` | provider timeout | `60000` |
