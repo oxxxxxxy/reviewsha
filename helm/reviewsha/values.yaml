@@ -65,6 +65,12 @@ env:
   # Reasoning-capable models need room for both hidden reasoning and the
   # structured JSON review response.
   AI_MAX_TOKENS: '6000'
+  # Respect upstream 429 lockouts instead of hammering the provider from both
+  # worker replicas. The provider can override the delay with Retry-After.
+  AI_RETRY_ATTEMPTS: '5'
+  AI_RETRY_DELAY_MS: '5000'
+  AI_RETRY_MAX_DELAY_MS: '120000'
+  AI_MAX_CONCURRENCY: '1'
 
 secretName: reviewsha-secrets
 secrets:

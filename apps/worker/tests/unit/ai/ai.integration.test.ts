@@ -197,6 +197,26 @@ describe('OmniRouterProvider HTTP contract', () => {
     vi.unstubAllGlobals();
   });
 
+  it('exposes Retry-After for HTTP 429 responses', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        headers: { get: vi.fn().mockReturnValue('7') },
+        text: vi.fn().mockResolvedValue('{"error":{"code":"rate_limit_exceeded"}}'),
+      }),
+    );
+    const config = new ConfigService({
+      worker: { aiApiKey: 'key', aiBaseUrl: 'https://router.test/v1', aiModel: 'auto' },
+    });
+    await expect(new OmniRouterProvider(config).generate(request)).rejects.toMatchObject({
+      name: 'AIProviderRateLimitError',
+      retryAfterMs: 7000,
+    });
+    vi.unstubAllGlobals();
+  });
+
   it('forwards OpenAI-compatible SSE chunks without buffering the response', async () => {
     const encoder = new TextEncoder();
     const body = new ReadableStream<Uint8Array>({

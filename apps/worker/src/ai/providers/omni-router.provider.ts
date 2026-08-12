@@ -1,6 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { AIProvider, AIResponse, AIStreamChunk } from './ai-provider.interface';
+import {
+  AIProviderRateLimitError,
+  type AIProvider,
+  type AIResponse,
+  type AIStreamChunk,
+} from './ai-provider.interface';
 import type { LLMRequest } from '../types/ai.types';
 import { AIRuntimeSettingsService } from '../services/ai-runtime-settings.service';
 
@@ -86,9 +91,11 @@ export class OmniRouterProvider implements AIProvider {
       if (!response.ok) {
         const body =
           typeof response.text === 'function' ? await response.text().catch(() => '') : '';
-        throw new Error(
-          `AI provider HTTP ${response.status}${body ? `: ${body.slice(0, 300)}` : ''}`,
-        );
+        const message = `AI provider HTTP ${response.status}${body ? `: ${body.slice(0, 300)}` : ''}`;
+        if (response.status === 429) {
+          throw new AIProviderRateLimitError(message, this.retryAfterMs(response, body));
+        }
+        throw new Error(message);
       }
       if (!response.body) {
         if (typeof response.json === 'function') {
@@ -148,9 +155,14 @@ export class OmniRouterProvider implements AIProvider {
               continue;
             }
             if (parsed.error) {
-              throw new Error(
-                `OmniRoute ${parsed.error.code ?? 'error'}: ${parsed.error.message ?? 'provider request failed'}`,
-              );
+              const message = `OmniRoute ${parsed.error.code ?? 'error'}: ${parsed.error.message ?? 'provider request failed'}`;
+              if (
+                parsed.error.code === 'rate_limit_exceeded' ||
+                parsed.error.type === 'rate_limit_error'
+              ) {
+                throw new AIProviderRateLimitError(message);
+              }
+              throw new Error(message);
             }
             if (parsed.model) model = parsed.model;
             if (parsed.usage) {
@@ -171,5 +183,27 @@ export class OmniRouterProvider implements AIProvider {
       signal?.removeEventListener('abort', abort);
       clearTimeout(timeout);
     }
+  }
+
+  private retryAfterMs(response: Response, body: string): number | undefined {
+    const header = response.headers?.get?.('retry-after');
+    if (header) {
+      const seconds = Number(header);
+      if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+      const date = Date.parse(header);
+      if (Number.isFinite(date)) return Math.max(0, date - Date.now());
+    }
+    try {
+      const parsed = JSON.parse(body) as {
+        error?: { retry_after?: number; retryAfterMs?: number };
+      };
+      const value = parsed.error?.retryAfterMs ?? parsed.error?.retry_after;
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return value < 1000 ? Math.max(0, value * 1000) : Math.max(0, value);
+      }
+    } catch {
+      // The provider is allowed to return a non-JSON error body.
+    }
+    return undefined;
   }
 }

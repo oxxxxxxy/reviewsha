@@ -19,6 +19,7 @@ export type WorkerConfig = {
   aiTimeoutMs: number;
   aiRetryAttempts: number;
   aiRetryDelayMs: number;
+  aiRetryMaxDelayMs: number;
   aiMaxConcurrency: number;
   aiDailyRequestLimit: number;
   aiInputMaxTokens: number;
@@ -52,6 +53,7 @@ export default (): { worker: WorkerConfig } => ({
     aiTimeoutMs: Number(process.env.AI_TIMEOUT_MS ?? 60000),
     aiRetryAttempts: Number(process.env.AI_RETRY_ATTEMPTS ?? 3),
     aiRetryDelayMs: Number(process.env.AI_RETRY_DELAY_MS ?? 1000),
+    aiRetryMaxDelayMs: Number(process.env.AI_RETRY_MAX_DELAY_MS ?? 120000),
     aiMaxConcurrency: Number(process.env.AI_MAX_CONCURRENCY ?? 3),
     aiDailyRequestLimit: Number(process.env.AI_DAILY_REQUEST_LIMIT ?? 500),
     aiInputMaxTokens: Number(process.env.AI_INPUT_MAX_TOKENS ?? 6000),

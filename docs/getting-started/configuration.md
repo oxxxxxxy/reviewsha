@@ -42,8 +42,8 @@ JWT, internal API key и MinIO credentials.
 | `AI_MAX_TOKENS` | generation limit, including reasoning and structured output | `6000` |
 | `AI_TEMPERATURE` | generation temperature | `0.2` |
 | `AI_TIMEOUT_MS` | provider timeout | `60000` |
-| `AI_RETRY_ATTEMPTS` / `AI_RETRY_DELAY_MS` | retry policy | `3` / `1000` |
-| `AI_MAX_CONCURRENCY` | provider concurrency | `3` |
+| `AI_RETRY_ATTEMPTS` / `AI_RETRY_DELAY_MS` / `AI_RETRY_MAX_DELAY_MS` | retry policy; 429 `Retry-After` is respected | `3` / `1000` / `120000` |
+| `AI_MAX_CONCURRENCY` | provider concurrency per worker pod | `3` (production Helm: `1`) |
 | `AI_DAILY_REQUEST_LIMIT` | daily quota | `500` |
 | `AI_INPUT_MAX_TOKENS` | input budget | `12000` |
 | `OMNIROUTE_DASHBOARD_URL` | URL OmniRoute, доступный браузеру Admin | `http://localhost:20128` locally |
@@ -65,3 +65,14 @@ JWT signing keys или provider API keys.
 - Не коммитить `.env` и реальные secrets.
 - Перед rollout проверить `NODE_ENV=production` и health/readiness.
 - Перед изменением переменной обновить шаблоны и этот документ.
+
+### OmniRoute provider health
+
+`OMNIROUTER_API_KEY` authenticates Reviewsha to the local OmniRoute gateway; it
+is not an upstream DeepSeek credential. OmniRoute must have at least one
+connected provider in its own dashboard (or `DEEPSEEK_API_KEY` configured for a
+headless deployment). If the upstream provider returns `429`, the worker now
+backs off using `Retry-After` when supplied, caps the delay, and limits
+concurrency in the production Helm values. A provider that is permanently
+rate-limited still needs a second connected provider or a valid replacement
+credential; retries cannot manufacture upstream quota.

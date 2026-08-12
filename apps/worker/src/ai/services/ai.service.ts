@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { AIProvider, AIResponse, AIStreamChunk } from '../providers/ai-provider.interface';
+import {
+  AIProviderRateLimitError,
+  type AIProvider,
+  type AIResponse,
+  type AIStreamChunk,
+} from '../providers/ai-provider.interface';
 import type { LLMRequest, AIReviewResult } from '../types/ai.types';
 import { AIResponseValidator } from './ai-response.validator';
 
@@ -25,6 +30,7 @@ export class AIService {
     try {
       const attempts = this.config?.get<number>('worker.aiRetryAttempts', 3) ?? 3;
       const initialDelay = this.config?.get<number>('worker.aiRetryDelayMs', 1000) ?? 1000;
+      const maxDelay = this.config?.get<number>('worker.aiRetryMaxDelayMs', 120000) ?? 120000;
       let lastError: unknown;
       for (let attempt = 1; attempt <= attempts; attempt += 1) {
         try {
@@ -32,7 +38,7 @@ export class AIService {
         } catch (error) {
           lastError = error;
           if (!this.isRetryable(error) || attempt === attempts) throw error;
-          await this.delay(initialDelay * 2 ** (attempt - 1));
+          await this.delay(this.retryDelay(error, initialDelay, maxDelay, attempt));
         }
       }
       throw lastError;
@@ -46,6 +52,7 @@ export class AIService {
     try {
       const attempts = this.config?.get<number>('worker.aiRetryAttempts', 3) ?? 3;
       const initialDelay = this.config?.get<number>('worker.aiRetryDelayMs', 1000) ?? 1000;
+      const maxDelay = this.config?.get<number>('worker.aiRetryMaxDelayMs', 120000) ?? 120000;
       let lastError: unknown;
       let emitted = false;
       for (let attempt = 1; attempt <= attempts; attempt += 1) {
@@ -65,7 +72,7 @@ export class AIService {
           if (signal?.aborted || emitted || !this.isRetryable(error) || attempt === attempts) {
             throw error;
           }
-          await this.delay(initialDelay * 2 ** (attempt - 1));
+          await this.delay(this.retryDelay(error, initialDelay, maxDelay, attempt));
         }
       }
       throw lastError;
@@ -95,7 +102,18 @@ export class AIService {
 
   private isRetryable(error: unknown): boolean {
     const message = error instanceof Error ? `${error.name} ${error.message}` : String(error);
-    return /abort|timeout|network|fetch|ECONN|HTTP 429|HTTP 5\d\d/iu.test(message);
+    return /abort|timeout|network|fetch|ECONN|rate[_ -]?limit|HTTP 429|HTTP 5\d\d/iu.test(message);
+  }
+
+  private retryDelay(
+    error: unknown,
+    initialDelay: number,
+    maxDelay: number,
+    attempt: number,
+  ): number {
+    const providerDelay =
+      error instanceof AIProviderRateLimitError ? error.retryAfterMs : undefined;
+    return Math.min(maxDelay, Math.max(providerDelay ?? 0, initialDelay * 2 ** (attempt - 1)));
   }
 
   private delay(milliseconds: number): Promise<void> {
