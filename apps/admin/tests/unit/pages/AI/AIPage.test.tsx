@@ -82,4 +82,22 @@ describe('AIPage', () => {
     await waitFor(() => expect(testConnection).toHaveBeenCalledOnce());
     expect(await screen.findByText(/OmniRoute is reachable/u)).toBeInTheDocument();
   });
+
+  it('saves the configured parallel OmniRoute request limit', async () => {
+    const update = vi
+      .spyOn(adminSdk.admin, 'updateAiSettings')
+      .mockResolvedValue(settings as never);
+
+    renderWithAdminProviders(<AIPage />);
+    await screen.findByRole('heading', { name: 'AI control center' });
+
+    fireEvent.change(screen.getByDisplayValue('3'), {
+      target: { value: '2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save AI settings' }));
+
+    await waitFor(() =>
+      expect(update).toHaveBeenCalledWith(expect.objectContaining({ maxConcurrency: 2 })),
+    );
+  });
 });

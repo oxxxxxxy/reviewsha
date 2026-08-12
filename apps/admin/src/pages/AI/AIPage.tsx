@@ -12,6 +12,7 @@ type SettingsForm = {
   maxTokens: number;
   temperature: number;
   timeoutMs: number;
+  maxConcurrency: number;
 };
 
 const emptyForm: SettingsForm = {
@@ -23,6 +24,7 @@ const emptyForm: SettingsForm = {
   maxTokens: 4000,
   temperature: 0.2,
   timeoutMs: 60000,
+  maxConcurrency: 1,
 };
 
 export function AIPage() {
@@ -71,6 +73,7 @@ export function AIPage() {
         maxTokens: data.maxTokens,
         temperature: data.temperature,
         timeoutMs: data.timeoutMs,
+        maxConcurrency: data.maxConcurrency,
       }));
       setDashboardUrl(data.dashboardUrl);
       await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
@@ -100,6 +103,7 @@ export function AIPage() {
       maxTokens: settings.data.maxTokens,
       temperature: settings.data.temperature,
       timeoutMs: settings.data.timeoutMs,
+      maxConcurrency: settings.data.maxConcurrency,
     }));
     setDashboardUrl(settings.data.dashboardUrl);
   }, [settings.data]);
@@ -251,6 +255,23 @@ export function AIPage() {
               value={form.timeoutMs}
               onChange={(event) => setForm({ ...form, timeoutMs: Number(event.target.value) })}
             />
+          </label>
+          <label>
+            Parallel OmniRoute requests
+            <input
+              id="max-concurrency"
+              name="maxConcurrency"
+              aria-describedby="max-concurrency-help"
+              type="number"
+              min={1}
+              max={32}
+              value={form.maxConcurrency}
+              onChange={(event) => setForm({ ...form, maxConcurrency: Number(event.target.value) })}
+            />
+            <span id="max-concurrency-help" className="settings-note">
+              Maximum number of AI requests processed simultaneously by each worker. Lower it if
+              OmniRoute returns rate-limit errors.
+            </span>
           </label>
           <label className="checkbox-row">
             <input
