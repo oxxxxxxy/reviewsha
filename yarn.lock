@@ -2506,17 +2506,17 @@
   resolved "https://registry.yarnpkg.com/@redocly/config/-/config-0.22.0.tgz#b2454f472f9d2b217d56f82e4f28d346901f3242"
   integrity sha512-gAy93Ddo01Z3bHuVdPWfCwzgfaYgMdaZPcfL7JZ7hWJoK9V0lXDbigTWkhiPFAaLWzbOJ+kbUQG1+XwIm0KRGQ==
 
-"@redocly/openapi-core@^1.34.5":
-  version "1.34.18"
-  resolved "https://registry.yarnpkg.com/@redocly/openapi-core/-/openapi-core-1.34.18.tgz#29993a477fc312a39371d1c311d92031ecfaf52d"
-  integrity sha512-UyKIm0wTPw5BcY7Z2PkbK1Ma260um96LSBWXHrdSMe+ZV0EPMyDfAcUcjjm3qEiGST9OK/1TriekdPCZkn4Q3A==
+"@redocly/openapi-core@^1.34.6":
+  version "1.34.19"
+  resolved "https://registry.yarnpkg.com/@redocly/openapi-core/-/openapi-core-1.34.19.tgz#9b1877a44a588a37b196beff0b86a40386c02779"
+  integrity sha512-o/0VgsBXgwcY1lyeqcVtSGdTQAPnVggo0fbFVPlxl5XVDKUcVH0OLRqt3CbkwByT5FU305E0iE0O7MzThjDblw==
   dependencies:
     "@redocly/ajv" "8.11.2"
     "@redocly/config" "0.22.0"
     colorette "1.4.0"
     https-proxy-agent "7.0.6"
     js-levenshtein "1.1.6"
-    js-yaml "4.3.0"
+    js-yaml "4.3.1"
     minimatch "5.1.9"
     pluralize "8.0.0"
     yaml-ast-parser "0.0.43"
@@ -7056,10 +7056,10 @@ js-tokens@^4.0.0:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
-js-yaml@4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.3.0.tgz#d1900572a7f7cf0b5f540c83673e60bad3436592"
-  integrity sha512-1td788aAnnZ5qs7V2QIRl1owjtYpbKt749Y3xauqQgwIIGF/xXWz1wMTEBx5O3LK3lXLVuqXPdPxj2BoFHaW9Q==
+js-yaml@4.3.1:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.3.1.tgz#01216c001d67f48e2cd560d708c7af21090a3848"
+  integrity sha512-CY6crGq313MX8GkwvB7tzgp99vjQxY1++5y10/BKN/GUfHqWaOGQMNZkBvqSzsZKWk/ijwHlWzzkLulsGHhjWQ==
   dependencies:
     argparse "^2.0.1"
 
@@ -8632,16 +8632,16 @@ open@^11.0.0:
     powershell-utils "^0.1.0"
     wsl-utils "^0.3.0"
 
-openapi-typescript@7.9.1:
-  version "7.9.1"
-  resolved "https://registry.yarnpkg.com/openapi-typescript/-/openapi-typescript-7.9.1.tgz#8f22edc974910dd80f7e1112ed289ecad57becbb"
-  integrity sha512-9gJtoY04mk6iPMbToPjPxEAtfXZ0dTsMZtsgUI8YZta0btPPig9DJFP4jlerQD/7QOwYgb0tl+zLUpDf7vb7VA==
+openapi-typescript@7.13.0:
+  version "7.13.0"
+  resolved "https://registry.yarnpkg.com/openapi-typescript/-/openapi-typescript-7.13.0.tgz#5d0dc5e95d648fba85b15351a0b91c5815d8360b"
+  integrity sha512-EFP392gcqXS7ntPvbhBzbF8TyBA+baIYEm791Hy5YkjDYKTnk/Tn5OQeKm5BIZvJihpp8Zzr4hzx0Irde1LNGQ==
   dependencies:
-    "@redocly/openapi-core" "^1.34.5"
+    "@redocly/openapi-core" "^1.34.6"
     ansi-colors "^4.1.3"
     change-case "^5.4.4"
     parse-json "^8.3.0"
-    supports-color "^10.1.0"
+    supports-color "^10.2.2"
     yargs-parser "^21.1.1"
 
 optionator@^0.9.3:
@@ -10432,7 +10432,7 @@ supertest@^7.2.2:
     methods "^1.1.2"
     superagent "^10.3.0"
 
-supports-color@10.2.2, supports-color@^10.1.0:
+supports-color@10.2.2, supports-color@^10.2.2:
   version "10.2.2"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-10.2.2.tgz#466c2978cc5cd0052d542a0b576461c2b802ebb4"
   integrity sha512-SS+jx45GF1QjgEXQx4NJZV9ImqmO2NPz5FNsIHrsDjh2YsHnawpan7SNQ1o8NuhrbHZy9AZhIoCUiCeaW/C80g==
