@@ -94,6 +94,7 @@ function setup() {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  delete process.env.GITHUB_TOKEN;
 });
 
 describe('UploadsService', () => {
@@ -289,6 +290,46 @@ describe('UploadsService', () => {
         sourceMessage: 'Initial commit',
         sourceRepo: 'https://github.com/octocat/Hello-World',
       }),
+    );
+  });
+
+  it('uses an authenticated REST sync for full history when GITHUB_TOKEN is configured', async () => {
+    const { service, projects, repository } = setup();
+    projects.findActiveById.mockResolvedValue({
+      ...project,
+      githubUrl: 'https://github.com/octocat/Hello-World',
+      githubBranch: 'master',
+    });
+    repository.hasSourceType.mockResolvedValue(false);
+    process.env.GITHUB_TOKEN = 'github-test-token';
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              sha: '7fd1a60b01f91b314f59955a4e4d4e80d8edf11d',
+              zipball_url: 'https://api.github.com/archive.zip',
+              commit: { message: 'Initial commit' },
+            },
+          ]),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(new Response(Buffer.from('zip archive'), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await service.importGithub(user, project.id, {
+      url: 'https://github.com/octocat/Hello-World',
+      branch: 'master',
+    });
+
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
+      headers: expect.objectContaining({ Authorization: 'Bearer github-test-token' }),
+    });
+    expect(repository.createNextVersion).toHaveBeenCalledWith(
+      project.id,
+      expect.objectContaining({ sourceCommit: '7fd1a60b01f91b314f59955a4e4d4e80d8edf11d' }),
     );
   });
 
