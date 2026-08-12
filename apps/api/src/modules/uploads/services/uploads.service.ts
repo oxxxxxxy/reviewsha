@@ -264,12 +264,46 @@ export class UploadsService {
           headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'Reviewsha' },
         },
       );
-      if (!response.ok) throw new NotFoundException('Unable to load GitHub commits');
+      if (!response.ok) {
+        // GitHub's unauthenticated REST quota is shared by the host and can
+        // be exhausted even for public repositories. Fall back to the public
+        // Atom feed so public imports remain usable without a user token.
+        const fallback = await this.fetchGithubAtomCommits(owner, repo, branch);
+        if (fallback.length) return fallback;
+        throw new NotFoundException('Unable to load GitHub commits');
+      }
       const batch = (await response.json()) as GithubCommit[];
       commits.push(...batch);
       if (!includeHistory || batch.length < 100) break;
     }
     return commits;
+  }
+
+  private async fetchGithubAtomCommits(
+    owner: string,
+    repo: string,
+    branch: string,
+  ): Promise<GithubCommit[]> {
+    const response = await fetch(
+      `https://github.com/${owner}/${repo}/commits/${encodeURI(branch)}.atom`,
+      { headers: { Accept: 'application/atom+xml', 'User-Agent': 'Reviewsha' } },
+    );
+    if (!response.ok) return [];
+    const xml = await response.text();
+    const entries = xml.match(/<entry>[\s\S]*?<\/entry>/g) ?? [];
+    return entries.flatMap((entry) => {
+      const sha = entry.match(/commit:([0-9a-f]{7,40})/i)?.[1];
+      if (!sha) return [];
+      const message = entry.match(/<title>([\s\S]*?)<\/title>/)?.[1]?.trim();
+      const date = entry.match(/<updated>([\s\S]*?)<\/updated>/)?.[1]?.trim();
+      return [
+        {
+          sha,
+          zipball_url: `https://codeload.github.com/${owner}/${repo}/zip/${sha}`,
+          commit: { message, committer: { date } },
+        },
+      ];
+    });
   }
 
   private commitDate(commit: GithubCommit): Date | undefined {
