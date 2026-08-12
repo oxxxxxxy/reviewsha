@@ -11,7 +11,10 @@ analysis pipeline, reports и AI Chat.
 - public GitHub sources with commit-backed versions, per-commit analysis and automatic sync;
 - асинхронный analysis pipeline на BullMQ/Redis и отдельном Worker;
 - AI context/chunks, structured reports, Markdown/PDF/JSON exports;
+- Findings with exact code context and optional safe `before`/`after` patches;
+- report and chat downloads of project ZIP archives with proposed patches applied;
 - chat history, bounded context и typed SSE streaming;
+- chat `@file` references with project-file suggestions and bounded source context;
 - Web и Admin React applications;
 - Admin AI control center: OmniRoute key/model/runtime management;
 - OpenAPI → generated SDK contract;
@@ -123,6 +126,9 @@ Admin operational UI, user management and OmniRoute settings описаны в
 
 Подключение GitHub, commit history, анализ выбранного коммита и запрет ручных
 загрузок описаны в [GitHub sources guide](docs/backend/github-sources.md).
+Для публичных репозиториев токен не требуется; `GITHUB_TOKEN` можно передать
+через API Secret для повышенного rate limit и доступа к разрешённым приватным
+репозиториям.
 
 ## Текущий implementation baseline
 
