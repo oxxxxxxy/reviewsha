@@ -200,16 +200,7 @@ describe('UploadsService', () => {
         .fn()
         .mockResolvedValueOnce(
           new Response(
-            JSON.stringify([
-              {
-                sha: 'commit-123',
-                commit: {
-                  message: 'Fix auth flow',
-                  committer: { date: '2026-08-11T12:00:00.000Z' },
-                },
-                zipball_url: 'https://api.github.com/archive/commit-123',
-              },
-            ]),
+            '<feed><entry><id>tag:github.com,2008:Grit::Commit/a1b2c3d4</id><title>Fix auth flow</title><updated>2026-08-11T12:00:00.000Z</updated></entry></feed>',
             { status: 200 },
           ),
         )
@@ -229,7 +220,7 @@ describe('UploadsService', () => {
       project.id,
       expect.objectContaining({
         sourceType: 'GITHUB',
-        sourceCommit: 'commit-123',
+        sourceCommit: 'a1b2c3d4',
         sourceRepo: 'https://github.com/reviewsha/reviewsha',
         sourceMessage: 'Fix auth flow',
         sourceCommittedAt: new Date('2026-08-11T12:00:00.000Z'),
@@ -250,7 +241,7 @@ describe('UploadsService', () => {
       .fn()
       .mockResolvedValue(
         new Response(
-          JSON.stringify([{ sha: 'commit-123', commit: {}, zipball_url: 'archive-url' }]),
+          '<feed><entry><id>tag:github.com,2008:Grit::Commit/a1b2c3d4</id><title>Already present</title><updated>2026-08-11T12:00:00.000Z</updated></entry></feed>',
           { status: 200 },
         ),
       );
@@ -263,6 +254,42 @@ describe('UploadsService', () => {
 
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(repository.createNextVersion).not.toHaveBeenCalled();
+  });
+
+  it('imports public GitHub commits from the Atom feed without an API token', async () => {
+    const { service, projects, repository } = setup();
+    projects.findActiveById.mockResolvedValue({
+      ...project,
+      githubUrl: 'https://github.com/octocat/Hello-World',
+      githubBranch: 'master',
+    });
+    repository.hasSourceType.mockResolvedValue(false);
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(
+            `<feed><entry><id>tag:github.com,2008:Grit::Commit/7fd1a60b01f91b314f59955a4e4d4e80d8edf11d</id><title>Initial commit</title><updated>2012-03-06T23:06:50Z</updated></entry></feed>`,
+            { status: 200 },
+          ),
+        )
+        .mockResolvedValueOnce(new Response(Buffer.from('zip archive'), { status: 200 })),
+    );
+
+    await service.importGithub(user, project.id, {
+      url: 'https://github.com/octocat/Hello-World',
+      branch: 'master',
+    });
+
+    expect(repository.createNextVersion).toHaveBeenCalledWith(
+      project.id,
+      expect.objectContaining({
+        sourceCommit: '7fd1a60b01f91b314f59955a4e4d4e80d8edf11d',
+        sourceMessage: 'Initial commit',
+        sourceRepo: 'https://github.com/octocat/Hello-World',
+      }),
+    );
   });
 
   it('allows administrators to upload to any project', async () => {

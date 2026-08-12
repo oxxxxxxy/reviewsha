@@ -48,6 +48,7 @@ export default (): {
     pollIntervalMs: number;
     contextCacheTtlSeconds: number;
   };
+  github: { token?: string };
 } => ({
   app: {
     nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -100,4 +101,5 @@ export default (): {
     pollIntervalMs: Number(process.env.CHAT_POLL_INTERVAL_MS ?? 100),
     contextCacheTtlSeconds: Number(process.env.CHAT_CONTEXT_CACHE_TTL_SECONDS ?? 900),
   },
+  github: { token: process.env.GITHUB_TOKEN || undefined },
 });

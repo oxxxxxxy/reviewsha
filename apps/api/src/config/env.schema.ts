@@ -38,6 +38,7 @@ const apiEnvSchema = z.object({
   CHAT_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
   CHAT_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(100),
   CHAT_CONTEXT_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  GITHUB_TOKEN: z.string().min(1).optional(),
 });
 
 const unsafeProductionDefaults: Partial<Record<keyof z.infer<typeof apiEnvSchema>, unknown>> = {

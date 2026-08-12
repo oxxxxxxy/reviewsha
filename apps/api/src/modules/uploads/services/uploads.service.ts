@@ -7,6 +7,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { Role, UploadStatus } from '@prisma/client';
@@ -23,6 +24,7 @@ import { UploadFailedException } from '../exceptions/upload.exceptions';
 import { UploadListResponseDto, UploadResponseDto } from '../dto/upload-response.dto';
 import type { GithubImportDto } from '../dto/github-import.dto';
 import { parseGithubRepositoryUrl } from '../../../common/github/github-source';
+import { ConfigService } from '@nestjs/config';
 
 export interface UploadFileInput {
   readonly originalname: string;
@@ -47,6 +49,7 @@ export class UploadsService {
     @Inject(ZipValidator) private readonly validator: ZipValidator,
     @Inject(UploadEvents) private readonly events: UploadEvents,
     @Inject(ApiLoggerService) private readonly logger: ApiLoggerService,
+    @Optional() @Inject(ConfigService) private readonly config?: ConfigService,
   ) {}
 
   async create(
@@ -222,13 +225,22 @@ export class UploadsService {
       githubBranch: branch,
     });
 
-    const commits = await this.fetchGithubCommits(owner, repo, branch, !hasGithubVersions);
+    // GitHub's unauthenticated REST quota is shared by the cluster egress IP.
+    // Prefer the public Atom feed for public repositories and retain the REST
+    // client as a fallback for feeds that GitHub does not expose.
+    const atomCommits = await this.fetchGithubAtomCommits(owner, repo, branch);
+    this.logger.log(
+      `GitHub Atom feed returned ${atomCommits.length} commits for ${owner}/${repo}@${branch}`,
+    );
+    const commits = atomCommits.length
+      ? atomCommits
+      : await this.fetchGithubCommits(owner, repo, branch, !hasGithubVersions);
     for (const commit of commits.reverse()) {
       if (!commit.sha || (await this.uploads.findBySourceCommit(projectId, commit.sha))) continue;
       const archive = await fetch(
         commit.zipball_url ?? `https://api.github.com/repos/${owner}/${repo}/zipball/${commit.sha}`,
         {
-          headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'Reviewsha' },
+          headers: this.githubHeaders('application/vnd.github+json'),
         },
       );
       if (!archive.ok) continue;
@@ -261,7 +273,7 @@ export class UploadsService {
       const response = await fetch(
         `https://api.github.com/repos/${owner}/${repo}/commits?sha=${encodeURIComponent(branch)}&per_page=100&page=${page}`,
         {
-          headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'Reviewsha' },
+          headers: this.githubHeaders('application/vnd.github+json'),
         },
       );
       if (!response.ok) {
@@ -286,13 +298,17 @@ export class UploadsService {
   ): Promise<GithubCommit[]> {
     const response = await fetch(
       `https://github.com/${owner}/${repo}/commits/${encodeURI(branch)}.atom`,
-      { headers: { Accept: 'application/atom+xml', 'User-Agent': 'Reviewsha' } },
+      { headers: this.githubHeaders('application/atom+xml') },
     );
+    this.logger.log(`GitHub Atom response ${response.status} for ${owner}/${repo}@${branch}`);
     if (!response.ok) return [];
     const xml = await response.text();
     const entries = xml.match(/<entry>[\s\S]*?<\/entry>/g) ?? [];
+    this.logger.log(`GitHub Atom parsed ${entries.length} entries for ${owner}/${repo}@${branch}`);
     return entries.flatMap((entry) => {
-      const sha = entry.match(/commit:([0-9a-f]{7,40})/i)?.[1];
+      // GitHub's Atom feed uses a Grit commit id rather than the REST API's
+      // `sha` property: `tag:github.com,2008:Grit::Commit/<sha>`.
+      const sha = entry.match(/Grit::Commit\/([0-9a-f]{7,40})/i)?.[1];
       if (!sha) return [];
       const message = entry.match(/<title>([\s\S]*?)<\/title>/)?.[1]?.trim();
       const date = entry.match(/<updated>([\s\S]*?)<\/updated>/)?.[1]?.trim();
@@ -304,6 +320,15 @@ export class UploadsService {
         },
       ];
     });
+  }
+
+  private githubHeaders(accept: string): Record<string, string> {
+    const token = this.config?.get<string>('github.token') ?? process.env.GITHUB_TOKEN;
+    return {
+      Accept: accept,
+      'User-Agent': 'Reviewsha',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
   }
 
   private commitDate(commit: GithubCommit): Date | undefined {

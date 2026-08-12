@@ -62,5 +62,9 @@ Upload responses expose the source metadata:
 }
 ```
 
-The repository must be publicly readable because the current integration uses
-the public GitHub API and does not store GitHub credentials.
+For public repositories no credential is required. Deployments may optionally
+provide `GITHUB_TOKEN` through the API secret. The token is never sent to the
+browser or stored on a Project; it is used only for GitHub API requests to
+raise rate limits and to access repositories permitted by that token. If the
+token is absent, public imports fall back to GitHub's Atom commit feed when the
+REST API quota is exhausted.
