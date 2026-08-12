@@ -83,12 +83,16 @@ export function ChatPage() {
     setStreaming(true);
     streamAbort.current = new AbortController();
     try {
+      const fileRefs = [...prompt.matchAll(/@([^\s]+)/g)]
+        .map((match) => match[1])
+        .filter((value): value is string => Boolean(value));
       await reviewshaSdk.chat.stream(
         sessionId,
         {
           message: prompt,
           idempotencyKey,
           language: localStorage.getItem('reviewsha.language') === 'ru' ? 'ru' : 'en',
+          ...(fileRefs.length ? { fileRefs } : {}),
         },
         ({ event, data }) => {
           if (event === 'token') {

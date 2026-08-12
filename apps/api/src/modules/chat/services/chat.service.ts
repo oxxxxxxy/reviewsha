@@ -128,6 +128,7 @@ export class ChatService {
       undefined,
       dto.idempotencyKey,
       dto.language,
+      dto.fileRefs,
     );
     this.logger.log(
       `Chat request started sessionId=${sessionId} jobId=${requestId}`,
@@ -163,6 +164,7 @@ export class ChatService {
       streamId,
       dto.idempotencyKey,
       dto.language,
+      dto.fileRefs,
     );
     this.logger.log(
       `Chat streaming request started sessionId=${sessionId} jobId=${requestId} streamId=${streamId}`,
@@ -189,6 +191,7 @@ export class ChatService {
     streamId?: string,
     idempotencyKey?: string,
     language?: 'en' | 'ru',
+    fileRefs?: string[],
   ): Promise<{ requestId: string }> {
     const normalizedKey = idempotencyKey?.trim();
     const lockKey = normalizedKey ? `${user.id}:${sessionId}:${normalizedKey}` : undefined;
@@ -196,7 +199,15 @@ export class ChatService {
       const inFlight = this.enqueueInFlight.get(lockKey);
       if (inFlight) return inFlight;
 
-      const promise = this.enqueueOnce(user, sessionId, message, streamId, normalizedKey, language);
+      const promise = this.enqueueOnce(
+        user,
+        sessionId,
+        message,
+        streamId,
+        normalizedKey,
+        language,
+        fileRefs,
+      );
       this.enqueueInFlight.set(lockKey, promise);
       try {
         return await promise;
@@ -207,7 +218,7 @@ export class ChatService {
       }
     }
 
-    return this.enqueueOnce(user, sessionId, message, streamId, normalizedKey, language);
+    return this.enqueueOnce(user, sessionId, message, streamId, normalizedKey, language, fileRefs);
   }
 
   private async enqueueOnce(
@@ -217,6 +228,7 @@ export class ChatService {
     streamId?: string,
     idempotencyKey?: string,
     language?: 'en' | 'ru',
+    fileRefs?: string[],
   ): Promise<{ requestId: string }> {
     const session = await this.sessions.requireOwned(user, sessionId);
     await this.contexts.assertAvailable?.(session.projectId);
@@ -267,6 +279,7 @@ export class ChatService {
           idempotencyKey,
           userMessage.id,
           language,
+          fileRefs,
         );
       }
       return this.enqueueWithMessage(
@@ -278,6 +291,7 @@ export class ChatService {
         idempotencyKey,
         existingUserMessage.id,
         language,
+        fileRefs,
       );
     }
     const userMessage = await this.repository.saveMessage({
@@ -296,6 +310,7 @@ export class ChatService {
       undefined,
       userMessage.id,
       language,
+      fileRefs,
     );
   }
 
@@ -314,8 +329,9 @@ export class ChatService {
     idempotencyKey: string | undefined,
     userMessageId: string,
     language?: 'en' | 'ru',
+    fileRefs: string[] = [],
   ): Promise<{ requestId: string }> {
-    const context = await this.contexts.build(session.projectId, message);
+    const context = await this.contexts.build(session.projectId, message, fileRefs);
     const history = await this.repository.recentMessages(session.id, 20);
     const payload = {
       sessionId: session.id,

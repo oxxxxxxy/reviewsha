@@ -1378,6 +1378,7 @@ export interface components {
             filePath: string;
             line?: number | null;
             recommendation?: string | null;
+            suggestedPatch?: Record<string, never> | null;
             codeContext?: Record<string, never> | null;
         };
         ReportExportDto: {
@@ -1464,6 +1465,8 @@ export interface components {
             idempotencyKey?: string;
             /** @enum {string} */
             language?: "en" | "ru";
+            /** @description Project-relative files explicitly referenced with @path. */
+            fileRefs?: string[];
         };
         AdminOverviewResponseDto: {
             /** @example 1248 */

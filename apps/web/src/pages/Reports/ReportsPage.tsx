@@ -487,6 +487,13 @@ function ReportDetails({ reportId }: { reportId: string }) {
                     context={(issue as typeof issue & { codeContext: CodeContext }).codeContext}
                   />
                 ) : null}
+                {(issue as typeof issue & { suggestedPatch?: SuggestedPatch }).suggestedPatch ? (
+                  <SuggestedPatchBlock
+                    patch={
+                      (issue as typeof issue & { suggestedPatch: SuggestedPatch }).suggestedPatch
+                    }
+                  />
+                ) : null}
                 <div className="finding-recommendation">
                   <strong>Recommended fix</strong>
                   <Markdown>{issue.recommendation ?? 'No recommendation.'}</Markdown>
@@ -507,6 +514,25 @@ type CodeContext = {
   endLine: number;
   lines: Array<{ line: number; content: string; isTarget: boolean }>;
 };
+
+type SuggestedPatch = { before: string; after: string; startLine?: number; endLine?: number };
+
+function SuggestedPatchBlock({ patch }: { patch: SuggestedPatch }) {
+  return (
+    <div className="finding-suggested-patch" aria-label="Suggested code replacement">
+      <div className="finding-code-context-header">
+        <span>Suggested replacement</span>
+        <button type="button" onClick={() => void navigator.clipboard?.writeText(patch.after)}>
+          Copy replacement
+        </button>
+      </div>
+      <pre>
+        <code className="is-removed">- {patch.before}</code>
+        <code className="is-added">+ {patch.after}</code>
+      </pre>
+    </div>
+  );
+}
 
 function CodeContextBlock({ context }: { context: CodeContext }) {
   return (

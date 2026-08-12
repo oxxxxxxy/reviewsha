@@ -56,6 +56,7 @@ export type AIReviewIssue = {
   line?: number;
   problem: string;
   recommendation: string;
+  suggestedPatch?: { before: string; after: string; startLine?: number; endLine?: number };
   category?:
     'SECURITY' | 'BUG' | 'ARCHITECTURE' | 'PERFORMANCE' | 'QUALITY' | 'STYLE' | 'DOCUMENTATION';
 };

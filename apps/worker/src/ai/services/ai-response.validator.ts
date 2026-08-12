@@ -44,12 +44,27 @@ export class AIResponseValidator {
         typeof recommendation !== 'string'
       )
         throw new Error('AI response has invalid fields');
+      const rawPatch = item.suggestedPatch ?? item.patch ?? item.codeFix;
+      const patch =
+        rawPatch && typeof rawPatch === 'object'
+          ? (rawPatch as Record<string, unknown>)
+          : undefined;
+      const suggestedPatch =
+        patch && typeof patch.before === 'string' && typeof patch.after === 'string'
+          ? {
+              before: patch.before,
+              after: patch.after,
+              ...(typeof patch.startLine === 'number' ? { startLine: patch.startLine } : {}),
+              ...(typeof patch.endLine === 'number' ? { endLine: patch.endLine } : {}),
+            }
+          : undefined;
       return {
         ...item,
         severity,
         file,
         problem,
         recommendation,
+        ...(suggestedPatch ? { suggestedPatch } : {}),
         ...(item.category !== undefined && categories.includes(String(item.category).toUpperCase())
           ? { category: String(item.category).toUpperCase() }
           : {}),

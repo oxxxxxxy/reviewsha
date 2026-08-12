@@ -501,6 +501,7 @@ model Finding {
   title          String          @db.VarChar(240)
   description    String          @db.Text
   recommendation String?         @db.Text
+  suggestedPatch Json?           @map("suggested_patch")
   createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
 
   file       UploadedFile? @relation(fields: [fileId], references: [id], onDelete: SetNull, onUpdate: Cascade)

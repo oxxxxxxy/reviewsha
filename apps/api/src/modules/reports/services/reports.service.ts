@@ -168,6 +168,7 @@ export class ReportsService {
         filePath: item.filePath,
         line: item.line,
         recommendation: item.recommendation,
+        suggestedPatch: this.suggestedPatch(item.suggestedPatch),
         codeContext: this.codeContext(report, item.filePath, item.line),
       })),
       recommendations: [
@@ -214,6 +215,18 @@ export class ReportsService {
       };
     }
     return null;
+  }
+
+  private suggestedPatch(value: unknown) {
+    if (!value || typeof value !== 'object') return null;
+    const patch = value as Record<string, unknown>;
+    if (typeof patch.before !== 'string' || typeof patch.after !== 'string') return null;
+    return {
+      before: patch.before,
+      after: patch.after,
+      ...(typeof patch.startLine === 'number' ? { startLine: patch.startLine } : {}),
+      ...(typeof patch.endLine === 'number' ? { endLine: patch.endLine } : {}),
+    };
   }
 
   private fileCoverage(report: DetailedReport) {

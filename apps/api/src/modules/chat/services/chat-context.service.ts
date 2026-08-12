@@ -37,7 +37,11 @@ export class ChatContextService {
     }
   }
 
-  async build(projectId: string, question = ''): Promise<ChatContextSnapshot> {
+  async build(
+    projectId: string,
+    question = '',
+    fileRefs: string[] = [],
+  ): Promise<ChatContextSnapshot> {
     const project = await this.repository.latestContext(projectId);
     if (!project) throw new PreconditionFailedException('Project not found');
     const scan = project.scans?.[0];
@@ -46,7 +50,7 @@ export class ChatContextService {
     }
     const terms: string[] = question.toLowerCase().match(/[\p{L}\p{N}_.\/-]{3,}/gu) ?? [];
     const questionKey = createHash('sha256')
-      .update(terms.sort().join('|'))
+      .update(`${terms.sort().join('|')}|files:${fileRefs.slice().sort().join('|')}`)
       .digest('hex')
       .slice(0, 16);
     const cacheKey = `${project.id}:${scan.id}:${scan.analysisContext?.cacheKey ?? scan.report.id}:${questionKey}`;
@@ -61,13 +65,18 @@ export class ChatContextService {
           filePaths?: string[];
         }>)
       : [];
+    const requestedFiles = new Set(
+      fileRefs.map((value) => value.replace(/^@/, '').trim()).filter(Boolean),
+    );
     const relatedChunks = [...rawChunks]
       .map((chunk) => ({
         chunk,
-        rank: (chunk.path ?? '')
-          .toLowerCase()
-          .split(/[^\p{L}\p{N}_.\/-]+/u)
-          .reduce((score, part) => score + (terms.includes(part) ? 3 : 0), 0),
+        rank:
+          (requestedFiles.has(chunk.path ?? '') ? 100 : 0) +
+          (chunk.path ?? '')
+            .toLowerCase()
+            .split(/[^\p{L}\p{N}_.\/-]+/u)
+            .reduce((score, part) => score + (terms.includes(part) ? 3 : 0), 0),
       }))
       .sort((left, right) => right.rank - left.rank)
       .map(({ chunk }) => chunk)

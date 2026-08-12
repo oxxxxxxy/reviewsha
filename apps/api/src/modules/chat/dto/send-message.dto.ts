@@ -23,4 +23,14 @@ export class SendMessageDto {
   @IsOptional()
   @IsIn(['en', 'ru'])
   language?: 'en' | 'ru';
+
+  @ApiProperty({
+    required: false,
+    type: [String],
+    description: 'Project-relative files explicitly referenced with @path.',
+  })
+  @IsOptional()
+  @IsString({ each: true })
+  @MaxLength(240, { each: true })
+  fileRefs?: string[];
 }

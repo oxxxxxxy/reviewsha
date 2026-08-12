@@ -11,6 +11,8 @@ export class ReportIssueDto {
   @ApiPropertyOptional({ type: Number, nullable: true }) line!: number | null;
   @ApiPropertyOptional({ type: String, nullable: true }) recommendation!: string | null;
   @ApiPropertyOptional({ type: Object, nullable: true })
+  suggestedPatch?: { before: string; after: string; startLine?: number; endLine?: number } | null;
+  @ApiPropertyOptional({ type: Object, nullable: true })
   codeContext?: {
     startLine: number;
     endLine: number;

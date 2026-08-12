@@ -136,6 +136,9 @@ export class ReportProcessor implements JobHandler {
       title: issue.title,
       description: issue.description,
       recommendation: issue.recommendation,
+      suggestedPatch: issue.suggestedPatch
+        ? (issue.suggestedPatch as unknown as import('@prisma/client').Prisma.InputJsonValue)
+        : undefined,
     };
   }
 
