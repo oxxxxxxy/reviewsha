@@ -225,16 +225,15 @@ export class UploadsService {
       githubBranch: branch,
     });
 
-    // GitHub's unauthenticated REST quota is shared by the cluster egress IP.
-    // Prefer the public Atom feed for public repositories and retain the REST
-    // client as a fallback for feeds that GitHub does not expose.
-    const atomCommits = await this.fetchGithubAtomCommits(owner, repo, branch);
-    this.logger.log(
-      `GitHub Atom feed returned ${atomCommits.length} commits for ${owner}/${repo}@${branch}`,
-    );
-    const commits = atomCommits.length
-      ? atomCommits
-      : await this.fetchGithubCommits(owner, repo, branch, !hasGithubVersions);
+    // Authenticated sync uses the REST API so private repositories and full
+    // commit history are supported. Public unauthenticated sync uses Atom to
+    // avoid exhausting the shared GitHub REST quota.
+    const commits = this.githubToken()
+      ? await this.fetchGithubCommits(owner, repo, branch, !hasGithubVersions)
+      : await this.fetchGithubAtomCommits(owner, repo, branch);
+    if (!commits.length && !this.githubToken()) {
+      throw new NotFoundException('Unable to load GitHub commits');
+    }
     for (const commit of commits.reverse()) {
       if (!commit.sha || (await this.uploads.findBySourceCommit(projectId, commit.sha))) continue;
       const archive = await fetch(
@@ -323,12 +322,16 @@ export class UploadsService {
   }
 
   private githubHeaders(accept: string): Record<string, string> {
-    const token = this.config?.get<string>('github.token') ?? process.env.GITHUB_TOKEN;
+    const token = this.githubToken();
     return {
       Accept: accept,
       'User-Agent': 'Reviewsha',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
+  }
+
+  private githubToken(): string | undefined {
+    return this.config?.get<string>('github.token') ?? process.env.GITHUB_TOKEN;
   }
 
   private commitDate(commit: GithubCommit): Date | undefined {
