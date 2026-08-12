@@ -9,6 +9,7 @@ analysis pipeline, reports и AI Chat.
 - projects, tags, history и ownership-aware API;
 - ZIP upload/versioning через MinIO;
 - public GitHub sources with commit-backed versions, per-commit analysis and automatic sync;
+- GitHub commit versions are deduplicated by SHA and displayed oldest-to-newest;
 - асинхронный analysis pipeline на BullMQ/Redis и отдельном Worker;
 - AI context/chunks, structured reports, Markdown/PDF/JSON exports;
 - Findings with exact code context and optional safe `before`/`after` patches;

@@ -168,7 +168,21 @@ export class UploadsService {
     if (user.role !== Role.ADMIN && user.role !== Role.SUPER_ADMIN && project.ownerId !== user.id) {
       throw new ForbiddenException('You cannot access uploads for this project');
     }
-    return UploadMapper.toListResponse(await this.uploads.findByProject(projectId));
+    const files = await this.uploads.findByProject(projectId);
+    const uniqueFiles = new Map<string, (typeof files)[number]>();
+    for (const file of files) {
+      const key =
+        file.sourceType === 'GITHUB' && file.sourceCommit
+          ? `github:${file.projectId}:${file.sourceCommit.toLowerCase()}`
+          : `upload:${file.id}`;
+      if (!uniqueFiles.has(key)) uniqueFiles.set(key, file);
+    }
+    const orderedFiles = [...uniqueFiles.values()].sort((left, right) => {
+      const leftTime = (left.sourceCommittedAt ?? left.createdAt).getTime();
+      const rightTime = (right.sourceCommittedAt ?? right.createdAt).getTime();
+      return leftTime - rightTime || left.version - right.version;
+    });
+    return UploadMapper.toListResponse(orderedFiles);
   }
 
   async remove(user: AuthenticatedUser, projectId: string, uploadId: string): Promise<void> {
@@ -234,28 +248,47 @@ export class UploadsService {
     if (!commits.length && !this.githubToken()) {
       throw new NotFoundException('Unable to load GitHub commits');
     }
-    for (const commit of commits.reverse()) {
-      if (!commit.sha || (await this.uploads.findBySourceCommit(projectId, commit.sha))) continue;
+    const seenCommits = new Set<string>();
+    const orderedCommits = commits
+      .filter((commit) => Boolean(commit.sha))
+      .map((commit, index) => ({ commit, index }))
+      .sort((left, right) => {
+        const leftTime = this.commitDate(left.commit)?.getTime() ?? Number.POSITIVE_INFINITY;
+        const rightTime = this.commitDate(right.commit)?.getTime() ?? Number.POSITIVE_INFINITY;
+        return leftTime - rightTime || left.index - right.index;
+      })
+      .map(({ commit }) => commit);
+
+    for (const commit of orderedCommits) {
+      const sourceCommit = commit.sha.toLowerCase();
+      if (seenCommits.has(sourceCommit)) continue;
+      seenCommits.add(sourceCommit);
+      if (await this.uploads.findBySourceCommit(projectId, sourceCommit)) continue;
       const archive = await fetch(
-        commit.zipball_url ?? `https://api.github.com/repos/${owner}/${repo}/zipball/${commit.sha}`,
+        commit.zipball_url ??
+          `https://api.github.com/repos/${owner}/${repo}/zipball/${sourceCommit}`,
         {
           headers: this.githubHeaders('application/vnd.github+json'),
         },
       );
       if (!archive.ok) continue;
       const buffer = Buffer.from(await archive.arrayBuffer());
-      await this.create(user, projectId, {
-        originalname: `${repo}-${commit.sha.slice(0, 8)}.zip`,
-        mimetype: 'application/zip',
-        buffer,
-        size: buffer.length,
-        sourceType: 'GITHUB',
-        sourceCommit: commit.sha,
-        sourceRepo: repository.url,
-        sourceMessage: commit.commit?.message,
-        sourceCommittedAt: this.commitDate(commit),
-        suppressPipeline: true,
-      });
+      try {
+        await this.create(user, projectId, {
+          originalname: `${repo}-${sourceCommit.slice(0, 8)}.zip`,
+          mimetype: 'application/zip',
+          buffer,
+          size: buffer.length,
+          sourceType: 'GITHUB',
+          sourceCommit,
+          sourceRepo: repository.url,
+          sourceMessage: commit.commit?.message,
+          sourceCommittedAt: this.commitDate(commit),
+          suppressPipeline: true,
+        });
+      } catch (error) {
+        if (!this.isUniqueConstraintViolation(error)) throw error;
+      }
     }
     return this.list(user, projectId);
   }
@@ -339,6 +372,10 @@ export class UploadsService {
     if (!value) return undefined;
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? undefined : date;
+  }
+
+  private isUniqueConstraintViolation(error: unknown): boolean {
+    return Boolean(error && typeof error === 'object' && 'code' in error && error.code === 'P2002');
   }
 
   private event(upload: {

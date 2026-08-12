@@ -377,6 +377,8 @@ model UploadedFile {
   @@index([deletedAt])
   @@index([projectId, version])
   @@index([projectId, sourceCommit])
+  // The active GitHub commit uniqueness guard is a lower() partial index,
+  // created by the deduplication migration because Prisma cannot express it.
   @@index([projectId, sourceCommittedAt])
   @@map("uploaded_files")
 }

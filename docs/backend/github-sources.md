@@ -26,10 +26,17 @@ immutable project version with:
 - repository URL;
 - a ZIP archive of that exact commit.
 
-The operation is idempotent by commit SHA. Repeating it only downloads commits
-that are not already present. A connected project checks for new commits when
+The operation is idempotent by normalized (lowercase) commit SHA. Repeating it
+only downloads commits that are not already present; duplicate entries returned
+by GitHub in one response are also collapsed before any archive is downloaded.
+The database has an active-project uniqueness guard for GitHub commit hashes,
+which also protects concurrent sync requests. A connected project checks for new commits when
 its project page is opened, on window focus, and every 60 seconds while the
 page remains open.
+
+Versions are returned in chronological commit order (oldest commit first),
+using the GitHub commit timestamp. An existing duplicate is removed by the
+deduplication migration while retaining the oldest imported copy.
 
 ## Reviewing any commit
 

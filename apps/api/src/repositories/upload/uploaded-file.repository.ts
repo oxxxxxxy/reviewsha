@@ -116,7 +116,11 @@ export class UploadedFileRepository
 
   findBySourceCommit(projectId: string, commit: string): Promise<UploadedFile | null> {
     return this.prisma.uploadedFile.findFirst({
-      where: { projectId, sourceCommit: commit, deletedAt: null },
+      where: {
+        projectId,
+        sourceCommit: { equals: commit, mode: 'insensitive' },
+        deletedAt: null,
+      },
     });
   }
 

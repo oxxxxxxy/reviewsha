@@ -52,11 +52,14 @@ const upload = {
 
 function setup() {
   const repository = {
-    createNextVersion: vi.fn(async () => ({
-      ...upload,
-      status: UploadStatus.PENDING,
-      checksum: 'pending',
-    })),
+    createNextVersion: vi.fn(async (...args: [string, unknown]) => {
+      void args;
+      return {
+        ...upload,
+        status: UploadStatus.PENDING,
+        checksum: 'pending',
+      } as unknown as typeof upload;
+    }),
     updateStatus: vi.fn(async (_id: string, status: UploadStatus) => ({ ...upload, status })),
     update: vi.fn(async () => upload),
     findByProject: vi.fn(async () => [upload]),
@@ -133,7 +136,7 @@ describe('UploadsService', () => {
       version: 4,
       status: UploadStatus.PENDING,
       checksum: 'pending',
-    });
+    } as unknown as typeof upload);
     repository.update.mockResolvedValue({ ...upload, version: 4 });
     await expect(
       service.create(user, project.id, {
@@ -291,6 +294,66 @@ describe('UploadsService', () => {
         sourceRepo: 'https://github.com/octocat/Hello-World',
       }),
     );
+  });
+
+  it('deduplicates repeated commit hashes and imports them oldest first', async () => {
+    const { service, projects, repository } = setup();
+    projects.findActiveById.mockResolvedValue({
+      ...project,
+      githubUrl: 'https://github.com/octocat/Hello-World',
+      githubBranch: 'master',
+    });
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          new Response(
+            `<feed><entry><id>tag:github.com,2008:Grit::Commit/a1234567</id><title>New</title><updated>2026-08-12T12:00:00Z</updated></entry><entry><id>tag:github.com,2008:Grit::Commit/b1234567</id><title>Old</title><updated>2026-08-10T12:00:00Z</updated></entry><entry><id>tag:github.com,2008:Grit::Commit/a1234567</id><title>New again</title><updated>2026-08-12T12:00:00Z</updated></entry></feed>`,
+            { status: 200 },
+          ),
+        )
+        .mockImplementation(async () => new Response(Buffer.from('zip archive'), { status: 200 })),
+    );
+
+    await service.importGithub(user, project.id, {
+      url: 'https://github.com/octocat/Hello-World',
+      branch: 'master',
+    });
+
+    const importedCommits = repository.createNextVersion.mock.calls.map(
+      (call) => (call[1] as { sourceCommit?: string }).sourceCommit,
+    );
+    expect(importedCommits).toEqual(['b1234567', 'a1234567']);
+  });
+
+  it('lists versions uniquely in chronological commit order', async () => {
+    const { service, projects, repository } = setup();
+    const newest = {
+      ...upload,
+      id: 'newest',
+      version: 3,
+      sourceType: 'GITHUB',
+      sourceCommit: 'ABC1234',
+      sourceCommittedAt: new Date('2026-08-12T12:00:00Z'),
+      createdAt: new Date('2026-08-12T12:01:00Z'),
+    } as unknown as typeof upload;
+    const oldest = {
+      ...upload,
+      id: 'oldest',
+      version: 1,
+      sourceType: 'GITHUB',
+      sourceCommit: 'old1234',
+      sourceCommittedAt: new Date('2026-08-10T12:00:00Z'),
+      createdAt: new Date('2026-08-10T12:01:00Z'),
+    } as unknown as typeof upload;
+    const duplicate = { ...newest, id: 'duplicate', version: 4 } as typeof upload;
+    repository.findByProject.mockResolvedValue([newest, duplicate, oldest]);
+
+    const result = await service.list(user, project.id);
+
+    expect(result.data.map((item) => item.sourceCommit)).toEqual(['old1234', 'ABC1234']);
+    expect(projects.findActiveById).toHaveBeenCalledWith(project.id);
   });
 
   it('uses an authenticated REST sync for full history when GITHUB_TOKEN is configured', async () => {
