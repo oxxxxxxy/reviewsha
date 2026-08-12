@@ -33,6 +33,6 @@ describe('workerConfig', () => {
     expect(config.workerName).toBe('reviewsha-worker');
     expect(config.redisRequired).toBe(false);
     expect(config.redisUrl).toBe('redis://localhost:6379');
-    expect(config.aiMaxTokens).toBe(6000);
+    expect(config.aiMaxTokens).toBe(2500);
   });
 });

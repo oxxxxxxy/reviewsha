@@ -21,17 +21,17 @@ const baseWorkerEnvSchema = z.object({
   OMNIROUTER_BASE_URL: z.string().url().default('https://openrouter.ai/api/v1'),
   AI_MODEL: z.string().default('auto/best-coding'),
   // Reasoning-capable OmniRoute models can spend the first part of the
-  // completion budget on hidden reasoning. 4000 frequently leaves no JSON
-  // answer for the review parser, so keep a usable structured-output default.
-  AI_MAX_TOKENS: z.coerce.number().int().positive().default(6000),
+  // completion budget on hidden reasoning. Keep a bounded budget so one
+  // review cannot monopolize a single-provider account.
+  AI_MAX_TOKENS: z.coerce.number().int().positive().default(2500),
   AI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.2),
-  AI_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
+  AI_TIMEOUT_MS: z.coerce.number().int().positive().default(120000),
   AI_RETRY_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(3),
   AI_RETRY_DELAY_MS: z.coerce.number().int().positive().default(1000),
   AI_RETRY_MAX_DELAY_MS: z.coerce.number().int().positive().default(120000),
   AI_MAX_CONCURRENCY: z.coerce.number().int().positive().default(3),
   AI_DAILY_REQUEST_LIMIT: z.coerce.number().int().positive().default(500),
-  AI_INPUT_MAX_TOKENS: z.coerce.number().int().positive().default(12000),
+  AI_INPUT_MAX_TOKENS: z.coerce.number().int().positive().default(2500),
 });
 
 export const workerEnvSchema = baseWorkerEnvSchema.superRefine((value, context) => {

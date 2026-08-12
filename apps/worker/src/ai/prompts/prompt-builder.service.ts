@@ -29,7 +29,7 @@ export class PromptBuilderService {
   buildProjectReview(
     chunks: AIChunk[],
     project: Record<string, unknown> = {},
-    maxTokens = 12_000,
+    maxTokens = 2_500,
     language: 'en' | 'ru' = 'ru',
   ): LLMRequest {
     const request = this.build('architecture', chunks, project, maxTokens, language);
@@ -43,7 +43,7 @@ export class PromptBuilderService {
     filePath: string,
     chunks: AIChunk[],
     project: Record<string, unknown> = {},
-    maxTokens = 12_000,
+    maxTokens = 2_500,
     language: 'en' | 'ru' = 'ru',
   ): LLMRequest {
     const request = this.build('quality', chunks, project, maxTokens, language);
@@ -56,7 +56,7 @@ export class PromptBuilderService {
     task: AITask,
     chunks: AIChunk[],
     project: Record<string, unknown> = {},
-    maxTokens = 12_000,
+    maxTokens = 2_500,
     language: 'en' | 'ru' = 'ru',
   ): LLMRequest {
     if (task === 'chat') throw new Error('Chat prompts must use the dedicated chat processor');

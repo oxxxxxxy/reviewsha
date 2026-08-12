@@ -87,6 +87,7 @@ yarn lint
 yarn typecheck
 yarn format:check --ignore-unknown
 yarn test
+yarn test:ai:live # requires a running deployment and configured OmniRoute
 yarn ci:openapi
 yarn docs:check
 yarn test:e2e:install
@@ -96,6 +97,9 @@ yarn test:e2e
 Stage-specific проверки находятся в `package.json`, например
 `yarn ci:stage11` … `yarn ci:stage14`. Перед PR прочитайте
 [CONTRIBUTING.md](CONTRIBUTING.md) и [testing guide](docs/development/testing.md).
+Обычные тесты не подменяют реальную проверку провайдера: для полного потока
+API → Worker → OmniRoute → AI → Report используйте
+[live AI acceptance guide](docs/operations/live-ai-acceptance.md).
 
 ## API и SDK
 

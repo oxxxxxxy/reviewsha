@@ -7,7 +7,7 @@ export type ChunkOptions = { maxTokens?: number; maxChunks?: number };
 @Injectable()
 export class ChunkBuilderService {
   build(files: AIFile[], options: ChunkOptions = {}): AIChunk[] {
-    const maxTokens = options.maxTokens ?? 6000;
+    const maxTokens = options.maxTokens ?? 2500;
     const maxChunks = options.maxChunks ?? Number.POSITIVE_INFINITY;
     const chunks: AIChunk[] = [];
     let current: AIFile[] = [];

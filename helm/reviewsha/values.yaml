@@ -65,7 +65,8 @@ env:
   OMNIROUTE_DASHBOARD_URL: http://localhost:20128
   # Reasoning-capable models need room for both hidden reasoning and the
   # structured JSON review response.
-  AI_MAX_TOKENS: '6000'
+  AI_MAX_TOKENS: '2500'
+  AI_INPUT_MAX_TOKENS: '2500'
   AI_MODEL: ds-web/deepseek-chat
   # Respect upstream 429 lockouts instead of hammering the provider from both
   # worker replicas. The provider can override the delay with Retry-After.

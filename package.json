@@ -39,6 +39,7 @@
     "omniroute:setup": "omniroute setup",
     "test:stage2": "yarn build:packages && vitest run tests/stage2 --coverage=false",
     "test:e2e": "env -u NO_COLOR -u FORCE_COLOR playwright test",
+    "test:ai:live": "node scripts/live-review-acceptance.mjs",
     "test:e2e:install": "playwright install chromium",
     "docs:api": "typedoc --options typedoc.json",
     "test:stage3": "yarn build:packages && yarn workspace @reviewsha/api prisma:generate && vitest run tests/stage3 --coverage=false",

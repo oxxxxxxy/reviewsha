@@ -104,7 +104,7 @@ export class AnalyzeProcessor implements JobHandler {
       });
       allChunks = [
         this.chunks.buildArchitecture(metadata, context.structure ?? []),
-        ...this.chunks.build(files, { maxTokens: 6000, maxChunks: 100 }),
+        ...this.chunks.build(files, { maxTokens: 2500, maxChunks: 100 }),
       ];
       await this.db.analysisContext.upsert({
         where: { scanId: scan.id },
@@ -157,13 +157,13 @@ export class AnalyzeProcessor implements JobHandler {
               filePath,
               allChunks,
               metadata as unknown as Record<string, unknown>,
-              this.config.get<number>('worker.aiInputMaxTokens', 12_000),
+              this.config.get<number>('worker.aiInputMaxTokens', 2_500),
               scan.reviewLanguage === 'en' ? 'en' : 'ru',
             )
           : this.prompts.buildProjectReview(
               allChunks,
               metadata as unknown as Record<string, unknown>,
-              this.config.get<number>('worker.aiInputMaxTokens', 12_000),
+              this.config.get<number>('worker.aiInputMaxTokens', 2_500),
               scan.reviewLanguage === 'en' ? 'en' : 'ru',
             );
         const startedAt = Date.now();

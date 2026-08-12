@@ -8,7 +8,7 @@ import {
 import { ApiLoggerService } from '../../common/logger/api-logger.service';
 import type { AuthenticatedUser } from '../../common/auth/types/auth.types';
 import { ScanRepository } from '../../repositories/scan/scan.repository';
-import { UploadEvents, UPLOAD_EVENTS, type UploadEvent } from '../uploads/events/upload.events';
+import { UploadEvents, type UploadEvent } from '../uploads/events/upload.events';
 import { QueueService, type QueueMetrics } from '../queue/queue.service';
 import { QUEUE_NAMES } from '../queue/queue.constants';
 import { QueueEvents, QUEUE_EVENTS } from '../queue/queue.events';
@@ -61,15 +61,9 @@ export class PipelineService {
   }
 
   onModuleInit(): void {
-    this.uploadEvents.on(UPLOAD_EVENTS.completed, (event) => {
-      void this.startPipeline(event).catch((error: unknown) => {
-        this.logger.error(
-          `Unable to start pipeline for upload ${event.uploadId}`,
-          error instanceof Error ? error.stack : undefined,
-          'PipelineService',
-        );
-      });
-    });
+    // Analysis is started explicitly by POST /projects/:projectId/analyses.
+    // Starting here as well races that endpoint after upload completion and
+    // creates two scans/reports for one upload.
     this.queueEvents.on(QUEUE_EVENTS.failed, (event) => {
       const payload = event.job.payload;
       const pipelineId = typeof payload.pipelineId === 'string' ? payload.pipelineId : undefined;

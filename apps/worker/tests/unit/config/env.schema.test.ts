@@ -35,7 +35,8 @@ describe('workerEnvSchema', () => {
     expect(config.WORKER_REDIS_REQUIRED).toBe(false);
     expect(config.REDIS_URL).toBe('redis://localhost:6379');
     expect(config.AI_PROVIDER).toBe('deepseek');
-    expect(config.AI_MAX_TOKENS).toBe(6000);
+    expect(config.AI_MAX_TOKENS).toBe(2500);
+    expect(config.AI_TIMEOUT_MS).toBe(120000);
   });
 
   it('rejects invalid Redis URL', () => {

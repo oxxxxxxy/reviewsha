@@ -39,13 +39,13 @@ JWT, internal API key и MinIO credentials.
 | `OMNIROUTER_API_KEY` | ключ OmniRouter/provider | empty locally, required for remote production |
 | `OMNIROUTER_BASE_URL` | provider gateway | local OmniRouter URL |
 | `AI_MODEL` | model identifier | `ds-web/deepseek-chat` |
-| `AI_MAX_TOKENS` | generation limit, including reasoning and structured output | `6000` |
+| `AI_MAX_TOKENS` | generation limit, including reasoning and structured output | `2500` |
 | `AI_TEMPERATURE` | generation temperature | `0.2` |
-| `AI_TIMEOUT_MS` | provider timeout | `60000` |
+| `AI_TIMEOUT_MS` | provider timeout | `120000` |
 | `AI_RETRY_ATTEMPTS` / `AI_RETRY_DELAY_MS` / `AI_RETRY_MAX_DELAY_MS` | retry policy; 429 `Retry-After` is respected | `3` / `1000` / `120000` |
 | `AI_MAX_CONCURRENCY` | provider concurrency per worker pod | `3` (production Helm: `1`) |
 | `AI_DAILY_REQUEST_LIMIT` | daily quota | `500` |
-| `AI_INPUT_MAX_TOKENS` | input budget | `12000` |
+| `AI_INPUT_MAX_TOKENS` | input budget | `2500` |
 | `OMNIROUTE_DASHBOARD_URL` | URL OmniRoute, доступный браузеру Admin | `http://localhost:20128` locally |
 
 ## Web и Admin
