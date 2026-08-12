@@ -134,4 +134,24 @@ describe('PromptBuilderService', () => {
         },
       ]).prompt,
     ).not.toContain('secret-id'));
+  it('builds a tree-only file selection prompt', () => {
+    const result = builder.buildFileSelection(['src/main.ts', 'src/auth.service.ts'], 3, 'en');
+    expect(result.prompt).toContain('src/main.ts');
+    expect(result.prompt).toContain('Select up to 3');
+    expect(result.prompt).not.toContain('const value');
+  });
+  it('builds one merged prompt for selected files', () => {
+    const result = builder.buildMergedProjectReview([
+      {
+        id: '1',
+        type: 'file',
+        path: 'src/main.ts',
+        content: '1 | const x = 1;',
+        tokens: 5,
+        filePaths: ['src/main.ts'],
+      },
+    ]);
+    expect(result.prompt).toContain('MERGED HIGH-SIGNAL REVIEW');
+    expect(result.prompt).toContain('src/main.ts');
+  });
 });

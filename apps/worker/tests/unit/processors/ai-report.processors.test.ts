@@ -60,7 +60,7 @@ describe('AI and report processors', () => {
 
   afterEach(async () => rm(root, { recursive: true, force: true }));
 
-  it('runs project and per-file review tasks and persists usage', async () => {
+  it('runs one merged project review and persists usage', async () => {
     const requestCreate = vi.fn().mockResolvedValue({ id: 'request-1' });
     const requestUpdate = vi.fn().mockResolvedValue({});
     const responseUpsert = vi.fn();
@@ -99,17 +99,17 @@ describe('AI and report processors', () => {
       logger,
     );
     const result = await processor.execute(job('analyze'));
-    expect(ai.analyze).toHaveBeenCalledTimes(2);
-    expect(requestCreate).toHaveBeenCalledTimes(2);
-    expect(requestUpdate).toHaveBeenCalledTimes(2);
+    expect(ai.analyze).toHaveBeenCalledOnce();
+    expect(requestCreate).toHaveBeenCalledOnce();
+    expect(requestUpdate).toHaveBeenCalledOnce();
     expect(requestUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ status: AIRequestStatus.COMPLETED }),
       }),
     );
-    expect(responseUpsert).toHaveBeenCalledTimes(2);
+    expect(responseUpsert).toHaveBeenCalledOnce();
     expect(queue.enqueueJob).toHaveBeenCalledWith('report.queue', 'report', payload);
-    expect(result.data).toMatchObject({ totalTokens: 30 });
+    expect(result.data).toMatchObject({ totalTokens: 15 });
   });
 
   it('persists failed AI request and propagates error', async () => {
@@ -202,9 +202,9 @@ describe('AI and report processors', () => {
     expect(requestFind).toHaveBeenCalledWith(
       expect.objectContaining({ where: { scanId: 'scan-1', chunkId: 'project:architecture' } }),
     );
-    expect(requestCreate).toHaveBeenCalledOnce();
-    expect(requestUpdate).toHaveBeenCalledOnce();
-    expect(ai.analyze).toHaveBeenCalledOnce();
+    expect(requestCreate).not.toHaveBeenCalled();
+    expect(requestUpdate).not.toHaveBeenCalled();
+    expect(ai.analyze).not.toHaveBeenCalled();
   });
 
   it('rejects an unknown analysis', async () => {

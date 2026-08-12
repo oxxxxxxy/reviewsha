@@ -66,3 +66,7 @@ export type AIReviewResult = {
   strengths?: string[];
   weaknesses?: string[];
 };
+
+export type AIFileSelectionResult = {
+  files: string[];
+};

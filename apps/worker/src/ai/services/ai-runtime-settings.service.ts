@@ -15,6 +15,8 @@ export type AIRuntimeSettings = {
   timeoutMs: number;
   retryAttempts: number;
   maxConcurrency: number;
+  mergeFiles: boolean;
+  maxAnalysisFiles: number;
 };
 
 @Injectable()
@@ -35,6 +37,8 @@ export class AIRuntimeSettingsService {
       timeoutMs: this.config.get<number>('worker.aiTimeoutMs', 60000),
       retryAttempts: this.config.get<number>('worker.aiRetryAttempts', 3),
       maxConcurrency: this.config.get<number>('worker.aiMaxConcurrency', 3),
+      mergeFiles: this.config.get<boolean>('worker.aiMergeFiles', true),
+      maxAnalysisFiles: this.config.get<number>('worker.aiMaxAnalysisFiles', 3),
     };
     const record = await this.database.systemSetting.findUnique({
       where: { key: AI_RUNTIME_SETTINGS_KEY },

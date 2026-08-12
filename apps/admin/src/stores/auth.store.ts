@@ -30,10 +30,15 @@ export const useAdminAuthStore = create<AdminAuthState>()(
             });
             return result.accessToken;
           } catch {
-            await get().logout();
+            clearLocalSession();
             return null;
           }
         });
+      };
+      const clearLocalSession = () => {
+        adminSdk.client.clearAccessToken();
+        adminSdk.client.setRefreshTokenHandler(undefined);
+        set({ user: null, accessToken: null, refreshToken: null });
       };
       return {
         user: null,
@@ -81,9 +86,7 @@ export const useAdminAuthStore = create<AdminAuthState>()(
           try {
             if (refreshToken) await adminSdk.auth.logout(refreshToken);
           } finally {
-            adminSdk.client.clearAccessToken();
-            adminSdk.client.setRefreshTokenHandler(undefined);
-            set({ user: null, accessToken: null, refreshToken: null });
+            clearLocalSession();
           }
         },
       };

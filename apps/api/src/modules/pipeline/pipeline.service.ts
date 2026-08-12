@@ -120,16 +120,26 @@ export class PipelineService {
       return this.scans.findById(existing.id);
     }
 
-    const scan = await this.scans.create({
-      project: { connect: { id: event.projectId } },
-      sourceFile: { connect: { id: event.uploadId } },
-      ...(event.userId ? { createdBy: { connect: { id: event.userId } } } : {}),
-      status: ScanStatus.QUEUED,
-      progress: 0,
-      pipelineStep: PrismaPipelineStep.EXTRACT,
-      pipelineStatus: PipelineStatus.PENDING,
-      reviewLanguage: event.language ?? 'ru',
-    });
+    let scan;
+    try {
+      scan = await this.scans.create({
+        project: { connect: { id: event.projectId } },
+        sourceFile: { connect: { id: event.uploadId } },
+        ...(event.userId ? { createdBy: { connect: { id: event.userId } } } : {}),
+        status: ScanStatus.QUEUED,
+        progress: 0,
+        pipelineStep: PrismaPipelineStep.EXTRACT,
+        pipelineStatus: PipelineStatus.PENDING,
+        reviewLanguage: event.language ?? 'ru',
+      });
+    } catch (error) {
+      // Two browser retries can race before either request observes the new
+      // scan. The database uniqueness constraint is the final arbiter; return
+      // the winner instead of enqueueing a duplicate pipeline.
+      const existingAfterRace = await this.scans.findBySourceFile(event.uploadId);
+      if (!existingAfterRace) throw error;
+      return existingAfterRace;
+    }
 
     await this.enqueueStep(
       scan.id,

@@ -91,7 +91,7 @@ describe('AIPage', () => {
     renderWithAdminProviders(<AIPage />);
     await screen.findByRole('heading', { name: 'AI control center' });
 
-    fireEvent.change(screen.getByDisplayValue('3'), {
+    fireEvent.change(screen.getByRole('spinbutton', { name: /Parallel OmniRoute requests/u }), {
       target: { value: '2' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save AI settings' }));

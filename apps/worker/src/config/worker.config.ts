@@ -21,6 +21,8 @@ export type WorkerConfig = {
   aiRetryDelayMs: number;
   aiRetryMaxDelayMs: number;
   aiMaxConcurrency: number;
+  aiMergeFiles: boolean;
+  aiMaxAnalysisFiles: number;
   aiDailyRequestLimit: number;
   aiInputMaxTokens: number;
   settingsEncryptionKey?: string;
@@ -55,6 +57,8 @@ export default (): { worker: WorkerConfig } => ({
     aiRetryDelayMs: Number(process.env.AI_RETRY_DELAY_MS ?? 1000),
     aiRetryMaxDelayMs: Number(process.env.AI_RETRY_MAX_DELAY_MS ?? 120000),
     aiMaxConcurrency: Number(process.env.AI_MAX_CONCURRENCY ?? 3),
+    aiMergeFiles: process.env.AI_MERGE_FILES !== 'false',
+    aiMaxAnalysisFiles: Number(process.env.AI_MAX_ANALYSIS_FILES ?? 3),
     aiDailyRequestLimit: Number(process.env.AI_DAILY_REQUEST_LIMIT ?? 500),
     aiInputMaxTokens: Number(process.env.AI_INPUT_MAX_TOKENS ?? 2500),
     settingsEncryptionKey: process.env.INTERNAL_API_KEY ?? 'reviewsha-internal-api-key-change-me',

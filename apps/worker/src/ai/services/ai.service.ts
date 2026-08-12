@@ -6,7 +6,7 @@ import {
   type AIResponse,
   type AIStreamChunk,
 } from '../providers/ai-provider.interface';
-import type { LLMRequest, AIReviewResult } from '../types/ai.types';
+import type { LLMRequest, AIReviewResult, AIFileSelectionResult } from '../types/ai.types';
 import { AIResponseValidator } from './ai-response.validator';
 
 @Injectable()
@@ -23,6 +23,24 @@ export class AIService {
   async analyze(request: LLMRequest): Promise<{ response: AIResponse; result: AIReviewResult }> {
     const response = await this.generate(request);
     return { response, result: this.validateResponse(response) };
+  }
+
+  async selectFiles(
+    request: LLMRequest,
+    maxFiles: number,
+  ): Promise<{ response: AIResponse; result: AIFileSelectionResult }> {
+    const response = await this.generate(request);
+    const normalized = response.content
+      .trim()
+      .replace(/^```(?:json)?\s*/iu, '')
+      .replace(/\s*```$/u, '');
+    const parsed = JSON.parse(normalized) as { files?: unknown };
+    const files = Array.isArray(parsed.files)
+      ? parsed.files
+          .filter((value): value is string => typeof value === 'string')
+          .slice(0, maxFiles)
+      : [];
+    return { response, result: { files } };
   }
 
   async generate(request: LLMRequest): Promise<AIResponse> {
@@ -102,7 +120,9 @@ export class AIService {
 
   private isRetryable(error: unknown): boolean {
     const message = error instanceof Error ? `${error.name} ${error.message}` : String(error);
-    return /abort|timeout|network|fetch|ECONN|rate[_ -]?limit|HTTP 429|HTTP 5\d\d/iu.test(message);
+    return /abort|timeout|network|fetch|ECONN|rate[_ -]?limit|empty content|returned empty|HTTP 429|HTTP 5\d\d/iu.test(
+      message,
+    );
   }
 
   private retryDelay(

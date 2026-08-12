@@ -25,21 +25,33 @@ export class OmniRouterProvider implements AIProvider {
   private readonly runtimeSettings: AIRuntimeSettingsService;
 
   async generate(request: LLMRequest): Promise<AIResponse> {
-    // OmniRoute exposes chat completions as SSE even when `stream` is not
-    // requested. Reuse the streaming parser for normal analysis requests.
-    let content = '';
-    let model = (await this.runtimeSettings.get()).model;
-    let promptTokens = 0;
-    let completionTokens = 0;
-    let totalTokens = 0;
-    for await (const chunk of this.stream(request)) {
-      content += chunk.content ?? '';
-      model = chunk.model ?? model;
-      promptTokens = chunk.promptTokens ?? promptTokens;
-      completionTokens = chunk.completionTokens ?? completionTokens;
-      totalTokens = chunk.totalTokens ?? totalTokens;
+    // Analysis and file selection use JSON completions. The DeepSeek Web
+    // bridge can close an SSE response before emitting content for a larger
+    // prompt, while the same request succeeds as a regular completion.
+    const settings = await this.runtimeSettings.get();
+    if (!settings.apiKey) throw new Error('OMNIROUTER_API_KEY is not configured');
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), settings.timeoutMs);
+    try {
+      const response = await this.request(request, settings, false, controller.signal);
+      if (!response.ok) throw await this.providerError(response);
+      const json = (await response.json()) as {
+        model?: string;
+        choices?: Array<{ message?: { content?: string } }>;
+        usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+      };
+      const content = json.choices?.[0]?.message?.content?.trim() ?? '';
+      if (!content) throw new Error('AI provider returned empty content');
+      return {
+        content,
+        model: json.model ?? settings.model,
+        promptTokens: json.usage?.prompt_tokens ?? 0,
+        completionTokens: json.usage?.completion_tokens ?? 0,
+        totalTokens: json.usage?.total_tokens ?? 0,
+      };
+    } finally {
+      clearTimeout(timeout);
     }
-    return { content, model, promptTokens, completionTokens, totalTokens };
   }
 
   private fromLegacyConfig(config: ConfigService): AIRuntimeSettingsService {
@@ -54,6 +66,8 @@ export class OmniRouterProvider implements AIProvider {
         timeoutMs: config.get<number>('worker.aiTimeoutMs', 60000),
         retryAttempts: config.get<number>('worker.aiRetryAttempts', 3),
         maxConcurrency: config.get<number>('worker.aiMaxConcurrency', 3),
+        mergeFiles: config.get<boolean>('worker.aiMergeFiles', true),
+        maxAnalysisFiles: config.get<number>('worker.aiMaxAnalysisFiles', 3),
       }),
     } as AIRuntimeSettingsService;
   }
@@ -67,42 +81,9 @@ export class OmniRouterProvider implements AIProvider {
     const abort = () => controller.abort();
     signal?.addEventListener('abort', abort, { once: true });
     try {
-      const response = await fetch(`${settings.baseUrl.replace(/\/+$/u, '')}/chat/completions`, {
-        method: 'POST',
-        signal: controller.signal,
-        headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-        body: JSON.stringify({
-          model: settings.model,
-          temperature: settings.temperature,
-          max_tokens: settings.maxTokens,
-          stream: true,
-          stream_options: { include_usage: true },
-          // Reasoning-capable OmniRoute models can spend the whole output
-          // budget in hidden reasoning and return no structured content.
-          // Keep reasoning bounded so the JSON review has room to complete.
-          reasoning_effort: 'low',
-          messages: [
-            { role: 'system', content: request.system },
-            { role: 'user', content: request.prompt },
-          ],
-          // DeepSeek Web accepts the JSON instruction in the prompt, but its
-          // web bridge returns an empty message when OpenAI's native
-          // response_format=json_object is sent. Keep native JSON mode for
-          // providers that support it and use prompt-constrained JSON for
-          // the DeepSeek Web routes.
-          ...(request.outputFormat === 'json' && !settings.model.startsWith('ds-web/')
-            ? { response_format: { type: 'json_object' } }
-            : {}),
-        }),
-      });
+      const response = await this.request(request, settings, true, controller.signal);
       if (!response.ok) {
-        const body =
-          typeof response.text === 'function' ? await response.text().catch(() => '') : '';
-        const message = `AI provider HTTP ${response.status}${body ? `: ${body.slice(0, 300)}` : ''}`;
-        if (response.status === 429) {
-          throw new AIProviderRateLimitError(message, this.retryAfterMs(response, body));
-        }
-        throw new Error(message);
+        throw await this.providerError(response);
       }
       if (!response.body) {
         if (typeof response.json === 'function') {
@@ -190,6 +171,49 @@ export class OmniRouterProvider implements AIProvider {
       signal?.removeEventListener('abort', abort);
       clearTimeout(timeout);
     }
+  }
+
+  private async request(
+    request: LLMRequest,
+    settings: {
+      baseUrl: string;
+      apiKey?: string;
+      model: string;
+      temperature: number;
+      maxTokens: number;
+    },
+    stream: boolean,
+    signal?: AbortSignal,
+  ): Promise<Response> {
+    return fetch(`${settings.baseUrl.replace(/\/+$/u, '')}/chat/completions`, {
+      method: 'POST',
+      signal,
+      headers: { authorization: `Bearer ${settings.apiKey}`, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: settings.model,
+        temperature: settings.temperature,
+        max_tokens: settings.maxTokens,
+        stream,
+        ...(stream ? { stream_options: { include_usage: true } } : {}),
+        reasoning_effort: 'low',
+        messages: [
+          { role: 'system', content: request.system },
+          { role: 'user', content: request.prompt },
+        ],
+        ...(request.outputFormat === 'json' && !settings.model.startsWith('ds-web/')
+          ? { response_format: { type: 'json_object' } }
+          : {}),
+      }),
+    });
+  }
+
+  private async providerError(response: Response): Promise<Error> {
+    const body = typeof response.text === 'function' ? await response.text().catch(() => '') : '';
+    const message = `AI provider HTTP ${response.status}${body ? `: ${body.slice(0, 300)}` : ''}`;
+    if (response.status === 429) {
+      return new AIProviderRateLimitError(message, this.retryAfterMs(response, body));
+    }
+    return new Error(message);
   }
 
   private retryAfterMs(response: Response, body: string): number | undefined {

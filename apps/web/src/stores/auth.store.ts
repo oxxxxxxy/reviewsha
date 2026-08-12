@@ -25,10 +25,18 @@ function configureRefresh(get: () => AuthState): void {
       setAuthTokens(get, result);
       return result.accessToken;
     } catch {
-      await get().logout();
+      // Do not call the logout endpoint here. It is itself authenticated and
+      // would trigger the refresh interceptor again after a failed refresh.
+      clearLocalSession(get);
       return null;
     }
   });
+}
+
+function clearLocalSession(get: () => AuthState): void {
+  reviewshaSdk.client.clearAccessToken();
+  reviewshaSdk.client.setRefreshTokenHandler(undefined);
+  get()._set({ user: null, accessToken: null, refreshToken: null });
 }
 
 function setAuthTokens(
@@ -100,9 +108,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           if (refreshToken) await reviewshaSdk.auth.logout(refreshToken);
         } finally {
-          reviewshaSdk.client.clearAccessToken();
-          reviewshaSdk.client.setRefreshTokenHandler(undefined);
-          set({ user: null, accessToken: null, refreshToken: null });
+          clearLocalSession(get);
         }
       },
     }),

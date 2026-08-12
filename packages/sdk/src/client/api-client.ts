@@ -73,7 +73,7 @@ export class ApiClient {
         !axios.isAxiosError(error) ||
         error.response?.status !== 401 ||
         !this.refreshHandler ||
-        error.config?.url?.includes('/auth/refresh')
+        isAuthEndpoint(error.config?.url)
       ) {
         throw this.toApiClientError(error);
       }
@@ -202,6 +202,10 @@ export class ApiClient {
     const payload = isApiErrorResponse(error.response.data) ? error.response.data : null;
     return new ApiClientError(error.response.status, payload);
   }
+}
+
+function isAuthEndpoint(url: string | undefined): boolean {
+  return Boolean(url && /\/auth\/(?:login|register|refresh|logout)(?:$|[/?])/u.test(url));
 }
 
 function isApiErrorResponse(value: unknown): value is ApiErrorResponse {

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AIRequestStatus, PipelineStep, ScanStatus, type Prisma } from '@prisma/client';
 import { createHash } from 'node:crypto';
@@ -10,6 +10,7 @@ import { ChunkBuilderService } from '../ai/chunks/chunk-builder.service';
 import { ContextBuilderService } from '../ai/context/context-builder.service';
 import { PromptBuilderService } from '../ai/prompts/prompt-builder.service';
 import { AIService } from '../ai/services/ai.service';
+import { AIRuntimeSettingsService } from '../ai/services/ai-runtime-settings.service';
 import { SecretRedactorService } from '../ai/services/secret-redactor.service';
 import type { AIFile, AIReviewResult, AITask } from '../ai/types/ai.types';
 import { WorkerLoggerService } from '../common/logger/worker-logger.service';
@@ -52,6 +53,9 @@ export class AnalyzeProcessor implements JobHandler {
     @Inject(QueueService) private readonly queue: QueueService,
     @Inject(ConfigService) private readonly config: ConfigService,
     @Inject(WorkerLoggerService) private readonly logger: WorkerLoggerService,
+    @Optional()
+    @Inject(AIRuntimeSettingsService)
+    private readonly runtimeSettings?: AIRuntimeSettingsService,
   ) {}
 
   async execute(job: Job): Promise<QueueJobResult> {
@@ -75,6 +79,7 @@ export class AnalyzeProcessor implements JobHandler {
     const cached = await this.db.analysisContext.findFirst({ where: { cacheKey } });
     let metadata: ReturnType<AIProjectParser['parse']>;
     let allChunks: ReturnType<ChunkBuilderService['build']>;
+    let sourceFiles: AIFile[];
     if (cached) {
       metadata = cached.metadata as unknown as ReturnType<AIProjectParser['parse']>;
       allChunks = cached.chunks as unknown as ReturnType<ChunkBuilderService['build']>;
@@ -93,8 +98,10 @@ export class AnalyzeProcessor implements JobHandler {
           chunks: cached.chunks as Prisma.InputJsonValue,
         },
       });
+      sourceFiles = await this.loadFiles(paths.extracted, context.files ?? []);
     } else {
       const files = await this.loadFiles(paths.extracted, context.files ?? []);
+      sourceFiles = files;
       metadata = this.projectParser.parse({
         projectId: payload.projectId,
         files,
@@ -129,10 +136,58 @@ export class AnalyzeProcessor implements JobHandler {
           .flatMap((chunk) => chunk.filePaths),
       ),
     ];
-    const reviewTasks = [
-      ...TASKS.map((task) => ({ task, filePath: undefined as string | undefined })),
-      ...filePaths.map((filePath) => ({ task: 'quality' as AITask, filePath })),
+    const runtime = this.runtimeSettings ? await this.runtimeSettings.get() : undefined;
+    const mergeFiles = runtime?.mergeFiles ?? this.config.get<boolean>('worker.aiMergeFiles', true);
+    const maxAnalysisFiles = Math.min(
+      10,
+      Math.max(
+        1,
+        runtime?.maxAnalysisFiles ?? this.config.get<number>('worker.aiMaxAnalysisFiles', 3),
+      ),
+    );
+    let selectedPaths = filePaths.slice(0, maxAnalysisFiles);
+    if (mergeFiles && filePaths.length > maxAnalysisFiles) {
+      try {
+        const selection = await this.ai.selectFiles(
+          this.prompts.buildFileSelection(
+            context.structure ?? filePaths,
+            maxAnalysisFiles,
+            scan.reviewLanguage === 'en' ? 'en' : 'ru',
+          ),
+          maxAnalysisFiles,
+        );
+        const allowed = new Set(filePaths);
+        const selected = selection.result.files.filter((path) => allowed.has(path));
+        if (selected.length) selectedPaths = selected;
+      } catch (error) {
+        this.logger.warn(
+          `File selection failed; using deterministic top files: ${error instanceof Error ? error.message : 'unknown'}`,
+          'AnalyzeProcessor',
+        );
+      }
+    }
+    // Always include the root README when it exists: it is project-level
+    // context, not merely another candidate file for the selector.
+    const rootReadme = sourceFiles.find((file) => file.path.toLowerCase() === 'readme.md');
+    const selectedPathsWithReadme =
+      rootReadme && !selectedPaths.includes(rootReadme.path)
+        ? [...selectedPaths, rootReadme.path]
+        : selectedPaths;
+    const selectedFiles = sourceFiles.filter((file) => selectedPathsWithReadme.includes(file.path));
+    const selectedChunks = [
+      allChunks.find((chunk) => chunk.type === 'architecture') ??
+        this.chunks.buildArchitecture(metadata, context.structure ?? []),
+      ...this.chunks.build(selectedFiles, {
+        maxTokens: 2_500,
+        maxChunks: Math.min(maxAnalysisFiles + 1, selectedFiles.length),
+      }),
     ];
+    const reviewTasks = mergeFiles
+      ? [{ task: 'architecture' as AITask, filePath: undefined as string | undefined }]
+      : [
+          ...TASKS.map((task) => ({ task, filePath: undefined as string | undefined })),
+          ...filePaths.map((filePath) => ({ task: 'quality' as AITask, filePath })),
+        ];
     if (scan.createdById) {
       const startOfDay = new Date();
       startOfDay.setUTCHours(0, 0, 0, 0);
@@ -160,12 +215,19 @@ export class AnalyzeProcessor implements JobHandler {
               this.config.get<number>('worker.aiInputMaxTokens', 2_500),
               scan.reviewLanguage === 'en' ? 'en' : 'ru',
             )
-          : this.prompts.buildProjectReview(
-              allChunks,
-              metadata as unknown as Record<string, unknown>,
-              this.config.get<number>('worker.aiInputMaxTokens', 2_500),
-              scan.reviewLanguage === 'en' ? 'en' : 'ru',
-            );
+          : mergeFiles
+            ? this.prompts.buildMergedProjectReview(
+                selectedChunks,
+                metadata as unknown as Record<string, unknown>,
+                this.config.get<number>('worker.aiInputMaxTokens', 2_500),
+                scan.reviewLanguage === 'en' ? 'en' : 'ru',
+              )
+            : this.prompts.buildProjectReview(
+                allChunks,
+                metadata as unknown as Record<string, unknown>,
+                this.config.get<number>('worker.aiInputMaxTokens', 2_500),
+                scan.reviewLanguage === 'en' ? 'en' : 'ru',
+              );
         const startedAt = Date.now();
         const existingRequest = await this.db.aIRequest.findFirst({
           where: { scanId: scan.id, chunkId: reviewKey },
@@ -317,7 +379,7 @@ export class AnalyzeProcessor implements JobHandler {
           language: file.language,
           size: file.size,
           role: this.projectParser.classifyFile(file.path),
-          content: this.secrets.redact(content),
+          content: this.numberLines(this.secrets.redact(content)),
         });
       } catch (error) {
         this.logger.warn(
@@ -327,5 +389,13 @@ export class AnalyzeProcessor implements JobHandler {
       }
     }
     return files;
+  }
+
+  private numberLines(content: string): string {
+    const lines = content.split(/\r?\n/);
+    const width = String(lines.length).length;
+    return lines
+      .map((line, index) => `${String(index + 1).padStart(width, ' ')} | ${line}`)
+      .join('\n');
   }
 }

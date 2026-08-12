@@ -24,6 +24,8 @@ export class AdminAiSettingsResponseDto {
   @ApiProperty({ example: 60000 }) timeoutMs!: number;
   @ApiProperty({ example: 3 }) retryAttempts!: number;
   @ApiProperty({ example: 3 }) maxConcurrency!: number;
+  @ApiProperty({ example: true }) mergeFiles!: boolean;
+  @ApiProperty({ example: 3 }) maxAnalysisFiles!: number;
   @ApiProperty({ type: [String] }) availableModels!: string[];
   @ApiPropertyOptional({ type: String, format: 'date-time', nullable: true }) updatedAt!:
     string | null;
@@ -98,6 +100,22 @@ export class UpdateAdminAiSettingsDto {
   @Min(1)
   @Max(32)
   maxConcurrency?: number;
+
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Review selected files in one combined request.',
+  })
+  @IsOptional()
+  @IsBoolean()
+  mergeFiles?: boolean;
+
+  @ApiPropertyOptional({ example: 3, minimum: 1, maximum: 10 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(10)
+  maxAnalysisFiles?: number;
 }
 
 export class AdminAiConnectionResponseDto {

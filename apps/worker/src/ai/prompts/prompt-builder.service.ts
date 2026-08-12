@@ -26,6 +26,36 @@ const englishTemplates: Record<Exclude<AITask, 'chat'>, string> = {
 
 @Injectable()
 export class PromptBuilderService {
+  buildFileSelection(structure: string[], maxFiles = 3, language: 'en' | 'ru' = 'ru'): LLMRequest {
+    const english = language === 'en';
+    return {
+      task: 'architecture',
+      chunks: [],
+      outputFormat: 'json',
+      system: english
+        ? 'You are a senior code-review architect. Return valid JSON only.'
+        : 'Ты архитектор ревью кода. Отвечай только валидным JSON.',
+      prompt: `${english ? 'PROJECT FILE TREE' : 'ДЕРЕВО ФАЙЛОВ ПРОЕКТА'}\n${structure.join('\n')}\n\n${
+        english
+          ? `Select up to ${maxFiles} most important source files for a high-signal first review. Prefer entrypoints, business logic, auth, data access and configuration. Return only {"files":["exact/path"]}.`
+          : `Выбери до ${maxFiles} самых важных исходных файлов для первого содержательного ревью. Приоритет: точки входа, бизнес-логика, auth, доступ к данным и конфигурация. Верни только {"files":["точный/путь"]}.`
+      }`,
+    };
+  }
+
+  buildMergedProjectReview(
+    chunks: AIChunk[],
+    project: Record<string, unknown> = {},
+    maxTokens = 2_500,
+    language: 'en' | 'ru' = 'ru',
+  ): LLMRequest {
+    const request = this.build('architecture', chunks, project, maxTokens, language);
+    return {
+      ...request,
+      prompt: `${request.prompt}\n\nMERGED HIGH-SIGNAL REVIEW\nThe supplied files were selected from the project tree. Review each supplied file separately inside one JSON response, but do not invent findings for files that were not supplied. Include the exact file path and line for every issue.`,
+    };
+  }
+
   buildProjectReview(
     chunks: AIChunk[],
     project: Record<string, unknown> = {},

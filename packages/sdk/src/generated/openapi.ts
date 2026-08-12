@@ -1648,6 +1648,10 @@ export interface components {
             retryAttempts: number;
             /** @example 3 */
             maxConcurrency: number;
+            /** @example true */
+            mergeFiles: boolean;
+            /** @example 3 */
+            maxAnalysisFiles: number;
             availableModels: string[];
             /** Format: date-time */
             updatedAt?: string | null;
@@ -1673,6 +1677,13 @@ export interface components {
             retryAttempts?: number;
             /** @example 3 */
             maxConcurrency?: number;
+            /**
+             * @description Review selected files in one combined request.
+             * @example true
+             */
+            mergeFiles?: boolean;
+            /** @example 3 */
+            maxAnalysisFiles?: number;
         };
         AdminAiModelsResponseDto: {
             models: string[];

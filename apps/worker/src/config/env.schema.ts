@@ -30,6 +30,8 @@ const baseWorkerEnvSchema = z.object({
   AI_RETRY_DELAY_MS: z.coerce.number().int().positive().default(1000),
   AI_RETRY_MAX_DELAY_MS: z.coerce.number().int().positive().default(120000),
   AI_MAX_CONCURRENCY: z.coerce.number().int().positive().default(3),
+  AI_MERGE_FILES: z.coerce.boolean().default(true),
+  AI_MAX_ANALYSIS_FILES: z.coerce.number().int().min(1).max(10).default(3),
   AI_DAILY_REQUEST_LIMIT: z.coerce.number().int().positive().default(500),
   AI_INPUT_MAX_TOKENS: z.coerce.number().int().positive().default(2500),
 });

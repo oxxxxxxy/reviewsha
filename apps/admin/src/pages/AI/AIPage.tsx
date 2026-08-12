@@ -13,6 +13,8 @@ type SettingsForm = {
   temperature: number;
   timeoutMs: number;
   maxConcurrency: number;
+  mergeFiles: boolean;
+  maxAnalysisFiles: number;
 };
 
 const emptyForm: SettingsForm = {
@@ -25,6 +27,8 @@ const emptyForm: SettingsForm = {
   temperature: 0.2,
   timeoutMs: 60000,
   maxConcurrency: 1,
+  mergeFiles: true,
+  maxAnalysisFiles: 3,
 };
 
 export function AIPage() {
@@ -74,6 +78,8 @@ export function AIPage() {
         temperature: data.temperature,
         timeoutMs: data.timeoutMs,
         maxConcurrency: data.maxConcurrency,
+        mergeFiles: data.mergeFiles,
+        maxAnalysisFiles: data.maxAnalysisFiles,
       }));
       setDashboardUrl(data.dashboardUrl);
       await queryClient.invalidateQueries({ queryKey: ['admin', 'ai-settings'] });
@@ -104,6 +110,8 @@ export function AIPage() {
       temperature: settings.data.temperature,
       timeoutMs: settings.data.timeoutMs,
       maxConcurrency: settings.data.maxConcurrency,
+      mergeFiles: settings.data.mergeFiles,
+      maxAnalysisFiles: settings.data.maxAnalysisFiles,
     }));
     setDashboardUrl(settings.data.dashboardUrl);
   }, [settings.data]);
@@ -272,6 +280,30 @@ export function AIPage() {
               Maximum number of AI requests processed simultaneously by each worker. Lower it if
               OmniRoute returns rate-limit errors.
             </span>
+          </label>
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={form.mergeFiles}
+              onChange={(event) => setForm({ ...form, mergeFiles: event.target.checked })}
+            />{' '}
+            Merge selected files into one analysis request
+            <span className="settings-note">
+              First asks the model to choose the most important files from the tree, then reviews
+              them together and returns separate findings by file.
+            </span>
+          </label>
+          <label>
+            Maximum files in one merged analysis
+            <input
+              type="number"
+              min={1}
+              max={10}
+              value={form.maxAnalysisFiles}
+              onChange={(event) =>
+                setForm({ ...form, maxAnalysisFiles: Number(event.target.value) })
+              }
+            />
           </label>
           <label className="checkbox-row">
             <input

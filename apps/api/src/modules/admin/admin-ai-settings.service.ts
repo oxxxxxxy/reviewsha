@@ -21,6 +21,8 @@ type StoredAiSettings = {
   timeoutMs: number;
   retryAttempts: number;
   maxConcurrency: number;
+  mergeFiles: boolean;
+  maxAnalysisFiles: number;
 };
 
 @Injectable()
@@ -53,6 +55,8 @@ export class AdminAiSettingsService {
       ...(dto.timeoutMs === undefined ? {} : { timeoutMs: dto.timeoutMs }),
       ...(dto.retryAttempts === undefined ? {} : { retryAttempts: dto.retryAttempts }),
       ...(dto.maxConcurrency === undefined ? {} : { maxConcurrency: dto.maxConcurrency }),
+      ...(dto.mergeFiles === undefined ? {} : { mergeFiles: dto.mergeFiles }),
+      ...(dto.maxAnalysisFiles === undefined ? {} : { maxAnalysisFiles: dto.maxAnalysisFiles }),
     };
     if (dto.clearApiKey) delete next.apiKey;
     if (dto.apiKey !== undefined && dto.apiKey.trim()) next.apiKey = dto.apiKey.trim();
@@ -126,6 +130,8 @@ export class AdminAiSettingsService {
       timeoutMs: Number(process.env.AI_TIMEOUT_MS ?? 120000),
       retryAttempts: Number(process.env.AI_RETRY_ATTEMPTS ?? 3),
       maxConcurrency: Number(process.env.AI_MAX_CONCURRENCY ?? 3),
+      mergeFiles: process.env.AI_MERGE_FILES !== 'false',
+      maxAnalysisFiles: Number(process.env.AI_MAX_ANALYSIS_FILES ?? 3),
     };
     if (!record) return defaults;
     try {
@@ -154,6 +160,8 @@ export class AdminAiSettingsService {
       timeoutMs: settings.timeoutMs,
       retryAttempts: settings.retryAttempts,
       maxConcurrency: settings.maxConcurrency,
+      mergeFiles: settings.mergeFiles,
+      maxAnalysisFiles: settings.maxAnalysisFiles,
       availableModels,
       updatedAt: null,
     };
