@@ -4,15 +4,19 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { ReportFormat, Role } from '@prisma/client';
 import { createHash } from 'node:crypto';
 import PDFDocument from 'pdfkit';
+import { fromBuffer } from 'yauzl';
+import { ZipFile } from 'yazl';
 import type { AuthenticatedUser } from '../../../common/auth/types/auth.types';
 import { ProjectRepository } from '../../../repositories/project/project.repository';
 import { StorageService } from '../../storage/services/storage.service';
 import type { ReportResponseDto, ReportsListDto } from '../dto/report-response.dto';
 import { ReportsRepository, type DetailedReport } from '../repositories/reports.repository';
+import { UploadedFileRepository } from '../../../repositories/upload/uploaded-file.repository';
 
 type ExportFormat = 'json' | 'md' | 'pdf';
 
@@ -21,15 +25,18 @@ export class ReportsService {
   private readonly reports: ReportsRepository;
   private readonly projects: ProjectRepository;
   private readonly storage: StorageService;
+  private readonly uploads: UploadedFileRepository;
 
   constructor(
     @Inject(ReportsRepository) reports: ReportsRepository,
     @Inject(ProjectRepository) projects: ProjectRepository,
     @Inject(StorageService) storage: StorageService,
+    @Optional() @Inject(UploadedFileRepository) uploads?: UploadedFileRepository,
   ) {
     this.reports = reports;
     this.projects = projects;
     this.storage = storage;
+    this.uploads = uploads as UploadedFileRepository;
   }
 
   async findById(user: AuthenticatedUser, id: string): Promise<ReportResponseDto> {
@@ -93,6 +100,22 @@ export class ReportsService {
       checksum,
     });
     return { ...generated, filename: `report-${id}.${format}` };
+  }
+
+  async exportPatchedZip(user: AuthenticatedUser, id: string): Promise<Buffer> {
+    const report = await this.getOwned(user, id);
+    if (!report.scan.sourceFileId) throw new NotFoundException('Source project archive not found');
+    if (!this.uploads) throw new NotFoundException('Source project archive repository unavailable');
+    const upload = await this.uploads.findById(report.scan.sourceFileId);
+    if (!upload) throw new NotFoundException('Source project archive not found');
+    const source = await this.storage.download('projects', upload.objectKey);
+    const sourceBuffer = await this.readStream(source.body);
+    const patches = new Map(
+      report.findings
+        .map((finding) => [finding.filePath, this.suggestedPatch(finding.suggestedPatch)] as const)
+        .filter((item): item is [string, NonNullable<(typeof item)[1]>] => Boolean(item[1])),
+    );
+    return this.rewriteZip(sourceBuffer, patches);
   }
 
   async compare(user: AuthenticatedUser, oldId: string, newId: string) {
@@ -227,6 +250,58 @@ export class ReportsService {
       ...(typeof patch.startLine === 'number' ? { startLine: patch.startLine } : {}),
       ...(typeof patch.endLine === 'number' ? { endLine: patch.endLine } : {}),
     };
+  }
+
+  private async readStream(stream: NodeJS.ReadableStream): Promise<Buffer> {
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream as AsyncIterable<Buffer | string>)
+      chunks.push(Buffer.from(chunk));
+    return Buffer.concat(chunks);
+  }
+
+  private rewriteZip(
+    source: Buffer,
+    patches: Map<string, { before: string; after: string }>,
+  ): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      fromBuffer(source, { lazyEntries: true }, (error, zip) => {
+        if (error || !zip) return reject(error ?? new Error('Invalid project archive'));
+        const output = new ZipFile();
+        const chunks: Buffer[] = [];
+        output.outputStream.on('data', (chunk: Buffer) => chunks.push(chunk));
+        output.outputStream.on('error', reject);
+        output.outputStream.on('end', () => resolve(Buffer.concat(chunks)));
+        zip.readEntry();
+        zip.on('entry', (entry) => {
+          if (/\/$/.test(entry.fileName)) {
+            output.addEmptyDirectory(entry.fileName);
+            zip.readEntry();
+            return;
+          }
+          zip.openReadStream(entry, (readError, stream) => {
+            if (readError || !stream)
+              return reject(readError ?? new Error('Unable to read archive entry'));
+            const parts: Buffer[] = [];
+            stream.on('data', (chunk: Buffer) => parts.push(chunk));
+            stream.on('error', reject);
+            stream.on('end', () => {
+              let content = Buffer.concat(parts);
+              const patch =
+                patches.get(entry.fileName) ?? patches.get(entry.fileName.replace(/^[^/]+\//, ''));
+              if (patch) {
+                const text = content.toString('utf8');
+                if (text.includes(patch.before))
+                  content = Buffer.from(text.replace(patch.before, patch.after));
+              }
+              output.addBuffer(content, entry.fileName);
+              zip.readEntry();
+            });
+          });
+        });
+        zip.on('end', () => output.end());
+        zip.on('error', reject);
+      });
+    });
   }
 
   private fileCoverage(report: DetailedReport) {

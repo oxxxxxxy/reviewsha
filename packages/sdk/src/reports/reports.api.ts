@@ -47,4 +47,10 @@ export class ReportsAPI {
       .get(`/reports/${reportId}/export/${format}`, { responseType: 'blob', signal })
       .then((response) => response.data as Blob);
   }
+
+  downloadPatchedZip(reportId: string, signal?: AbortSignal): Promise<Blob> {
+    return this.client.http
+      .get(`/reports/${reportId}/patched-zip`, { responseType: 'blob', signal })
+      .then((response) => response.data as Blob);
+  }
 }

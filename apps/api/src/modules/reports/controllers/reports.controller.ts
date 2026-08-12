@@ -93,4 +93,15 @@ export class ReportsController {
     const file = await this.service.export(user, id, format);
     response.type(file.contentType).attachment(file.filename).send(file.body);
   }
+
+  @Get('reports/:id/patched-zip')
+  @ApiOperation({ summary: 'Download the project archive with safe suggested patches applied' })
+  async patchedZip(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res() response: Response,
+  ): Promise<void> {
+    const archive = await this.service.exportPatchedZip(user, id);
+    response.type('application/zip').attachment(`reviewsha-${id}-patched.zip`).send(archive);
+  }
 }

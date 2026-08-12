@@ -304,6 +304,19 @@ function ReportDetails({ reportId }: { reportId: string }) {
       setDownloadError('Unable to download this report. Please try again.');
     }
   };
+  const downloadPatchedZip = async () => {
+    try {
+      const blob = await reviewshaSdk.reports.downloadPatchedZip(reportId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `reviewsha-${reportId}-patched.zip`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setDownloadError('Unable to build the patched project archive.');
+    }
+  };
   const findings = item.issues.filter((issue) => {
     const matchesSeverity = severity === 'ALL' || issue.severity === severity;
     const haystack = `${issue.title} ${issue.description} ${issue.filePath}`.toLowerCase();
@@ -349,6 +362,9 @@ function ReportDetails({ reportId }: { reportId: string }) {
             </Button>
             <Button variant="secondary" onClick={() => void download('json')}>
               JSON
+            </Button>
+            <Button variant="primary" onClick={() => void downloadPatchedZip()}>
+              Download patched ZIP
             </Button>
           </div>
         </div>

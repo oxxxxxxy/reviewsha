@@ -7,6 +7,7 @@ const reportInclude = {
   exports: { orderBy: { createdAt: 'desc' as const } },
   scan: {
     select: {
+      sourceFileId: true,
       status: true,
       createdAt: true,
       finishedAt: true,
