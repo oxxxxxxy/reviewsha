@@ -22,6 +22,7 @@ autoscaling:
   maxReplicas: 2
 omniroute:
   replicas: 2
+  seedConfigMap: reviewsha-omniroute-seed
   persistence:
     # Two local pods cannot share the default single-node RWO volume.
     # Credentials/configuration are injected from the Secret.

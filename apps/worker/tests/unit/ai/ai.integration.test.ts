@@ -181,6 +181,34 @@ describe('OmniRouterProvider HTTP contract', () => {
     vi.unstubAllGlobals();
   });
 
+  it('uses prompt-constrained JSON for DeepSeek Web routes', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        choices: [{ message: { content: '{"issues":[]}' } }],
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const config = new ConfigService({
+      worker: {
+        aiApiKey: 'secret-key',
+        aiBaseUrl: 'https://router.test/v1',
+        aiModel: 'ds-web/deepseek-chat',
+        aiTimeoutMs: 100,
+      },
+    });
+
+    await expect(new OmniRouterProvider(config).generate(request)).resolves.toMatchObject({
+      content: '{"issues":[]}',
+    });
+    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string) as Record<
+      string,
+      unknown
+    >;
+    expect(body).not.toHaveProperty('response_format');
+    vi.unstubAllGlobals();
+  });
+
   it.each([400, 401, 429, 500, 503])('maps HTTP %s to a provider error', async (status) => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status }));
     const config = new ConfigService({

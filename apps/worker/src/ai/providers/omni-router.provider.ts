@@ -85,7 +85,14 @@ export class OmniRouterProvider implements AIProvider {
             { role: 'system', content: request.system },
             { role: 'user', content: request.prompt },
           ],
-          ...(request.outputFormat === 'json' ? { response_format: { type: 'json_object' } } : {}),
+          // DeepSeek Web accepts the JSON instruction in the prompt, but its
+          // web bridge returns an empty message when OpenAI's native
+          // response_format=json_object is sent. Keep native JSON mode for
+          // providers that support it and use prompt-constrained JSON for
+          // the DeepSeek Web routes.
+          ...(request.outputFormat === 'json' && !settings.model.startsWith('ds-web/')
+            ? { response_format: { type: 'json_object' } }
+            : {}),
         }),
       });
       if (!response.ok) {

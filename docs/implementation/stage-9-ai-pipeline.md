@@ -32,10 +32,18 @@ lock-файлы исключаются. `SecretRedactorService` маскируе
 
 Бизнес-логика зависит только от `AIProvider`. Production provider использует
 OpenAI-compatible OmniRouter API и модель из `AI_MODEL` (production Helm default:
-`auto/best-coding`). Есть timeout, exponential retry только для временных
+`ds-web/deepseek-chat`). Есть timeout, exponential retry только для временных
 ошибок, дневная quota, input/output token accounting и общий concurrency limit.
 Ключ обязателен в production и никогда не логируется. `MockAIProvider` разрешён
 только для тестов и локальной проверки.
+
+Для DeepSeek Web OmniRoute используется prompt-constrained JSON: этот маршрут
+возвращает пустой `message.content`, если одновременно передать OpenAI
+`response_format=json_object`. Поэтому worker передаёт JSON-схему в prompt и
+не отправляет native `response_format` для моделей `ds-web/*`. В Kubernetes
+учётные данные OmniRoute должны быть импортированы в его encrypted storage;
+seed ConfigMap содержит только зашифрованную SQLite-базу, а ключ шифрования
+хранится в Secret.
 
 ## Данные
 

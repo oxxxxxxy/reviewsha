@@ -30,6 +30,7 @@ omniroute:
   replicas: 2
   port: 20128
   existingSecret: reviewsha-omniroute-secrets
+  seedConfigMap: ''
   persistence:
     enabled: true
     size: 1Gi
@@ -65,7 +66,7 @@ env:
   # Reasoning-capable models need room for both hidden reasoning and the
   # structured JSON review response.
   AI_MAX_TOKENS: '6000'
-  AI_MODEL: auto/best-coding
+  AI_MODEL: ds-web/deepseek-chat
   # Respect upstream 429 lockouts instead of hammering the provider from both
   # worker replicas. The provider can override the delay with Retry-After.
   AI_RETRY_ATTEMPTS: '5'

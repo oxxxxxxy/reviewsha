@@ -33,6 +33,23 @@ spec:
     metadata:
       labels: { app.kubernetes.io/name: reviewsha, app.kubernetes.io/component: omniroute }
     spec:
+      {{- if .Values.omniroute.seedConfigMap }}
+      initContainers:
+        - name: seed-omniroute-data
+          image: busybox:1.36
+          command:
+            - sh
+            - -ec
+            - >-
+              if [ ! -f /var/lib/omniroute/storage.sqlite ]; then
+                gzip -dc /seed/storage.sqlite.gz > /var/lib/omniroute/storage.sqlite;
+              fi;
+              chown -R 1000:1000 /var/lib/omniroute;
+              chmod -R u+rwX /var/lib/omniroute;
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/omniroute }
+            - { name: seed, mountPath: /seed, readOnly: true }
+      {{- end }}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -78,6 +95,10 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
+        {{- if .Values.omniroute.seedConfigMap }}
+        - name: seed
+          configMap: { name: {{ .Values.omniroute.seedConfigMap }} }
+        {{- end }}
 ---
 apiVersion: v1
 kind: Service
