@@ -32,7 +32,7 @@ lock-файлы исключаются. `SecretRedactorService` маскируе
 
 Бизнес-логика зависит только от `AIProvider`. Production provider использует
 OpenAI-compatible OmniRouter API и модель из `AI_MODEL` (production Helm default:
-`ds-web/deepseek-v4-pro`). Есть timeout, exponential retry только для временных
+`auto/best-coding`). Есть timeout, exponential retry только для временных
 ошибок, дневная quota, input/output token accounting и общий concurrency limit.
 Ключ обязателен в production и никогда не логируется. `MockAIProvider` разрешён
 только для тестов и локальной проверки.
