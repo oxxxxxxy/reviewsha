@@ -789,8 +789,12 @@ a {
   display: block;
   white-space: pre-wrap;
 }
-.finding-suggested-patch .is-removed { color: #ff829f; }
-.finding-suggested-patch .is-added { color: #71e7b8; }
+.finding-suggested-patch .is-removed {
+  color: #ff829f;
+}
+.finding-suggested-patch .is-added {
+  color: #71e7b8;
+}
 .finding-code-line-content {
   white-space: pre;
 }

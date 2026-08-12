@@ -329,9 +329,12 @@ body {
   background:
     linear-gradient(rgb(11 14 19 / 92%), rgb(11 14 19 / 92%)),
     linear-gradient(90deg, rgb(42 49 61 / 20%) 1px, transparent 1px),
-    linear-gradient(rgb(42 49 61 / 20%) 1px, transparent 1px),
-    var(--color-background);
-  background-size: auto, 28px 28px, 28px 28px, auto;
+    linear-gradient(rgb(42 49 61 / 20%) 1px, transparent 1px), var(--color-background);
+  background-size:
+    auto,
+    28px 28px,
+    28px 28px,
+    auto;
 }
 .admin-sidebar {
   border-right: 1px solid var(--color-border);
@@ -420,9 +423,12 @@ tr:hover td {
   background:
     linear-gradient(rgb(11 14 19 / 92%), rgb(11 14 19 / 92%)),
     linear-gradient(90deg, rgb(42 49 61 / 20%) 1px, transparent 1px),
-    linear-gradient(rgb(42 49 61 / 20%) 1px, transparent 1px),
-    var(--color-background);
-  background-size: auto, 28px 28px, 28px 28px, auto;
+    linear-gradient(rgb(42 49 61 / 20%) 1px, transparent 1px), var(--color-background);
+  background-size:
+    auto,
+    28px 28px,
+    28px 28px,
+    auto;
 }
 .auth-card {
   border-radius: var(--radius-lg);
