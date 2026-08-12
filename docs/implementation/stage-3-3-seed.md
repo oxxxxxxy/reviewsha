@@ -39,9 +39,12 @@ apps/api/prisma/
 
 Пользователи:
 
-- `admin@reviewsha.local` — `ADMIN`;
-- `developer@reviewsha.local` — `USER`;
-- `demo@reviewsha.local` — `USER`.
+- `admin@reviewsha.local` — `ADMIN`, пароль `admin-password`;
+- `developer@reviewsha.local` — `USER`, пароль `developer-password`;
+- `demo@reviewsha.local` — `USER`, пароль `demo-password`.
+
+Пароли seed-пользователей хранятся в совместимом с `AuthService` формате Argon2id.
+После изменения seed-данных выполните `yarn workspace @reviewsha/api prisma:seed`.
 
 Проекты:
 

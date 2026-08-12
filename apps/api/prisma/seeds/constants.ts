@@ -58,19 +58,24 @@ export function hashSeedValue(value: string): string {
 export const seedUsers = [
   {
     email: DEFAULT_ADMIN_EMAIL,
-    passwordHash: hashSeedValue('admin-password'),
+    // These are Argon2id hashes because AuthService verifies passwords with argon2.
+    // Keep the corresponding local/demo credentials documented in the seed guide.
+    passwordHash:
+      '$argon2id$v=19$m=65536,p=4,t=3$58baM+JcMmU6zqO0vepgKA$kDFbb5pdKpP7rZ1VlbVBmFCLp4bRvw8ncgpM8vmjm20',
     displayName: 'Reviewsha Admin',
     role: Role.ADMIN,
   },
   {
     email: DEFAULT_DEVELOPER_EMAIL,
-    passwordHash: hashSeedValue('developer-password'),
+    passwordHash:
+      '$argon2id$v=19$m=65536,p=4,t=3$5DhfoO3yjkT2TuwUGzts3g$o14MYKsi3GV+X/yG/NQSh8DOiDCji42AiwS29CaX1uw',
     displayName: 'Developer User',
     role: Role.USER,
   },
   {
     email: DEFAULT_DEMO_EMAIL,
-    passwordHash: hashSeedValue('demo-password'),
+    passwordHash:
+      '$argon2id$v=19$m=65536,p=4,t=3$v1G+9pFmG9/ez1Asv09tCQ$YxpoYby6J6InEptq7xUPO6Q7iFNgYYGIlSnTiCzUQ9A',
     displayName: 'Demo User',
     role: Role.USER,
   },
