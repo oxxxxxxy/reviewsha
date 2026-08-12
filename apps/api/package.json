@@ -31,7 +31,7 @@
     "test:stage7": "docker compose up -d redis && yarn build:deps && RUN_STAGE7_INTEGRATION=true vitest run tests/unit/modules/queue tests/unit/modules/pipeline tests/integration/modules/queue tests/integration/modules/pipeline --coverage=false; status=$?; docker compose stop redis >/dev/null 2>&1 || true; exit $status"
   },
   "dependencies": {
-    "@nestjs/bullmq": "^11.0.4",
+    "@nestjs/bullmq": "^11.0.5",
     "@nestjs/common": "^11",
     "@nestjs/config": "^4",
     "@nestjs/core": "^11",
