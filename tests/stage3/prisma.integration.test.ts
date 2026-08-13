@@ -308,7 +308,9 @@ describe('Stage 3 Prisma schema and migration infrastructure', () => {
     expect(admin?.role).toBe(Role.ADMIN);
     expect(developer?.role).toBe(Role.USER);
     expect(demo?.role).toBe(Role.USER);
-    expect(admin?.passwordHash).toMatch(/^sha256:/);
+    // Seed credentials must use the same password hashing algorithm as the
+    // authentication service; checksums are reserved for uploaded artifacts.
+    expect(admin?.passwordHash).toMatch(/^\$argon2id\$/);
   });
 
   it('creates realistic demo projects', async () => {
