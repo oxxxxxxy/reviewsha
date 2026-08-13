@@ -751,6 +751,16 @@ a {
   color: #fff1f4;
   box-shadow: inset 3px 0 0 #ff4f7b;
 }
+.finding-code-context code.is-removed {
+  background: rgb(255 70 105 / 0.18);
+  color: #fff1f4;
+  box-shadow: inset 3px 0 0 #ff4f7b;
+}
+.finding-code-context code.is-added {
+  background: rgb(53 211 155 / 0.16);
+  color: #d7fff0;
+  box-shadow: inset 3px 0 0 #35d39b;
+}
 .finding-code-line-number {
   padding-right: 0.75rem;
   color: #667085;
@@ -760,6 +770,47 @@ a {
 .finding-code-context code.is-target .finding-code-line-number {
   color: #ff91aa;
   font-weight: 700;
+}
+.finding-code-context code.is-removed .finding-code-line-number {
+  color: #ff91aa;
+  font-weight: 700;
+}
+.finding-code-context code.is-added .finding-code-line-number {
+  color: #72e6bd;
+  font-weight: 700;
+}
+
+.file-review-findings {
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 1.1rem;
+}
+.file-review-findings h4 {
+  margin: 0 0 0.75rem;
+}
+.file-review-finding-list {
+  display: grid;
+  gap: 0.65rem;
+}
+.file-review-finding {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.8rem 0.9rem;
+}
+.file-review-finding-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+.file-review-finding-heading strong {
+  flex: 1 1 18rem;
+}
+.file-review-finding-heading code {
+  color: var(--color-muted);
+}
+.file-review-finding p {
+  margin: 0.55rem 0 0;
 }
 
 .finding-suggested-patch {

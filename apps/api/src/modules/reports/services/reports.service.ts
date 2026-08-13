@@ -250,7 +250,11 @@ export class ReportsService {
           ? chunk.filePaths.filter((value): value is string => typeof value === 'string')
           : []),
       ];
-      if (!paths.includes(filePath) || typeof chunk.content !== 'string') continue;
+      if (
+        !paths.some((path) => this.pathsMatch(path, filePath)) ||
+        typeof chunk.content !== 'string'
+      )
+        continue;
       const sourceLines = chunk.content.split(/\r?\n/);
       if (line > sourceLines.length) continue;
       const startLine = Math.max(1, line - 2);
@@ -343,9 +347,8 @@ export class ReportsService {
           paths.add(chunk.path);
       }
     }
-    const issues = new Map<string, number>();
+    const issuePaths = report.findings.map((finding) => finding.filePath);
     for (const finding of report.findings) {
-      issues.set(finding.filePath, (issues.get(finding.filePath) ?? 0) + 1);
       paths.add(finding.filePath);
     }
     const generated = Array.isArray(report.fileReviews)
@@ -362,11 +365,14 @@ export class ReportsService {
         .map((item) => [item.path as string, item]),
     );
     return [...paths].sort().map((path) => {
-      const review = generatedByPath.get(path);
+      const review =
+        generatedByPath.get(path) ??
+        generated.find((item) => typeof item.path === 'string' && this.pathsMatch(item.path, path));
+      const issueCount = issuePaths.filter((issuePath) => this.pathsMatch(issuePath, path)).length;
       return {
         path,
-        issueCount: issues.get(path) ?? 0,
-        status: issues.has(path) ? ('ISSUES_FOUND' as const) : ('REVIEWED' as const),
+        issueCount,
+        status: issueCount ? ('ISSUES_FOUND' as const) : ('REVIEWED' as const),
         summary:
           typeof review?.summary === 'string'
             ? review.summary
@@ -379,6 +385,18 @@ export class ReportsService {
           : [],
       };
     });
+  }
+
+  private pathsMatch(left: string, right: string): boolean {
+    const normalize = (value: string) =>
+      value
+        .replaceAll('\\', '/')
+        .replace(/^\/+/, '')
+        .replace(/^project:\/\/?/, '')
+        .toLowerCase();
+    const a = normalize(left);
+    const b = normalize(right);
+    return a === b || a.endsWith(`/${b}`) || b.endsWith(`/${a}`);
   }
 
   private async buildExport(report: DetailedReport, format: ExportFormat) {

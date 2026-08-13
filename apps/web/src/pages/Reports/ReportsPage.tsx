@@ -449,6 +449,28 @@ function ReportDetails({ reportId }: { reportId: string }) {
                     )}
                   </div>
                 </div>
+                {item.issues.filter((issue) => pathsMatch(issue.filePath, selectedFile.path))
+                  .length ? (
+                  <div className="file-review-findings">
+                    <h4>Findings in this file</h4>
+                    <div className="file-review-finding-list">
+                      {item.issues
+                        .filter((issue) => pathsMatch(issue.filePath, selectedFile.path))
+                        .map((issue) => (
+                          <div className="file-review-finding" key={issue.id}>
+                            <div className="file-review-finding-heading">
+                              <span className={`finding-severity ${issue.severity.toLowerCase()}`}>
+                                {issue.severity}
+                              </span>
+                              <strong>{issue.title}</strong>
+                              {issue.line ? <code>line {issue.line}</code> : null}
+                            </div>
+                            <Markdown>{issue.description}</Markdown>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : null}
               </article>
             ) : null}
           </div>
@@ -496,20 +518,7 @@ function ReportDetails({ reportId }: { reportId: string }) {
                   </code>
                 </div>
                 <h3>{issue.title}</h3>
-                {issue.line &&
-                issue.line > 1 &&
-                (issue as typeof issue & { codeContext?: CodeContext }).codeContext ? (
-                  <CodeContextBlock
-                    context={(issue as typeof issue & { codeContext: CodeContext }).codeContext}
-                  />
-                ) : null}
-                {(issue as typeof issue & { suggestedPatch?: SuggestedPatch }).suggestedPatch ? (
-                  <SuggestedPatchBlock
-                    patch={
-                      (issue as typeof issue & { suggestedPatch: SuggestedPatch }).suggestedPatch
-                    }
-                  />
-                ) : null}
+                <FindingCodeContext issue={issue as unknown as ReportIssueForContext} />
                 <div className="finding-recommendation">
                   <strong>Recommended fix</strong>
                   <Markdown>{issue.recommendation ?? 'No recommendation.'}</Markdown>
@@ -528,26 +537,87 @@ function ReportDetails({ reportId }: { reportId: string }) {
 type CodeContext = {
   startLine: number;
   endLine: number;
-  lines: Array<{ line: number; content: string; isTarget: boolean }>;
+  lines: Array<{
+    line: number;
+    content: string;
+    isTarget: boolean;
+    kind?: 'context' | 'removed' | 'added';
+  }>;
 };
 
 type SuggestedPatch = { before: string; after: string; startLine?: number; endLine?: number };
 
-function SuggestedPatchBlock({ patch }: { patch: SuggestedPatch }) {
-  return (
-    <div className="finding-suggested-patch" aria-label="Suggested code replacement">
-      <div className="finding-code-context-header">
-        <span>Suggested replacement</span>
-        <button type="button" onClick={() => void navigator.clipboard?.writeText(patch.after)}>
-          Copy replacement
-        </button>
-      </div>
-      <pre>
-        <code className="is-removed">- {patch.before}</code>
-        <code className="is-added">+ {patch.after}</code>
-      </pre>
-    </div>
-  );
+type ReportIssueForContext = {
+  line?: number | null;
+  codeContext?: CodeContext | null;
+  suggestedPatch?: SuggestedPatch | null;
+};
+
+export function pathsMatch(left: string, right: string): boolean {
+  const normalize = (value: string) =>
+    value
+      .replaceAll('\\', '/')
+      .replace(/^\/+/, '')
+      .replace(/^project:\/\/?/, '')
+      .toLowerCase();
+  const a = normalize(left);
+  const b = normalize(right);
+  return a === b || a.endsWith(`/${b}`) || b.endsWith(`/${a}`);
+}
+
+export function buildFindingCodeContext(issue: ReportIssueForContext): CodeContext | null {
+  const context = issue.codeContext ?? null;
+  const patch = issue.suggestedPatch ?? null;
+  if (!context && !patch) return null;
+  if (!patch) return context;
+
+  const targetLine = issue.line ?? patch.startLine ?? patch.endLine ?? context?.startLine ?? 1;
+  const targetIndex =
+    context?.lines.findIndex((line) => line.isTarget || line.line === targetLine) ?? -1;
+  const before = patch.before
+    ? [{ line: targetLine, content: patch.before, kind: 'removed' as const }]
+    : [];
+  const after = patch.after
+    ? [{ line: targetLine, content: patch.after, kind: 'added' as const }]
+    : [];
+
+  if (context && targetIndex >= 0) {
+    const lines = [
+      ...context.lines.slice(0, targetIndex).map((line) => ({ ...line, kind: 'context' as const })),
+      ...before,
+      ...after,
+      ...context.lines
+        .slice(targetIndex + 1)
+        .map((line) => ({ ...line, kind: 'context' as const })),
+    ];
+    return {
+      startLine: Math.min(...lines.map((line) => line.line)),
+      endLine: Math.max(...lines.map((line) => line.line)),
+      lines: lines.map((line) => ({
+        line: line.line,
+        content: line.content,
+        isTarget: line.kind !== 'context',
+        kind: line.kind,
+      })),
+    };
+  }
+
+  const lines = [...before, ...after];
+  return {
+    startLine: targetLine,
+    endLine: targetLine,
+    lines: lines.map((line) => ({
+      line: line.line,
+      content: line.content,
+      isTarget: true,
+      kind: line.kind,
+    })),
+  };
+}
+
+function FindingCodeContext({ issue }: { issue: ReportIssueForContext }) {
+  const context = buildFindingCodeContext(issue);
+  return context ? <CodeContextBlock context={context} /> : null;
 }
 
 function CodeContextBlock({ context }: { context: CodeContext }) {
@@ -561,7 +631,10 @@ function CodeContextBlock({ context }: { context: CodeContext }) {
       </div>
       <pre>
         {context.lines.map((line) => (
-          <code className={line.isTarget ? 'is-target' : ''} key={line.line}>
+          <code
+            className={line.kind ? `is-${line.kind}` : line.isTarget ? 'is-target' : ''}
+            key={`${line.line}-${line.kind ?? 'context'}-${line.content}`}
+          >
             <span className="finding-code-line-number">{line.line}</span>
             <span className="finding-code-line-content">{line.content || ' '}</span>
           </code>
