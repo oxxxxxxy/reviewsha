@@ -449,25 +449,29 @@ function ReportDetails({ reportId }: { reportId: string }) {
                     )}
                   </div>
                 </div>
-                {item.issues.filter((issue) => pathsMatch(issue.filePath, selectedFile.path))
-                  .length ? (
+                {getFileFindings(item.issues, selectedFile.path).length ? (
                   <div className="file-review-findings">
                     <h4>Findings in this file</h4>
                     <div className="file-review-finding-list">
-                      {item.issues
-                        .filter((issue) => pathsMatch(issue.filePath, selectedFile.path))
-                        .map((issue) => (
-                          <div className="file-review-finding" key={issue.id}>
-                            <div className="file-review-finding-heading">
-                              <span className={`finding-severity ${issue.severity.toLowerCase()}`}>
-                                {issue.severity}
-                              </span>
-                              <strong>{issue.title}</strong>
-                              {issue.line ? <code>line {issue.line}</code> : null}
-                            </div>
-                            <Markdown>{issue.description}</Markdown>
+                      {getFileFindings(item.issues, selectedFile.path).map((issue) => (
+                        <div className="file-review-finding" key={issue.id}>
+                          <div className="finding-item-header">
+                            <span className={`finding-severity ${issue.severity.toLowerCase()}`}>
+                              {issue.severity}
+                            </span>
+                            <code>
+                              {issue.filePath}
+                              {issue.line ? `:${issue.line}` : ''}
+                            </code>
                           </div>
-                        ))}
+                          <h5>{issue.title}</h5>
+                          <FindingCodeContext issue={issue as unknown as ReportIssueForContext} />
+                          <div className="finding-recommendation">
+                            <strong>Recommended fix</strong>
+                            <Markdown>{issue.recommendation ?? 'No recommendation.'}</Markdown>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ) : null}
@@ -563,6 +567,13 @@ export function pathsMatch(left: string, right: string): boolean {
   const a = normalize(left);
   const b = normalize(right);
   return a === b || a.endsWith(`/${b}`) || b.endsWith(`/${a}`);
+}
+
+export function getFileFindings<T extends { filePath: string }>(
+  issues: T[],
+  filePath: string,
+): T[] {
+  return issues.filter((issue) => pathsMatch(issue.filePath, filePath));
 }
 
 export function buildFindingCodeContext(issue: ReportIssueForContext): CodeContext | null {

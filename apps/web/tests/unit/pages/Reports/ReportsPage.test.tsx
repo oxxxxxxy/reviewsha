@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { reviewshaSdk } from '../../../../src/api/client';
 import {
   buildFindingCodeContext,
+  getFileFindings,
   pathsMatch,
   ReportsPage,
 } from '../../../../src/pages/Reports/ReportsPage';
@@ -63,6 +64,16 @@ describe('ReportsPage project chooser', () => {
 });
 
 describe('report finding context', () => {
+  it('keeps findings visible both in the file view and the global list', () => {
+    const issues = [
+      { id: '1', filePath: 'src/main.ts' },
+      { id: '2', filePath: 'src/other.ts' },
+    ];
+    expect(getFileFindings(issues, 'project://repo/src/main.ts').map((issue) => issue.id)).toEqual([
+      '1',
+    ]);
+  });
+
   it('matches file paths when one side contains the uploaded project root', () => {
     expect(pathsMatch('src/api.ts', 'project://repo/src/api.ts')).toBe(true);
     expect(pathsMatch('src/api.ts', 'src/other.ts')).toBe(false);

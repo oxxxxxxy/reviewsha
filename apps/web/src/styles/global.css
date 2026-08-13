@@ -797,54 +797,9 @@ a {
   border-radius: var(--radius-md);
   padding: 0.8rem 0.9rem;
 }
-.file-review-finding-heading {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-}
-.file-review-finding-heading strong {
-  flex: 1 1 18rem;
-}
-.file-review-finding-heading code {
-  color: var(--color-muted);
-}
-.file-review-finding p {
-  margin: 0.55rem 0 0;
-}
-
-.finding-suggested-patch {
-  margin: 1rem 0;
-  overflow: hidden;
-  border: 1px solid rgb(53 211 155 / 30%);
-  border-radius: var(--radius-md);
-  background: #0d1515;
-}
-.finding-suggested-patch .finding-code-context-header button {
-  border: 0;
-  background: transparent;
-  color: var(--color-success);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-.finding-suggested-patch pre {
-  display: grid;
-  gap: 0.25rem;
-  margin: 0;
-  padding: 0.85rem 1rem;
-  overflow-x: auto;
-}
-.finding-suggested-patch code {
-  display: block;
-  white-space: pre-wrap;
-}
-.finding-suggested-patch .is-removed {
-  color: #ff829f;
-}
-.finding-suggested-patch .is-added {
-  color: #71e7b8;
+.file-review-finding h5 {
+  margin: 0.7rem 0;
+  font-size: 1rem;
 }
 .finding-code-line-content {
   white-space: pre;
