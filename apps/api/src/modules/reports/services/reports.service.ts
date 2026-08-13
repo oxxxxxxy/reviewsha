@@ -112,7 +112,7 @@ export class ReportsService {
     if (!upload) throw new NotFoundException('Source project archive not found');
     const patches = new Map(
       report.findings
-        .map((finding) => [finding.filePath, this.suggestedPatch(finding.suggestedPatch)] as const)
+        .map((finding) => [finding.filePath, this.suggestedPatch(report, finding)] as const)
         .filter((item): item is [string, NonNullable<(typeof item)[1]>] => Boolean(item[1])),
     );
     return this.rewriteProjectZip(report.projectId, patches);
@@ -217,9 +217,16 @@ export class ReportsService {
         description: item.description,
         filePath: item.filePath,
         line: item.line,
+        lineStart: item.lineStart,
+        lineEnd: item.lineEnd,
         recommendation: item.recommendation,
-        suggestedPatch: this.suggestedPatch(item.suggestedPatch),
-        codeContext: this.codeContext(report, item.filePath, item.line),
+        suggestedPatch: this.suggestedPatch(report, item),
+        codeContext: this.codeContext(
+          report,
+          item.filePath,
+          item.lineStart ?? item.line,
+          item.lineEnd ?? item.lineStart ?? item.line,
+        ),
       })),
       recommendations: [
         ...new Set(
@@ -235,52 +242,91 @@ export class ReportsService {
     };
   }
 
-  private codeContext(report: DetailedReport, filePath: string, line?: number | null) {
-    if (!line || line <= 1) return null;
-    const chunks = report.scan.analysisContext?.chunks;
-    if (!Array.isArray(chunks)) return null;
-    for (const chunk of chunks as Array<{
-      path?: unknown;
-      filePaths?: unknown;
-      content?: unknown;
-    }>) {
-      const paths = [
-        ...(typeof chunk.path === 'string' ? [chunk.path] : []),
-        ...(Array.isArray(chunk.filePaths)
-          ? chunk.filePaths.filter((value): value is string => typeof value === 'string')
-          : []),
-      ];
-      if (
-        !paths.some((path) => this.pathsMatch(path, filePath)) ||
-        typeof chunk.content !== 'string'
-      )
-        continue;
-      const sourceLines = chunk.content.split(/\r?\n/);
-      if (line > sourceLines.length) continue;
-      const startLine = Math.max(1, line - 2);
-      const endLine = Math.min(sourceLines.length, line + 2);
-      return {
-        startLine,
-        endLine,
-        lines: sourceLines.slice(startLine - 1, endLine).map((content, index) => {
-          const currentLine = startLine + index;
-          return { line: currentLine, content, isTarget: currentLine === line };
-        }),
-      };
-    }
-    return null;
+  private codeContext(
+    report: DetailedReport,
+    filePath: string,
+    lineStart?: number | null,
+    lineEnd?: number | null,
+  ) {
+    if (!lineStart || lineStart <= 1) return null;
+    const end = Math.max(lineStart, lineEnd ?? lineStart);
+    const source = this.sourceFile(report, filePath);
+    if (!source) return null;
+    const sourceLines = source.content.split(/\r?\n/);
+    if (lineStart > sourceLines.length) return null;
+    const boundedEnd = Math.min(sourceLines.length, end);
+    const contextStart = Math.max(1, lineStart - 2);
+    const contextEnd = Math.min(sourceLines.length, boundedEnd + 2);
+    return {
+      startLine: contextStart,
+      endLine: contextEnd,
+      lines: sourceLines.slice(contextStart - 1, contextEnd).map((content, index) => {
+        const currentLine = contextStart + index;
+        return {
+          line: currentLine,
+          content,
+          isTarget: currentLine >= lineStart && currentLine <= boundedEnd,
+        };
+      }),
+    };
   }
 
-  private suggestedPatch(value: unknown) {
+  private suggestedPatch(report: DetailedReport, finding: DetailedReport['findings'][number]) {
+    const value = finding.suggestedPatch;
     if (!value || typeof value !== 'object') return null;
     const patch = value as Record<string, unknown>;
     if (typeof patch.before !== 'string' || typeof patch.after !== 'string') return null;
+    if (patch.before.length > 0) {
+      const source = this.sourceFile(report, finding.filePath);
+      const start =
+        finding.lineStart ??
+        finding.line ??
+        (typeof patch.startLine === 'number' ? patch.startLine : undefined);
+      const end =
+        finding.lineEnd ??
+        finding.lineStart ??
+        finding.line ??
+        (typeof patch.endLine === 'number' ? patch.endLine : start);
+      if (!source || !start || !end || start < 1 || end < start) return null;
+      const actual = source.content
+        .split(/\r?\n/)
+        .slice(start - 1, end)
+        .join('\n');
+      if (this.normalizeText(actual) !== this.normalizeText(patch.before)) return null;
+    }
     return {
       before: patch.before,
       after: patch.after,
       ...(typeof patch.startLine === 'number' ? { startLine: patch.startLine } : {}),
       ...(typeof patch.endLine === 'number' ? { endLine: patch.endLine } : {}),
     };
+  }
+
+  private sourceFile(
+    report: DetailedReport,
+    filePath: string,
+  ): { path: string; content: string } | null {
+    const metadata = report.scan.analysisContext?.metadata;
+    const sourceFiles =
+      metadata && typeof metadata === 'object' && !Array.isArray(metadata)
+        ? (metadata as { sourceFiles?: unknown }).sourceFiles
+        : undefined;
+    if (!Array.isArray(sourceFiles)) return null;
+    return (
+      sourceFiles.find((item): item is { path: string; content: string } =>
+        Boolean(
+          item &&
+          typeof item === 'object' &&
+          typeof (item as { path?: unknown }).path === 'string' &&
+          typeof (item as { content?: unknown }).content === 'string' &&
+          this.pathsMatch((item as { path: string }).path, filePath),
+        ),
+      ) ?? null
+    );
+  }
+
+  private normalizeText(value: string): string {
+    return value.replace(/\r\n/g, '\n');
   }
 
   private async readStream(stream: NodeJS.ReadableStream): Promise<Buffer> {

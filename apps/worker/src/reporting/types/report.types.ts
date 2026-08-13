@@ -6,6 +6,8 @@ export type ReportIssue = AIReviewIssue & {
   description: string;
   filePath: string;
   line?: number;
+  lineStart?: number;
+  lineEnd?: number;
 };
 export type AnalysisReport = {
   version: '1.0';

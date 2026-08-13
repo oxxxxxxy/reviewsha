@@ -78,27 +78,32 @@ export class AnalyzeProcessor implements JobHandler {
       .digest('hex');
     const cached = await this.db.analysisContext.findFirst({ where: { cacheKey } });
     let metadata: ReturnType<AIProjectParser['parse']>;
+    let metadataForStorage: Record<string, unknown>;
     let allChunks: ReturnType<ChunkBuilderService['build']>;
     let sourceFiles: AIFile[];
     if (cached) {
       metadata = cached.metadata as unknown as ReturnType<AIProjectParser['parse']>;
       allChunks = cached.chunks as unknown as ReturnType<ChunkBuilderService['build']>;
+      sourceFiles = await this.loadFiles(paths.extracted, context.files ?? []);
+      metadataForStorage = {
+        ...(cached.metadata as Record<string, unknown>),
+        sourceFiles: this.sourceSnapshots(sourceFiles),
+      };
       await this.db.analysisContext.upsert({
         where: { scanId: scan.id },
         create: {
           projectId: payload.projectId,
           scanId: scan.id,
           cacheKey,
-          metadata: cached.metadata as Prisma.InputJsonValue,
+          metadata: metadataForStorage as Prisma.InputJsonValue,
           chunks: cached.chunks as Prisma.InputJsonValue,
         },
         update: {
           cacheKey,
-          metadata: cached.metadata as Prisma.InputJsonValue,
+          metadata: metadataForStorage as Prisma.InputJsonValue,
           chunks: cached.chunks as Prisma.InputJsonValue,
         },
       });
-      sourceFiles = await this.loadFiles(paths.extracted, context.files ?? []);
     } else {
       const files = await this.loadFiles(paths.extracted, context.files ?? []);
       sourceFiles = files;
@@ -109,6 +114,10 @@ export class AnalyzeProcessor implements JobHandler {
         languages: context.languages,
         metadata: context.statistics,
       });
+      metadataForStorage = {
+        ...(metadata as unknown as Record<string, unknown>),
+        sourceFiles: this.sourceSnapshots(sourceFiles),
+      };
       allChunks = [
         this.chunks.buildArchitecture(metadata, context.structure ?? []),
         ...this.chunks.build(files, { maxTokens: 2500, maxChunks: 100 }),
@@ -119,12 +128,12 @@ export class AnalyzeProcessor implements JobHandler {
           projectId: payload.projectId,
           scanId: scan.id,
           cacheKey,
-          metadata: metadata as unknown as Prisma.InputJsonValue,
+          metadata: metadataForStorage as Prisma.InputJsonValue,
           chunks: allChunks as unknown as Prisma.InputJsonValue,
         },
         update: {
           cacheKey,
-          metadata: metadata as unknown as Prisma.InputJsonValue,
+          metadata: metadataForStorage as Prisma.InputJsonValue,
           chunks: allChunks as unknown as Prisma.InputJsonValue,
         },
       });
@@ -464,6 +473,7 @@ export class AnalyzeProcessor implements JobHandler {
           size: file.size,
           role: this.projectParser.classifyFile(file.path),
           content: this.numberLines(this.secrets.redact(content)),
+          sourceContent: this.secrets.redact(content),
         });
       } catch (error) {
         this.logger.warn(
@@ -481,5 +491,15 @@ export class AnalyzeProcessor implements JobHandler {
     return lines
       .map((line, index) => `${String(index + 1).padStart(width, ' ')} | ${line}`)
       .join('\n');
+  }
+
+  private sourceSnapshots(files: AIFile[]) {
+    return files.map((file) => ({
+      path: file.path,
+      language: file.language,
+      size: file.size,
+      role: file.role,
+      content: file.sourceContent ?? '',
+    }));
   }
 }

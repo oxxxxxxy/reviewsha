@@ -11,7 +11,7 @@ const reportInclude = {
       status: true,
       createdAt: true,
       finishedAt: true,
-      analysisContext: { select: { chunks: true } },
+      analysisContext: { select: { chunks: true, metadata: true } },
     },
   },
 } satisfies Prisma.ReportInclude;

@@ -38,7 +38,22 @@ const report = (overrides: Record<string, unknown> = {}) => ({
   deletedAt: null,
   findings: [finding()],
   exports: [],
-  scan: { status: 'COMPLETED', createdAt: new Date(), finishedAt: new Date() },
+  scan: {
+    status: 'COMPLETED',
+    createdAt: new Date(),
+    finishedAt: new Date(),
+    analysisContext: {
+      metadata: {
+        sourceFiles: [
+          {
+            path: 'src/auth.ts',
+            content: Array.from({ length: 14 }, (_, index) => `source-${index + 1}`).join('\n'),
+          },
+        ],
+      },
+      chunks: [],
+    },
+  },
   ...overrides,
 });
 
@@ -94,6 +109,19 @@ describe('ReportsService', () => {
 
     await expect(service.findById(user, 'report-1')).resolves.toMatchObject({
       issues: [{ title: fullProblem }],
+    });
+  });
+
+  it('builds code context from the stored source file, not prompt chunks', async () => {
+    const response = await service.findById(user, 'report-1');
+    expect(response.issues[0]?.codeContext).toEqual({
+      startLine: 8,
+      endLine: 12,
+      lines: [8, 9, 10, 11, 12].map((line) => ({
+        line,
+        content: `source-${line}`,
+        isTarget: line === 10,
+      })),
     });
   });
 

@@ -1403,6 +1403,22 @@ export interface components {
             data: components["schemas"]["AnalysisResponseDto"][];
             meta: Record<string, never>;
         };
+        SuggestedPatchDto: {
+            before: string;
+            after: string;
+            startLine?: number | null;
+            endLine?: number | null;
+        };
+        CodeContextLineDto: {
+            line: number;
+            content: string;
+            isTarget: boolean;
+        };
+        CodeContextDto: {
+            startLine: number;
+            endLine: number;
+            lines: components["schemas"]["CodeContextLineDto"][];
+        };
         ReportIssueDto: {
             id: string;
             severity: string;
@@ -1411,9 +1427,11 @@ export interface components {
             description: string;
             filePath: string;
             line?: number | null;
+            lineStart?: number | null;
+            lineEnd?: number | null;
             recommendation?: string | null;
-            suggestedPatch?: Record<string, never> | null;
-            codeContext?: Record<string, never> | null;
+            suggestedPatch?: components["schemas"]["SuggestedPatchDto"] | null;
+            codeContext?: components["schemas"]["CodeContextDto"] | null;
         };
         ReportExportDto: {
             /** @enum {string} */

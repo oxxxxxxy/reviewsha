@@ -553,6 +553,8 @@ type SuggestedPatch = { before: string; after: string; startLine?: number; endLi
 
 type ReportIssueForContext = {
   line?: number | null;
+  lineStart?: number | null;
+  lineEnd?: number | null;
   codeContext?: CodeContext | null;
   suggestedPatch?: SuggestedPatch | null;
 };
@@ -582,14 +584,24 @@ export function buildFindingCodeContext(issue: ReportIssueForContext): CodeConte
   if (!context && !patch) return null;
   if (!patch) return context;
 
-  const targetLine = issue.line ?? patch.startLine ?? patch.endLine ?? context?.startLine ?? 1;
+  const targetLine =
+    issue.lineStart ?? issue.line ?? patch.startLine ?? patch.endLine ?? context?.startLine ?? 1;
+  const targetEnd = issue.lineEnd ?? patch.endLine ?? patch.startLine ?? targetLine;
   const targetIndex =
-    context?.lines.findIndex((line) => line.isTarget || line.line === targetLine) ?? -1;
+    context?.lines.findIndex((line) => line.line >= targetLine && line.line <= targetEnd) ?? -1;
   const before = patch.before
-    ? [{ line: targetLine, content: patch.before, kind: 'removed' as const }]
+    ? patch.before.split(/\r?\n/).map((content, index) => ({
+        line: targetLine + index,
+        content,
+        kind: 'removed' as const,
+      }))
     : [];
   const after = patch.after
-    ? [{ line: targetLine, content: patch.after, kind: 'added' as const }]
+    ? patch.after.split(/\r?\n/).map((content, index) => ({
+        line: targetLine + index,
+        content,
+        kind: 'added' as const,
+      }))
     : [];
 
   if (context && targetIndex >= 0) {
@@ -598,7 +610,7 @@ export function buildFindingCodeContext(issue: ReportIssueForContext): CodeConte
       ...before,
       ...after,
       ...context.lines
-        .slice(targetIndex + 1)
+        .filter((line) => line.line > targetEnd)
         .map((line) => ({ ...line, kind: 'context' as const })),
     ];
     return {

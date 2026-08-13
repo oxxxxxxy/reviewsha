@@ -96,7 +96,10 @@ export class PromptBuilderService {
     maxTokens = 2_500,
     language: 'en' | 'ru' = 'ru',
   ): LLMRequest {
-    const request = this.build('quality', chunks, project, maxTokens, language);
+    const focused = chunks.filter(
+      (chunk) => chunk.type !== 'architecture' && chunk.filePaths.includes(filePath),
+    );
+    const request = this.build('quality', focused, project, maxTokens, language);
     return {
       ...request,
       prompt: `${request.prompt}\n\nFOCUS FILE\n${filePath}\nReview this file in depth against the complete supplied project context. Return exact issues for this file and a detailed prose summary of the file, including its purpose, strengths, risks, dependencies and recommendations.`,
@@ -130,7 +133,7 @@ export class PromptBuilderService {
         language === 'en'
           ? 'You are a senior developer and code reviewer. Return valid JSON only. Review every supplied file, do not invent issues, and write all prose fields in English.'
           : 'Ты опытный Senior Developer и Code Reviewer. Отвечай только валидным JSON. Проверяй каждый переданный файл, не выдумывай проблемы и пиши все текстовые поля на русском языке.',
-      prompt: `PROJECT CONTEXT\n${JSON.stringify(project)}\n\nTASK\n${languageTemplate}\n\nCODE (review every file and cite exact paths/lines)\n${code}\n\nREVIEW RULES\n- Cite the exact file path and smallest accurate line or range; never guess.\n- Explain the issue using supplied code.\n- When a safe deterministic change is possible, include suggestedPatch with exact before and complete after text; preserve indentation. Omit it when uncertain.\n\nOUTPUT FORMAT\n{"issues":[{"severity":"HIGH","category":"SECURITY","file":"path","line":1,"problem":"${language === 'en' ? 'specific problem and why it matters' : 'конкретная проблема и почему она важна'}","recommendation":"${language === 'en' ? 'concrete fix' : 'конкретное исправление'}","suggestedPatch":{"before":"exact original code","after":"complete replacement code","startLine":1,"endLine":1}}],"summary":"${language === 'en' ? 'detailed conclusion' : 'развёрнутый вывод'}", "strengths":["${language === 'en' ? 'what is done well' : 'что сделано хорошо'}"],"weaknesses":["${language === 'en' ? 'systemic risk' : 'системный риск'}"]}`,
+      prompt: `PROJECT CONTEXT\n${JSON.stringify(project)}\n\nTASK\n${languageTemplate}\n\nCODE (review every supplied file and cite exact paths/lines)\n${code}\n\nSTRICT LOCATION RULES\n- Every issue must refer to exactly one supplied file.\n- file must be the exact path after the FILE marker, never a prompt field, metadata field, project tree entry or another file.\n- Count source lines from the numbered file content, starting at 1.\n- Use lineStart and lineEnd for the complete problematic range. For one line they are equal.\n- suggestedPatch.before must be the exact text of lines lineStart..lineEnd from that same file. suggestedPatch.after is the complete replacement text.\n- Never copy JSON metadata, file lists, categories or prompt instructions into code fields.\n\nOUTPUT FORMAT\n{"issues":[{"severity":"HIGH","category":"SECURITY","file":"exact/path","line":1,"lineStart":1,"lineEnd":1,"problem":"${language === 'en' ? 'specific problem and why it matters' : 'конкретная проблема и почему она важна'}","recommendation":"${language === 'en' ? 'concrete fix' : 'конкретное исправление'}","suggestedPatch":{"before":"exact original lines from exact/path","after":"complete replacement text","startLine":1,"endLine":1}}],"summary":"${language === 'en' ? 'detailed conclusion' : 'развёрнутый вывод'}", "strengths":["${language === 'en' ? 'what is done well' : 'что сделано хорошо'}"],"weaknesses":["${language === 'en' ? 'systemic risk' : 'системный риск'}"]}`,
     };
   }
 }

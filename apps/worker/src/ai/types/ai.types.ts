@@ -13,6 +13,7 @@ export type AIFile = {
   language?: string;
   size: number;
   content?: string;
+  sourceContent?: string;
   role: AIFileRole;
 };
 export type AIProjectMetadata = {
@@ -54,9 +55,16 @@ export type AIReviewIssue = {
   severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';
   file: string;
   line?: number;
+  lineStart?: number;
+  lineEnd?: number;
   problem: string;
   recommendation: string;
-  suggestedPatch?: { before: string; after: string; startLine?: number; endLine?: number };
+  suggestedPatch?: {
+    before: string;
+    after: string;
+    startLine?: number;
+    endLine?: number;
+  };
   category?:
     'SECURITY' | 'BUG' | 'ARCHITECTURE' | 'PERFORMANCE' | 'QUALITY' | 'STYLE' | 'DOCUMENTATION';
 };

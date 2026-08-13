@@ -119,11 +119,21 @@ export class AIResponseValidator {
       const problem = item.problem ?? item.description ?? item.title;
       const recommendation = item.recommendation ?? item.fix ?? item.solution;
       const file = item.file ?? item.path ?? 'unknown';
+      const rawLineStart = item.startLine ?? item.lineStart ?? item.line;
+      const rawLineEnd = item.endLine ?? item.lineEnd ?? item.line ?? rawLineStart;
+      const lineStart = rawLineStart === undefined ? undefined : Number(rawLineStart);
+      const lineEnd = rawLineEnd === undefined ? undefined : Number(rawLineEnd);
       if (
         !['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].includes(severity) ||
         typeof file !== 'string' ||
         typeof problem !== 'string' ||
-        typeof recommendation !== 'string'
+        typeof recommendation !== 'string' ||
+        (lineStart !== undefined &&
+          (!Number.isInteger(lineStart) ||
+            lineStart < 1 ||
+            lineEnd === undefined ||
+            !Number.isInteger(lineEnd) ||
+            lineEnd < lineStart))
       )
         throw new Error('AI response has invalid fields');
       const rawPatch = item.suggestedPatch ?? item.patch ?? item.codeFix;
@@ -146,6 +156,7 @@ export class AIResponseValidator {
         file,
         problem,
         recommendation,
+        ...(lineStart !== undefined ? { line: lineStart, lineStart, lineEnd } : {}),
         ...(suggestedPatch ? { suggestedPatch } : {}),
         ...(item.category !== undefined && categories.includes(String(item.category).toUpperCase())
           ? { category: String(item.category).toUpperCase() }
