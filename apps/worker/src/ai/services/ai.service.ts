@@ -34,12 +34,23 @@ export class AIService {
       .trim()
       .replace(/^```(?:json)?\s*/iu, '')
       .replace(/\s*```$/u, '');
-    const parsed = JSON.parse(normalized) as { files?: unknown };
-    const files = Array.isArray(parsed.files)
+    let parsed: { files?: unknown; selection?: unknown };
+    try {
+      parsed = JSON.parse(normalized) as typeof parsed;
+    } catch {
+      const start = normalized.indexOf('{');
+      const end = normalized.lastIndexOf('}');
+      if (start < 0 || end <= start) throw new Error('AI file selection is not valid JSON');
+      parsed = JSON.parse(normalized.slice(start, end + 1)) as typeof parsed;
+    }
+    const candidates = Array.isArray(parsed.files)
       ? parsed.files
-          .filter((value): value is string => typeof value === 'string')
-          .slice(0, maxFiles)
-      : [];
+      : Array.isArray(parsed.selection)
+        ? parsed.selection
+        : [];
+    const files = candidates
+      .filter((value): value is string => typeof value === 'string')
+      .slice(0, maxFiles);
     return { response, result: { files } };
   }
 

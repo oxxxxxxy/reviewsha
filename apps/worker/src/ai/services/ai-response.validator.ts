@@ -13,15 +13,97 @@ export class AIResponseValidator {
     try {
       value = JSON.parse(normalized);
     } catch {
-      throw new Error('AI response is not valid JSON');
+      const start = normalized.indexOf('{');
+      const end = normalized.lastIndexOf('}');
+      if (start < 0 || end <= start) {
+        // Some development models ignore JSON mode and return a long plain-text
+        // review. Preserve that response as an explicit unstructured review so
+        // the pipeline can finish without inventing findings.
+        if (normalized.length >= 32) {
+          return {
+            issues: [],
+            summary: normalized.slice(0, 2000),
+            strengths: [],
+            weaknesses: ['Модель вернула неструктурированный ответ без массива issues.'],
+          };
+        }
+        throw new Error('AI response is not valid JSON');
+      }
+      try {
+        value = JSON.parse(normalized.slice(start, end + 1));
+      } catch {
+        throw new Error('AI response is not valid JSON');
+      }
     }
-    if (
-      !value ||
-      typeof value !== 'object' ||
-      !Array.isArray((value as { issues?: unknown }).issues)
-    )
+    if (!value || typeof value !== 'object')
       throw new Error('AI response must contain issues array');
-    const issues = (value as { issues: unknown[] }).issues.map((issue) => {
+    const object = value as Record<string, unknown>;
+    // Small local models sometimes wrap the same review in a prose-oriented
+    // `reviewSummary` object. Normalize that shape into the stable API
+    // contract instead of failing an otherwise usable review.
+    const wrapped = object.reviewSummary;
+    const reviewObject =
+      object.review && typeof object.review === 'object'
+        ? (object.review as Record<string, unknown>)
+        : undefined;
+    const nestedReview =
+      reviewObject ??
+      Object.values(object).find((candidate): candidate is Record<string, unknown> =>
+        Boolean(
+          candidate &&
+          typeof candidate === 'object' &&
+          Array.isArray((candidate as Record<string, unknown>).issues),
+        ),
+      );
+    const issuesSource = Array.isArray(object.issues)
+      ? object.issues
+      : Array.isArray(nestedReview?.issues)
+        ? nestedReview.issues
+        : wrapped && typeof wrapped === 'object'
+          ? [wrapped]
+          : undefined;
+    if (!issuesSource) {
+      const hasReviewSignals =
+        'review' in object ||
+        'reviewSummary' in object ||
+        'overallAssessment' in object ||
+        'summary' in object ||
+        Array.isArray(object.files) ||
+        Array.isArray(object.selection);
+      if (!hasReviewSignals && !(nestedReview && typeof nestedReview.summary === 'string'))
+        throw new Error('AI response must contain issues array');
+      return {
+        issues: [],
+        summary:
+          typeof object.summary === 'string'
+            ? object.summary
+            : typeof nestedReview?.summary === 'string'
+              ? nestedReview.summary
+              : Array.isArray(object.files) || Array.isArray(object.selection)
+                ? 'Модель вернула список выбранных файлов вместо структурированного ревью.'
+                : 'Модель вернула обзор без структурированных findings.',
+        strengths: [],
+        weaknesses: ['Ответ модели не содержит структурированный массив issues.'],
+      };
+    }
+    const summary =
+      typeof object.summary === 'string'
+        ? object.summary
+        : typeof nestedReview?.summary === 'string'
+          ? nestedReview.summary
+          : wrapped &&
+              typeof wrapped === 'object' &&
+              typeof (wrapped as Record<string, unknown>).problem === 'string'
+            ? String((wrapped as Record<string, unknown>).problem)
+            : undefined;
+    const assessment =
+      (object.overallAssessment && typeof object.overallAssessment === 'object'
+        ? object.overallAssessment
+        : nestedReview?.overallAssessment) &&
+      typeof (object.overallAssessment ?? nestedReview?.overallAssessment) === 'object'
+        ? ((object.overallAssessment ?? nestedReview?.overallAssessment) as Record<string, unknown>)
+        : undefined;
+    const issues = issuesSource.map((issue) => {
       if (!issue || typeof issue !== 'object') throw new Error('AI response has invalid fields');
       const item = issue as Record<string, unknown>;
       const categories = [
@@ -70,12 +152,19 @@ export class AIResponseValidator {
           : {}),
       } as unknown as AIReviewResult['issues'][number];
     });
-    const result = value as Record<string, unknown>;
     return {
       issues,
-      summary: typeof result.summary === 'string' ? result.summary : undefined,
-      strengths: Array.isArray(result.strengths) ? (result.strengths as string[]) : [],
-      weaknesses: Array.isArray(result.weaknesses) ? (result.weaknesses as string[]) : [],
+      summary,
+      strengths: Array.isArray(object.strengths)
+        ? (object.strengths as string[])
+        : Array.isArray(assessment?.strengths)
+          ? (assessment.strengths as string[])
+          : [],
+      weaknesses: Array.isArray(object.weaknesses)
+        ? (object.weaknesses as string[])
+        : Array.isArray(assessment?.weaknesses)
+          ? (assessment.weaknesses as string[])
+          : [],
     };
   }
 }

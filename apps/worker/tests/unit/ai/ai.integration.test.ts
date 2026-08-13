@@ -24,8 +24,69 @@ describe('AI integration layer', () => {
     ).toHaveLength(1));
   it('rejects invalid JSON', () =>
     expect(() => new AIResponseValidator().parse('text')).toThrow('valid JSON'));
+  it('normalizes a long unstructured development-model response', () => {
+    expect(
+      new AIResponseValidator().parse(
+        'The model reviewed the selected files and found no actionable findings in the available project context.',
+      ),
+    ).toMatchObject({ issues: [] });
+  });
+  it('extracts a JSON review surrounded by model commentary', () => {
+    expect(
+      new AIResponseValidator().parse(
+        'I will review this file. {"issues":[],"summary":"ok"} Done.',
+      ),
+    ).toMatchObject({ issues: [], summary: 'ok' });
+  });
+  it('keeps a valid prose review with no structured findings', () => {
+    expect(
+      new AIResponseValidator().parse(
+        JSON.stringify({ review: { summary: 'No actionable findings.' } }),
+      ),
+    ).toMatchObject({ issues: [], summary: 'No actionable findings.' });
+  });
+  it('does not fail the pipeline when a weak model repeats file selection', () => {
+    expect(new AIResponseValidator().parse(JSON.stringify({ files: ['a.ts'] }))).toMatchObject({
+      issues: [],
+    });
+  });
   it('rejects a response without issues', () =>
     expect(() => new AIResponseValidator().parse('{}')).toThrow('issues array'));
+  it('normalizes the wrapped review shape returned by small local models', () => {
+    expect(
+      new AIResponseValidator().parse(
+        JSON.stringify({
+          reviewSummary: {
+            severity: 'HIGH',
+            category: 'SECURITY',
+            file: 'a.ts',
+            line: 1,
+            problem: 'unsafe input',
+            recommendation: 'validate input',
+          },
+          overallAssessment: { strengths: ['clear'], weaknesses: ['missing validation'] },
+        }),
+      ),
+    ).toMatchObject({
+      issues: [{ file: 'a.ts', severity: 'HIGH' }],
+      strengths: ['clear'],
+      weaknesses: ['missing validation'],
+    });
+  });
+  it('accepts a selection array returned as selection by small local models', async () => {
+    const provider = {
+      generate: vi.fn().mockResolvedValue({
+        content: '{"selection":["a.ts","b.ts"]}',
+        model: 'mock',
+        promptTokens: 1,
+        completionTokens: 1,
+        totalTokens: 2,
+      }),
+    };
+    await expect(
+      new AIService(provider as never, new AIResponseValidator()).selectFiles(request, 3),
+    ).resolves.toMatchObject({ result: { files: ['a.ts', 'b.ts'] } });
+  });
   it('rejects invalid severity', () =>
     expect(() =>
       new AIResponseValidator().parse(
