@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ReportFormat, Role } from '@prisma/client';
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 import PDFDocument from 'pdfkit';
 import { fromBuffer } from 'yauzl';
 import { ZipFile } from 'yazl';
@@ -410,6 +411,14 @@ export class ReportsService {
 
   private pdf(report: DetailedReport): Promise<Buffer> {
     const document = new PDFDocument({ autoFirstPage: true, margin: 50 });
+    // PDFKit's built-in fonts are WinAnsi-only and turn Cyrillic into mojibake.
+    // Use an embedded Unicode font in the container and keep a portable fallback
+    // for environments where the system font package is not installed yet.
+    const unicodeFont = [
+      '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+      '/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf',
+    ].find((path) => existsSync(path));
+    if (unicodeFont) document.font(unicodeFont);
     const chunks: Buffer[] = [];
     document.on('data', (chunk: Buffer) => chunks.push(chunk));
     const finished = new Promise<Buffer>((resolve, reject) => {
