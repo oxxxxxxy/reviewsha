@@ -417,6 +417,8 @@ export class ReportsService {
     const unicodeFont = [
       '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
       '/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf',
+      '/usr/share/fonts/truetype/freefont/FreeSans.otf',
+      '/app/fonts/FreeSans.otf',
     ].find((path) => existsSync(path));
     if (unicodeFont) document.font(unicodeFont);
     const chunks: Buffer[] = [];
