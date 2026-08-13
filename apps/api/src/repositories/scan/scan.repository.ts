@@ -49,7 +49,7 @@ export class ScanRepository extends BaseRepository<Scan> implements IScanReposit
     for (const request of requests) {
       latest.set(request.chunkId ?? request.id, request);
     }
-    const values = [...latest.values()];
+    const values = [...latest.values()].filter((request) => request.chunkId !== 'file-selection');
     return {
       total: values.length,
       completed: values.filter((request) => request.status === 'COMPLETED').length,

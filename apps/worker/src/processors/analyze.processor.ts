@@ -146,20 +146,104 @@ export class AnalyzeProcessor implements JobHandler {
       ),
     );
     let selectedPaths = filePaths.slice(0, maxAnalysisFiles);
-    if (mergeFiles && filePaths.length > maxAnalysisFiles) {
+    if (mergeFiles) {
+      await this.db.scan.update({ where: { id: scan.id }, data: { progress: 61 } });
+      const selectionKey = 'file-selection';
+      const selectionPrompt = this.prompts.buildFileSelection(
+        (context.structure ?? filePaths).map((path) => ({
+          path,
+          preview: sourceFiles.find((file) => file.path === path)?.content?.slice(0, 100),
+        })),
+        maxAnalysisFiles,
+        scan.reviewLanguage === 'en' ? 'en' : 'ru',
+      );
+      let selectionRequest = await this.db.aIRequest.findFirst({
+        where: { scanId: scan.id, chunkId: selectionKey },
+        orderBy: { createdAt: 'desc' },
+      });
       try {
-        const selection = await this.ai.selectFiles(
-          this.prompts.buildFileSelection(
-            context.structure ?? filePaths,
-            maxAnalysisFiles,
-            scan.reviewLanguage === 'en' ? 'en' : 'ru',
-          ),
-          maxAnalysisFiles,
-        );
+        if (selectionRequest?.status === AIRequestStatus.COMPLETED) {
+          const saved = await this.db.aIResponse.findUnique({
+            where: { requestId: selectionRequest.id },
+          });
+          const savedResult = saved?.result as { files?: unknown } | null;
+          const savedFiles = Array.isArray(savedResult?.files)
+            ? savedResult.files.filter((path): path is string => typeof path === 'string')
+            : [];
+          if (savedFiles.length) selectedPaths = savedFiles.slice(0, maxAnalysisFiles);
+        } else {
+          selectionRequest = selectionRequest
+            ? await this.db.aIRequest.update({
+                where: { id: selectionRequest.id },
+                data: {
+                  provider: 'omnirouter',
+                  model: this.config.getOrThrow<string>('worker.aiModel'),
+                  prompt: selectionPrompt.prompt,
+                  status: AIRequestStatus.SENT,
+                  error: null,
+                  completedAt: null,
+                },
+              })
+            : await this.db.aIRequest.create({
+                data: {
+                  scanId: scan.id,
+                  userId: scan.createdById,
+                  provider: 'omnirouter',
+                  model: this.config.getOrThrow<string>('worker.aiModel'),
+                  chunkId: selectionKey,
+                  prompt: selectionPrompt.prompt,
+                  status: AIRequestStatus.SENT,
+                },
+              });
+          const selection = await this.ai.selectFiles(selectionPrompt, maxAnalysisFiles);
+          await this.db.aIRequest.update({
+            where: { id: selectionRequest.id },
+            data: {
+              status: AIRequestStatus.COMPLETED,
+              promptTokens: selection.response.promptTokens,
+              completionTokens: selection.response.completionTokens,
+              totalTokens: selection.response.totalTokens,
+              completedAt: new Date(),
+            },
+          });
+          await this.db.aIResponse.upsert({
+            where: { requestId: selectionRequest.id },
+            create: {
+              requestId: selectionRequest.id,
+              content: selection.response.content,
+              result: selection.result as unknown as Prisma.InputJsonValue,
+              promptTokens: selection.response.promptTokens,
+              completionTokens: selection.response.completionTokens,
+              totalTokens: selection.response.totalTokens,
+            },
+            update: {
+              content: selection.response.content,
+              result: selection.result as unknown as Prisma.InputJsonValue,
+              promptTokens: selection.response.promptTokens,
+              completionTokens: selection.response.completionTokens,
+              totalTokens: selection.response.totalTokens,
+            },
+          });
+          selectedPaths = selection.result.files.slice(0, maxAnalysisFiles);
+          await this.db.scan.update({ where: { id: scan.id }, data: { progress: 65 } });
+        }
         const allowed = new Set(filePaths);
-        const selected = selection.result.files.filter((path) => allowed.has(path));
-        if (selected.length) selectedPaths = selected;
+        const selected = selectedPaths.filter((path) => allowed.has(path));
+        // A malformed model response must never erase the deterministic
+        // fallback selection. Keep only paths that are present in the
+        // extracted project and fall back when the model returned none.
+        selectedPaths = selected.length ? selected : filePaths.slice(0, maxAnalysisFiles);
       } catch (error) {
+        if (selectionRequest) {
+          await this.db.aIRequest.update({
+            where: { id: selectionRequest.id },
+            data: {
+              status: AIRequestStatus.FAILED,
+              error: error instanceof Error ? error.message : 'Unknown file selection error',
+              completedAt: new Date(),
+            },
+          });
+        }
         this.logger.warn(
           `File selection failed; using deterministic top files: ${error instanceof Error ? error.message : 'unknown'}`,
           'AnalyzeProcessor',
@@ -195,7 +279,7 @@ export class AnalyzeProcessor implements JobHandler {
         where: { userId: scan.createdById, createdAt: { gte: startOfDay } },
       });
       const dailyLimit = this.config.get<number>('worker.aiDailyRequestLimit', 500);
-      if (requestsToday + reviewTasks.length > dailyLimit) {
+      if (requestsToday + reviewTasks.length + (mergeFiles ? 1 : 0) > dailyLimit) {
         throw new Error('AI_DAILY_REQUEST_LIMIT_EXCEEDED');
       }
     }
@@ -242,7 +326,7 @@ export class AnalyzeProcessor implements JobHandler {
             await this.db.scan.update({
               where: { id: scan.id },
               data: {
-                progress: 60 + Math.floor((completedReviews / reviewTasks.length) * 25),
+                progress: 65 + Math.floor((completedReviews / reviewTasks.length) * 20),
               },
             });
             return {
@@ -309,9 +393,9 @@ export class AnalyzeProcessor implements JobHandler {
           await this.db.scan.update({
             where: { id: scan.id },
             data: {
-              // 60% is parsing complete; 25% is distributed over the
-              // project review plus one focused review per source file.
-              progress: 60 + Math.floor((completedReviews / reviewTasks.length) * 25),
+              // 65% is reached after file selection; 20% is distributed over
+              // the merged project review.
+              progress: 65 + Math.floor((completedReviews / reviewTasks.length) * 20),
             },
           });
           return { result: generated.result, tokens: generated.response.totalTokens, filePath };

@@ -47,6 +47,11 @@ describe('ChunkBuilderService', () => {
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({ type: 'file', path: 'a.ts', filePaths: ['a.ts'] });
   });
+  it('numbers source lines in review chunks', () => {
+    const result = builder.build([file('src/main.ts', 'const first = 1;\nconst second = 2;')]);
+    expect(result[0]?.content).toContain('   1 | const first = 1;');
+    expect(result[0]?.content).toContain('   2 | const second = 2;');
+  });
   it('groups files until token limit', () => {
     const result = builder.build(
       [file('auth/a.ts', 'a'.repeat(20)), file('auth/b.ts', 'b'.repeat(20))],
@@ -135,23 +140,41 @@ describe('PromptBuilderService', () => {
       ]).prompt,
     ).not.toContain('secret-id'));
   it('builds a tree-only file selection prompt', () => {
-    const result = builder.buildFileSelection(['src/main.ts', 'src/auth.service.ts'], 3, 'en');
+    const result = builder.buildFileSelection(
+      [
+        { path: 'src/main.ts', preview: 'const app = createApp();' },
+        { path: 'src/auth.service.ts', preview: 'export class AuthService {}' },
+      ],
+      3,
+      'en',
+    );
     expect(result.prompt).toContain('src/main.ts');
     expect(result.prompt).toContain('Select up to 3');
-    expect(result.prompt).not.toContain('const value');
+    expect(result.prompt).toContain('const app = createApp();');
+    expect(result.prompt).toContain('PROJECT FILE TREE AND FIRST 100 CHARACTERS');
   });
   it('builds one merged prompt for selected files', () => {
     const result = builder.buildMergedProjectReview([
       {
+        id: 'architecture',
+        type: 'architecture',
+        path: 'project://architecture',
+        content: JSON.stringify({ structure: ['src/main.ts', 'README.md'] }),
+        tokens: 200,
+        filePaths: ['src/main.ts', 'README.md'],
+      },
+      {
         id: '1',
         type: 'file',
         path: 'src/main.ts',
-        content: '1 | const x = 1;',
+        content: '   1 | const x = 1;\n   2 | return x;',
         tokens: 5,
         filePaths: ['src/main.ts'],
       },
     ]);
     expect(result.prompt).toContain('MERGED HIGH-SIGNAL REVIEW');
     expect(result.prompt).toContain('src/main.ts');
+    expect(result.prompt).toContain('const x = 1;');
+    expect(result.prompt).toContain('PROJECT TREE AND METADATA');
   });
 });

@@ -707,7 +707,11 @@ function ProjectDetails({ projectId }: { projectId: string }) {
                     <span style={{ width: `${current.progress}%` }} />
                   </div>
                   <p className="analysis-progress-label">
-                    {current.currentStep ?? 'Queued'}
+                    {current.currentStep === 'ANALYZE' && current.progress < 65
+                      ? 'Selecting the most important files'
+                      : current.currentStep === 'ANALYZE' && current.progress < 85
+                        ? 'Reviewing the selected files'
+                        : (current.currentStep ?? 'Queued')}
                     {total
                       ? current.progress === 100 && completed < total
                         ? ` · pipeline finished, ${completed}/${total} AI reviews returned`

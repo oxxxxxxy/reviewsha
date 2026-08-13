@@ -56,7 +56,7 @@ export class ChunkBuilderService {
   }
   private makeChunk(files: AIFile[], type: AIChunkType): AIChunk {
     const content = files
-      .map((file) => `// FILE: ${file.path}\n${file.content ?? ''}`)
+      .map((file) => `// FILE: ${file.path}\n${this.withLineNumbers(file.content ?? '')}`)
       .join('\n\n');
     return {
       id: randomUUID(),
@@ -70,5 +70,12 @@ export class ChunkBuilderService {
   }
   private commonPath(paths: string[]): string {
     return paths[0]?.split('/').slice(0, -1).join('/') || 'project';
+  }
+
+  private withLineNumbers(content: string): string {
+    return content
+      .split(/\r?\n/u)
+      .map((line, index) => `${String(index + 1).padStart(4, ' ')} | ${line}`)
+      .join('\n');
   }
 }

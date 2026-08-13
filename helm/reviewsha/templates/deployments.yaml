@@ -30,6 +30,17 @@ spec:
                     app.kubernetes.io/component: {{ $name }}
       imagePullSecrets:
 {{- toYaml $.Values.imagePullSecrets | nindent 8 }}
+      {{- if and (eq $name "worker") $.Values.worker.persistence.enabled }}
+      initContainers:
+        - name: prepare-worker-workspace
+          image: busybox:1.36
+          command: ["sh", "-c", "mkdir -p /tmp/reviewsha/jobs && chown -R 10001:10001 /tmp/reviewsha"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: worker-workspace
+              mountPath: /tmp/reviewsha
+      {{- end }}
       containers:
         - name: {{ $name }}
           image: "{{ (index $.Values.images $name).repository }}:{{ (index $.Values.images $name).tag }}"
@@ -61,6 +72,10 @@ spec:
           {{- end }}
           resources:
 {{- toYaml (default dict (index $.Values.resources $name)) | nindent 12 }}
+      {{- if and (eq $name "worker") $.Values.worker.persistence.enabled }}
+      securityContext:
+        fsGroup: 10001
+      {{- end }}
       {{- if and (eq $name "worker") $.Values.worker.persistence.enabled }}
       volumes:
         - name: worker-workspace

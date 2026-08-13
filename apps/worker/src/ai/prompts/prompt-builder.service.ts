@@ -26,8 +26,19 @@ const englishTemplates: Record<Exclude<AITask, 'chat'>, string> = {
 
 @Injectable()
 export class PromptBuilderService {
-  buildFileSelection(structure: string[], maxFiles = 3, language: 'en' | 'ru' = 'ru'): LLMRequest {
+  buildFileSelection(
+    files: Array<{ path: string; preview?: string }> | string[],
+    maxFiles = 3,
+    language: 'en' | 'ru' = 'ru',
+  ): LLMRequest {
     const english = language === 'en';
+    const fileIndex = files
+      .map((file) =>
+        typeof file === 'string'
+          ? `${file}\n  ${english ? 'preview unavailable' : 'превью недоступно'}`
+          : `${file.path}\n  ${file.preview?.slice(0, 100) || (english ? 'preview unavailable' : 'превью недоступно')}`,
+      )
+      .join('\n');
     return {
       task: 'architecture',
       chunks: [],
@@ -35,7 +46,7 @@ export class PromptBuilderService {
       system: english
         ? 'You are a senior code-review architect. Return valid JSON only.'
         : 'Ты архитектор ревью кода. Отвечай только валидным JSON.',
-      prompt: `${english ? 'PROJECT FILE TREE' : 'ДЕРЕВО ФАЙЛОВ ПРОЕКТА'}\n${structure.join('\n')}\n\n${
+      prompt: `${english ? 'PROJECT FILE TREE AND FIRST 100 CHARACTERS' : 'ДЕРЕВО ФАЙЛОВ ПРОЕКТА И ПЕРВЫЕ 100 СИМВОЛОВ'}\n${fileIndex}\n\n${
         english
           ? `Select up to ${maxFiles} most important source files for a high-signal first review. Prefer entrypoints, business logic, auth, data access and configuration. Return only {"files":["exact/path"]}.`
           : `Выбери до ${maxFiles} самых важных исходных файлов для первого содержательного ревью. Приоритет: точки входа, бизнес-логика, auth, доступ к данным и конфигурация. Верни только {"files":["точный/путь"]}.`
@@ -49,10 +60,19 @@ export class PromptBuilderService {
     maxTokens = 2_500,
     language: 'en' | 'ru' = 'ru',
   ): LLMRequest {
-    const request = this.build('architecture', chunks, project, maxTokens, language);
+    // Keep the source chunks ahead of the architecture metadata. The generic
+    // builder is intentionally token-bounded and would otherwise spend the
+    // whole budget on the project://architecture chunk, leaving the model
+    // with no actual source code to review.
+    const architecture = chunks.find((chunk) => chunk.type === 'architecture');
+    const sourceChunks = chunks.filter((chunk) => chunk.type !== 'architecture');
+    const request = this.build('architecture', sourceChunks, project, maxTokens, language);
+    const tree = architecture?.content
+      ? `\n\nPROJECT TREE AND METADATA\n${architecture.content}`
+      : '';
     return {
       ...request,
-      prompt: `${request.prompt}\n\nMERGED HIGH-SIGNAL REVIEW\nThe supplied files were selected from the project tree. Review each supplied file separately inside one JSON response, but do not invent findings for files that were not supplied. Include the exact file path and line for every issue.`,
+      prompt: `${request.prompt}${tree}\n\nMERGED HIGH-SIGNAL REVIEW\nThe supplied source files were selected from the project tree. Their complete supplied contents are the primary review input. Review each supplied file separately inside one JSON response, but do not invent findings for files that were not supplied. Include the exact file path and line for every issue.`,
     };
   }
 

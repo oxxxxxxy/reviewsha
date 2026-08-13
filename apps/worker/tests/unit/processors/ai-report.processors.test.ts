@@ -47,11 +47,15 @@ describe('AI and report processors', () => {
     await mkdir(join(paths.extracted, 'src'), { recursive: true });
     await mkdir(paths.output, { recursive: true });
     await writeFile(join(paths.extracted, 'src/app.ts'), 'export const value = 1;\n');
+    await writeFile(join(paths.extracted, 'src/other.ts'), 'export const other = 2;\n');
     await writeFile(
       join(paths.output, 'context.json'),
       JSON.stringify({
-        files: [{ path: 'src/app.ts', language: 'TypeScript', size: 24 }],
-        structure: ['src/app.ts'],
+        files: [
+          { path: 'src/app.ts', language: 'TypeScript', size: 24 },
+          { path: 'src/other.ts', language: 'TypeScript', size: 24 },
+        ],
+        structure: ['src/app.ts', 'src/other.ts'],
         languages: ['TypeScript'],
         statistics: { files: 1 },
       }),
@@ -79,11 +83,18 @@ describe('AI and report processors', () => {
         },
         aIRequest: {
           count: vi.fn().mockResolvedValue(0),
-          findFirst: vi.fn().mockResolvedValue(null),
+          findFirst: vi.fn(({ where }: { where: { chunkId?: string } }) =>
+            where.chunkId === 'file-selection'
+              ? Promise.resolve({ id: 'selection-1', status: AIRequestStatus.COMPLETED })
+              : Promise.resolve(null),
+          ),
           create: requestCreate,
           update: requestUpdate,
         },
-        aIResponse: { upsert: responseUpsert, findUnique: vi.fn().mockResolvedValue(null) },
+        aIResponse: {
+          upsert: responseUpsert,
+          findUnique: vi.fn().mockResolvedValue({ result: { files: ['src/app.ts'] } }),
+        },
         aIUsage: { upsert: vi.fn() },
         analysisContext: { findFirst: vi.fn().mockResolvedValue(null), upsert: vi.fn() },
       } as never,
@@ -171,16 +182,23 @@ describe('AI and report processors', () => {
         },
         aIRequest: {
           count: vi.fn().mockResolvedValue(0),
-          findFirst: requestFind,
+          findFirst: (args: { where: { chunkId?: string } }) =>
+            args.where.chunkId === 'file-selection'
+              ? Promise.resolve({ id: 'selection-request', status: AIRequestStatus.COMPLETED })
+              : requestFind(args),
           create: requestCreate,
           update: requestUpdate,
         },
         aIResponse: {
           upsert: vi.fn(),
-          findUnique: vi.fn().mockResolvedValue({
-            result: { issues: [], summary: 'cached project review' },
-            totalTokens: 7,
-          }),
+          findUnique: vi.fn(({ where }: { where: { requestId: string } }) =>
+            where.requestId === 'selection-request'
+              ? Promise.resolve({ result: { files: ['src/app.ts'] }, totalTokens: 7 })
+              : Promise.resolve({
+                  result: { issues: [], summary: 'cached project review' },
+                  totalTokens: 7,
+                }),
+          ),
         },
         aIUsage: { upsert: vi.fn() },
         analysisContext: { findFirst: vi.fn().mockResolvedValue(null), upsert: vi.fn() },

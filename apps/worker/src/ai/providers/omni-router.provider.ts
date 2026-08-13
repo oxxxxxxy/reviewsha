@@ -196,6 +196,13 @@ export class OmniRouterProvider implements AIProvider {
         stream,
         ...(stream ? { stream_options: { include_usage: true } } : {}),
         reasoning_effort: 'low',
+        // The local llama.cpp MiniCPM endpoint otherwise spends the entire
+        // completion budget in `reasoning_content` and leaves message.content
+        // empty.  Disable thinking for this development model so the JSON
+        // review contract is returned in the normal content field.
+        ...(settings.baseUrl.includes('192.168.0.104:8080')
+          ? { chat_template_kwargs: { enable_thinking: false } }
+          : {}),
         messages: [
           { role: 'system', content: request.system },
           { role: 'user', content: request.prompt },
